@@ -6,8 +6,9 @@ import fetch from 'node-fetch';
 const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // --- CONSTANTES DE MENSAJE ---
-const moneda = global.moneda || 'Coin'; 
-const emoji = '📊'; // Usamos un emoji más acorde al mercado
+const moneda = global.moneda || 'Coin'; // Esto debería ser 'Deniques'
+const DENIQUES_CODE = 'ELL'; // Asumiendo que el código de Deniques es ELL
+const emoji = '📊'; 
 const emoji2 = '❌';
 
 // --- FUNCIÓN PRINCIPAL DEL HANDLER ---
@@ -33,7 +34,8 @@ async function handler(m, { conn, usedPrefix, command }) {
 
         // 2. Procesar los datos y construir el mensaje
         let message = `${emoji} *— Mercado de Divisas CypherTrans —*\n\n`;
-        message += `El mercado se valora con respecto a 1 ${moneda}.\n`;
+        message += `Base de Conversión: *${moneda} (${DENIQUES_CODE})*\n`;
+        message += `_Muestra cuántos Deniques equivalen a 1 unidad de otra divisa._\n`;
         message += `Los valores se actualizan constantemente.\n\n`;
         
         // Iterar sobre las divisas
@@ -50,8 +52,11 @@ async function handler(m, { conn, usedPrefix, command }) {
             const separator = (counter > 1) ? `\n———————————————————` : ``;
 
             message += `${separator}\n`;
-            message += `🏦 *Moneda:* ${key.toUpperCase()} (${code})\n`;
-            message += `💵 *Valor de Cambio:* ${fluctuationEmoji} *${value.toFixed(4)}* ${moneda}s\n`;
+            message += `🏦 *Divisa:* ${key.toUpperCase()} (${code})\n`;
+            
+            // CAMBIO CLAVE: Explicita la comparación 1:N
+            message += `💵 *Tasa:* 1 ${code} = ${fluctuationEmoji} *${value.toFixed(4)}* ${moneda}s\n`;
+            
             message += `📊 *Volumen:* ${usage} Transacciones\n`;
         }
         
