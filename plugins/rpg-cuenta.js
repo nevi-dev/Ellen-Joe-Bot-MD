@@ -143,12 +143,11 @@ async function handler(m, { conn, usedPrefix, command }) {
         user.cypherTransAccount = userAccount;
         
         // 2. MANTENER el balance LOCAL (user.bank) como la fuente de verdad.
-        // No se hace ninguna asignación a user.bank aquí para proteger el dinero.
         
         // Notificar si fue una nueva creación
         if (isNewAccount) {
-            // Este mensaje ya incluye el número, pero lo enviaremos de nuevo más tarde para copiar
-            await conn.sendMessage(m.chat, {text: `${emoji} *¡Cuenta CypherTrans creada con éxito!*\n\n*Tu cuenta es:* \`${userAccount}\``}, {quoted: m});
+            // CAMBIO: Ahora solo notifica el éxito, el número se envía al final para facilitar la copia.
+            await conn.sendMessage(m.chat, {text: `${emoji} *¡Cuenta CypherTrans creada con éxito!*\nRecibirás tu número de cuenta a continuación.`}, {quoted: m});
         }
     } else {
         const errorMsg = accountResponse.data.error || 'Error desconocido al crear/obtener la cuenta.';
@@ -162,7 +161,7 @@ async function handler(m, { conn, usedPrefix, command }) {
                          `*Balance en Bot/Banco:* ${currentLocalBalance.toFixed(2)} ${moneda}\n` + 
                          `*Hash del Bot:* \`${botHash.substring(0, 15)}...\`\n` +
                          `*Prefijo de Bot (ID):* ${BOT_KEY_PREFIX}\n\n` +
-                         `_Usa el número de cuenta (en el mensaje siguiente) para recibir transferencias de cualquier bot CypherTrans._`;
+                         `_Tu número de cuenta está en el mensaje siguiente para que lo copies fácilmente._`;
     
     // Enviamos el mensaje principal
     await conn.sendMessage(m.chat, { text: finalMessage }, { quoted: m });
@@ -170,8 +169,8 @@ async function handler(m, { conn, usedPrefix, command }) {
     // =========================================================
     // 4. Mandar el número de cuenta aparte (Para fácil copiado)
     // =========================================================
-    const accountMessage = `📋 *TU NÚMERO DE CUENTA (Toca para copiar):*\n\n` +
-                           `\`\`\`\n${userAccount}\n\`\`\``; // Usar triple comilla para bloque de código
+    // CAMBIO CLAVE: El mensaje es solo el número de cuenta.
+    const accountMessage = userAccount; 
 
     return conn.sendMessage(m.chat, { text: accountMessage }, { quoted: m });
 }
