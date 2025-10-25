@@ -6,6 +6,7 @@ import path from 'path';
 
 // --- CONFIGURACIÓN DE CYPHERTRANS (Debe coincidir con el handler de pay/transfer) ---
 const HASH_FILE_PATH = './src/hash.json'; 
+// ASEGÚRATE DE QUE ESTA URL ES CORRECTA:
 const API_URL = 'https://cyphertrans.duckdns.org'; 
 // --- LA CLAVE API Y EL PREFIJO DE ESTE BOT (Fijos) ---
 const BOT_API_KEY = 'ellen';
@@ -35,7 +36,7 @@ async function getBotHashFromFile() {
 async function saveBotHashToFile(hash) {
     try {
         const fullPath = path.join(process.cwd(), HASH_FILE_PATH);
-        await fs.mkdir(path.dirname(fullPath), { recursive: true });
+        await fs.mkdir(path.dirname(fullPath), { recursive: true }); // Asegura que la carpeta exista
         await fs.writeFile(fullPath, JSON.stringify({ bot_hash: hash }, null, 2), 'utf-8');
         console.log(`[CypherTrans] Bot Hash guardado: ${hash}`);
     } catch (error) {
@@ -64,7 +65,7 @@ async function getBotHashAPI(apiKey) {
 }
 
 /** * Llama a la API para crear una cuenta de usuario o devolver la existente.
- * Esto siempre debe ser llamado para obtener el balance actualizado.
+ * Esto siempre debe ser llamado para confirmar el número de cuenta.
  */
 async function getOrCreateUserAccountAPI(botHash, userNumber) { 
     try {
@@ -73,7 +74,7 @@ async function getOrCreateUserAccountAPI(botHash, userNumber) { 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 bot_hash: botHash,
-                user_jid: userNumber // Número sin @s.whatsapp.net
+                user_jid: userNumber // El número sin @s.whatsapp.net
             })
         });
 
@@ -90,11 +91,13 @@ async function getOrCreateUserAccountAPI(botHash, userNumber) { 
 async function handler(m, { conn, usedPrefix, command }) {
     const user = global.db.data.users[m.sender];
     const jid = m.sender;
-    const userNumber = jid.split('@')[0];
+    const userNumber = jid.split('@')[0]; // ✅ Extracción del número sin @
     let botHash = await getBotHashFromFile();
     let userAccount = user.cypherTransAccount;
-    let balance = user.bank; // Usar el balance local como fallback
     let isNewAccount = false;
+    
+    // El balance siempre será el del bot/banco local
+    const currentLocalBalance = user.bank || 0; 
 
     // =========================================================
     // 1. Verificar y Obtener Hash del Bot (Autoregistro)
@@ -120,28 +123,28 @@ async function handler(m, { conn, usedPrefix, command }) {
 
 
     // =========================================================
-    // 2. Obtener/Crear Cuenta del Usuario y Actualizar Balance
+    // 2. Obtener/Crear Cuenta del Usuario y Sincronizar Número
     // =========================================================
     if (!userAccount) {
         await conn.sendMessage(m.chat, {text: `⏳ *Creando tu cuenta CypherTrans...*`}, {quoted: m});
         isNewAccount = true;
     } else {
-        // Mensaje de actualización para cuenta ya existente
-        await conn.sendMessage(m.chat, {text: `⏳ *Actualizando datos de tu cuenta...*`}, {quoted: m});
+        await conn.sendMessage(m.chat, {text: `⏳ *Verificando número de cuenta...*`}, {quoted: m});
     }
 
-    // CORRECCIÓN CLAVE: LLAMAR A LA API SIEMPRE
+    // 🔑 LLAMAR SIEMPRE a la API para asegurar que la cuenta exista y obtener el número completo.
     const accountResponse = await getOrCreateUserAccountAPI(botHash, userNumber); 
 
     if (accountResponse.status === 200 && accountResponse.data.account_number) {
         const apiData = accountResponse.data;
         
-        // Actualizar datos locales con la respuesta de la API
+        // 1. Sincronizar el número de cuenta local (¡siempre!)
         userAccount = apiData.account_number;
-        balance = apiData.balance; // Usar el balance DE LA API
         user.cypherTransAccount = userAccount;
-        user.bank = balance; // Opcional, pero bueno para la consistencia
         
+        // 2. MANTENER el balance LOCAL (user.bank) como la fuente de verdad.
+        // No se hace ninguna asignación a user.bank aquí para proteger el dinero.
+        
         // Notificar si fue una nueva creación
         if (isNewAccount) {
             await conn.sendMessage(m.chat, {text: `${emoji} *¡Cuenta CypherTrans creada con éxito!*\n\n*Tu cuenta es:* \`${userAccount}\``}, {quoted: m});
@@ -156,7 +159,7 @@ async function handler(m, { conn, usedPrefix, command }) {
     // =========================================================
     const finalMessage = `👤 *Mis Datos de Cuenta CypherTrans*\n\n` +
                          `${emoji} *Número de Cuenta:*\n\`${userAccount}\`\n\n` +
-                         `*Balance CypherTrans:* ${balance.toFixed(2)} ${moneda}\n` + 
+                         `*Balance en Bot/Banco:* ${currentLocalBalance.toFixed(2)} ${moneda}\n` + 
                           `*Hash del Bot:* \`${botHash.substring(0, 15)}...\`\n\n` +
                          `*Prefijo de Bot (ID):* ${BOT_KEY_PREFIX}\n\n` +
                          `_Usa este número para recibir transferencias de cualquier bot CypherTrans._`;
