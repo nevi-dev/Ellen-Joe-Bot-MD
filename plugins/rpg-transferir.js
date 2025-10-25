@@ -79,7 +79,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
 
     // 2. TRANSFERENCIA MULTIBOT (Formato de Cuenta CypherTrans: XXXXXMARC1234)
     
-    const ALL_PREFIX_CODES = ALL_PREFIXES.map(p => p + recipientArg.slice(-4)); // Ej: ['MARC1234', 'LUFC1234', ...]
+    // Validar el formato CypherTrans (Asegúrate de que esta validación es correcta)
     const isCypherTransAccount = recipientArg.length > 7 && ALL_PREFIXES.some(prefix => recipientArg.endsWith(prefix + recipientArg.slice(-4)));
 
     if (isCypherTransAccount) {
@@ -120,13 +120,11 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         
         // D. Bots Diferentes (Requiere seleccionar tipo)
         
-        // *** CORRECCIÓN APLICADA AQUÍ ***
+        // El buttonId incluye el monto y la cuenta para que handler.transferir los reciba
         const buttons = [
-            // El buttonId ahora incluye el monto y la cuenta para que handler.transferir los reciba como args[1] y args[2]
             {buttonId: `${usedPrefix}transferir 1 ${amount} ${recipientAccount}`, buttonText: {displayText: '1: Lenta (Normal)'}, type: 1},
             {buttonId: `${usedPrefix}transferir 2 ${amount} ${recipientAccount}`, buttonText: {displayText: '2: Rápida (Instantánea)'}, type: 1}
         ];
-        // ********************************
         
         const buttonMessage = {
             text: `🌐 Transferencia Multibot a ${recipientPrefix}.\n\n` + 
@@ -163,6 +161,14 @@ handler.transferir = async (m, { conn, args, usedPrefix }) => {
     
     const transferType = (typeSelected === '1' ? 'normal' : 'instant');
     
+    // --- VERIFICACIÓN DE SEGURIDAD ADICIONAL ---
+    const isCypherTransAccount = recipientAccount.length > 7 && ALL_PREFIXES.some(prefix => recipientAccount.endsWith(prefix + recipientAccount.slice(-4)));
+
+    if (!isCypherTransAccount) {
+        return m.reply(`${emoji2} Error de seguridad: La cuenta de destino no tiene el formato CypherTrans correcto. Reinicie la transacción.`);
+    }
+    // ------------------------------------------
+
     const botHash = await getBotHashFromFile();
     const senderAccount = global.db.data.users[m.sender]?.cypherTransAccount;
     
