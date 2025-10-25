@@ -2,63 +2,80 @@
 
 import fetch from 'node-fetch';
 
-// --- CONFIGURACIÓN DE CYPHERTRANS (Debe coincidir con otros handlers) ---
-const API_URL = 'https://cyphertrans.duckdns.org'; 
+// --- CONFIGURACIÓN DE CYPHERTRANS ---
+const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // --- CONSTANTES DE MENSAJE ---
-const moneda = global.moneda || 'Coin'; 
-const emoji = '📈'; 
-const emoji2 = '📉';
+const moneda = global.moneda || 'Coin'; 
+const emoji = '📊'; // Usamos un emoji más acorde al mercado
+const emoji2 = '❌';
 
 // --- FUNCIÓN PRINCIPAL DEL HANDLER ---
 async function handler(m, { conn, usedPrefix, command }) {
-    await conn.sendMessage(m.chat, {text: `⏳ *Consultando valores actuales del mercado CypherTrans...*`}, {quoted: m});
-    
-    try {
-        // 1. Llamar a la API para obtener los datos del mercado
-        const response = await fetch(`${API_URL}/api/v1/currency_market`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        });
+    // Envía un mensaje de espera (Placeholder)
+    const initialMessage = await conn.sendMessage(m.chat, {text: `⏳ *Consultando Mercado de Divisas CypherTrans...*`}, {quoted: m});
+    
+    try {
+        // 1. Llamar a la API para obtener los datos del mercado
+        const response = await fetch(`${API_URL}/api/v1/currency_market`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 10000 // Añadimos un timeout de 10 segundos
+        });
 
-        const data = await response.json();
+        const data = await response.json();
 
-        if (response.status !== 200) {
-            const errorMsg = data.error || 'Error desconocido al conectar con el mercado.';
-            return m.reply(`${emoji2} Falló la consulta de divisas. *Razón:* ${errorMsg}`);
-        }
+        if (response.status !== 200) {
+            const errorMsg = data.error || `Error ${response.status} en la API.`;
+            // Edita el mensaje de espera con el error de la API
+            return conn.sendMessage(m.chat, { text: `${emoji2} Falló la consulta del mercado. *Razón:* ${errorMsg}` }, { edit: initialMessage.key });
+        }
 
-        // 2. Procesar los datos y construir el mensaje
-        let message = `${emoji} *Mercado de Divisas CypherTrans*\n\n`;
-        message += `Los valores se actualizan constantemente (cada 60s en la API).\n\n`;
+        // 2. Procesar los datos y construir el mensaje
+        let message = `${emoji} *— Mercado de Divisas CypherTrans —*\n\n`;
+        message += `El mercado se valora con respecto a 1 ${moneda}.\n`;
+        message += `Los valores se actualizan constantemente.\n\n`;
+        
+        // Iterar sobre las divisas
+        let counter = 0;
+        for (const key in data) {
+            const currency = data[key];
+            const code = currency.code;
+            const value = currency.value;
+            const usage = currency.usage;
+            counter++;
+            
+            // Determinar el emoji de fluctuación (usando 1.0 como base)
+            const fluctuationEmoji = value > 1.0001 ? '🟢🔺' : (value < 0.9999 ? '🔴🔻' : '⚪️');
+            const separator = (counter > 1) ? `\n———————————————————` : ``;
+
+            message += `${separator}\n`;
+            message += `🏦 *Moneda:* ${key.toUpperCase()} (${code})\n`;
+            message += `💵 *Valor de Cambio:* ${fluctuationEmoji} *${value.toFixed(4)}* ${moneda}s\n`;
+            message += `📊 *Volumen:* ${usage} Transacciones\n`;
+        }
+        
+        message += `\n*Nota:* El volumen alto aumenta la volatilidad del precio.`;
+
+
+        // 3. Editar el mensaje inicial con la respuesta final
+        return conn.sendMessage(m.chat, { text: message }, { edit: initialMessage.key });
+
+    } catch (error) {
+        console.error("Error de conexión al consultar divisas CypherTrans:", error);
         
-        // Iterar sobre las divisas
-        for (const key in data) {
-            const currency = data[key];
-            const code = currency.code;
-            const value = currency.value;
-            const usage = currency.usage;
-            
-            // Determinar si el valor subió (simulado) para el emoji
-            const fluctuationEmoji = value >= 1.0 ? '🔺' : '🔻';
-
-            message += `═════════════════\n`;
-            message += `🆔 *Moneda:* ${code} (${key.toUpperCase()})\n`;
-            message += `💵 *Valor Actual:* ${fluctuationEmoji} *${value.toFixed(4)}* ${moneda}s\n`;
-            message += `📊 *Uso Reciente:* ${usage} (Afecta el precio)\n`;
+        let errorMessage = `${emoji2} *Error de Conexión/Tiempo de Espera*`;
+        
+        // Verifica si es un error de tiempo de espera o similar (típico de fetch/node-fetch)
+        if (error.code === 'ERR_REQUEST_TIMEOUT' || error.message.includes('timeout') || error.message.includes('ECONNREFUSED')) {
+            errorMessage += `\n\nEl servidor de CypherTrans (*${API_URL}*) tardó demasiado en responder o está inactivo. Intenta más tarde.`;
+        } else {
+            errorMessage += `\n\nNo se pudo establecer la comunicación con el servidor. *Detalles:* ${error.message}`;
         }
         
-        message += `═════════════════\n\n`;
-        message += `_Tu cuenta es del tipo ${moneda} con el prefijo *${code.slice(0, -1)}*._`;
-
-
-        // 3. Enviar el mensaje
-        return conn.sendMessage(m.chat, { text: message }, { quoted: m });
-
-    } catch (error) {
-        console.error("Error al consultar divisas CypherTrans:", error);
-        return m.reply(`${emoji2} Error de conexión. No se pudo obtener la información del mercado.`);
-    }
+        // Edita el mensaje de espera con el error de conexión
+        return conn.sendMessage(m.chat, { text: errorMessage }, { edit: initialMessage.key });
+    }
 }
 
 
