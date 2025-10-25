@@ -1,6 +1,7 @@
 // handler.js (pay/transfer)
 
 import fetch from 'node-fetch';
+import isNumber from './lib/isNumber.js'; // Asumiendo que esta función está en un archivo de utilidad
 
 // --- CONFIGURACIÓN DE CYPHERTRANS (Asegúrate de que estas rutas sean correctas) ---
 const HASH_FILE_PATH = './src/hash.json'; 
@@ -19,6 +20,7 @@ const emoji2 = '❌';
 // --- FUNCIÓN PARA OBTENER EL HASH DEL BOT ---
 async function getBotHashFromFile() {
     try {
+        // Asegúrate de tener fs/promises y path instalados o disponibles en tu entorno
         const fs = await import('fs/promises');
         const path = await import('path');
         const fullPath = path.join(process.cwd(), HASH_FILE_PATH);
@@ -35,10 +37,37 @@ async function handler(m, { conn, args, usedPrefix, command }) {
     const user = global.db.data.users[m.sender];
     const bankType = 'bank';
 
+    // Manejar la invocación sin argumentos para el reintento de botón
+    if (args.length === 0 && user.tempCypherTrans && user.tempCypherTrans.amount && user.tempCypherTrans.recipientAccount) {
+        // Reinvocar el menú de selección si existe data temporal
+        const amount = user.tempCypherTrans.amount;
+        const recipientAccount = user.tempCypherTrans.recipientAccount;
+        
+        // El resto de la lógica de botones es la misma que la original
+        const buttons = [
+            {buttonId: `${usedPrefix}transferir 1`, buttonText: {displayText: '1: Lenta (Normal)'}, type: 1},
+            {buttonId: `${usedPrefix}transferir 2`, buttonText: {displayText: '2: Rápida (Instantánea)'}, type: 1}
+        ];
+        
+        const buttonMessage = {
+            text: `🌐 Transferencia Multibot a ${recipientAccount.slice(-7, -4)}.\n\n` + 
+                  `*Monto:* ${amount} ${moneda}\n\n` +
+                  `*Reinicia la selección de velocidad:*\n` +
+                  `1️⃣ *Lenta (Normal):* Tarda hasta 24h. Sin comisión base.\n` +
+                  `2️⃣ *Rápida (Instantánea):* Tarda ~8min. Aplica comisión.`,
+            footer: 'Selecciona una opción:',
+            buttons: buttons,
+            headerType: 1
+        };
+
+        return conn.sendMessage(m.chat, buttonMessage, { quoted: m });
+    }
+    
+    // Si no hay argumentos ni data temporal, mostrar ayuda
     if (!args[0] || !args[1]) {
         const helpMessage = `${emoji} *Uso:* Debes ingresar la cantidad y el destinatario.\n` +
-                            `> Ejemplo 1 (Local): *${usedPrefix + command} 25000 @mencion*\n` +
-                            `> Ejemplo 2 (Multibot): *${usedPrefix + command} 25000 521XXXXXXXXMARC1234*`.trim();
+            `> Ejemplo 1 (Local): *${usedPrefix + command} 25000 @mencion*\n` +
+            `> Ejemplo 2 (Multibot): *${usedPrefix + command} 25000 521XXXXXXXXMARC1234*`.trim();
         return conn.sendMessage(m.chat, {text: helpMessage, mentions: [m.sender]}, {quoted: m});
     }
 
@@ -83,7 +112,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
             return m.reply(`${emoji2} El sistema multibot no está activado. Regístrate con *${usedPrefix}registerbot [API_KEY]*.`);
         }
         
-        // B. Verificar cuenta del remitente (se asume que la cuenta está en global.db.data.users[m.sender].cypherTransAccount)
+        // B. Verificar cuenta del remitente
         const senderAccount = global.db.data.users[m.sender]?.cypherTransAccount;
         if (!senderAccount) {
             return m.reply(`${emoji2} No tienes una cuenta CypherTrans vinculada. Crea una con *${usedPrefix}crearcuenta*.`);
@@ -114,9 +143,17 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         
         // D. Bots Diferentes (Requiere seleccionar tipo)
         
+        // *** ALMACENAR DATA TEMPORAL ***
+        user.tempCypherTrans = {
+            amount: amount,
+            recipientAccount: recipientAccount
+        };
+        // ******************************
+        
         const buttons = [
-            {buttonId: `${usedPrefix}transferir 1 ${amount} ${recipientAccount}`, buttonText: {displayText: '1: Lenta (Normal)'}, type: 1},
-            {buttonId: `${usedPrefix}transferir 2 ${amount} ${recipientAccount}`, buttonText: {displayText: '2: Rápida (Instantánea)'}, type: 1}
+            // Los buttonId solo llevan el tipo
+            {buttonId: `${usedPrefix}transferir 1`, buttonText: {displayText: '1: Lenta (Normal)'}, type: 1},
+            {buttonId: `${usedPrefix}transferir 2`, buttonText: {displayText: '2: Rápida (Instantánea)'}, type: 1}
         ];
         
         const buttonMessage = {
@@ -143,19 +180,27 @@ handler.transferir = async (m, { conn, args, usedPrefix }) => {
     const user = global.db.data.users[m.sender];
     const bankType = 'bank';
 
-    if (args.length !== 3) return; // Debe ser: #transferir [tipo] [monto] [cuenta]
+    if (args.length !== 1) return; // Ahora solo recibe el tipo: #transferir [tipo]
     
     const typeSelected = args[0]; // 1 o 2
-    const amount = parseInt(args[1]);
-    const recipientAccount = args[2];
+    
+    // *** RECUPERAR DATA TEMPORAL ***
+    if (!user.tempCypherTrans || !user.tempCypherTrans.amount || !user.tempCypherTrans.recipientAccount) {
+        return m.reply(`${emoji2} Error de contexto. No se encontraron los detalles de la transferencia guardados. Por favor, inicia la transferencia nuevamente con *${usedPrefix}pay*.`);
+    }
+
+    const amount = user.tempCypherTrans.amount;
+    const recipientAccount = user.tempCypherTrans.recipientAccount;
+    // ******************************
     
     const transferType = (typeSelected === '1' ? 'normal' : 'instant');
     
     const botHash = await getBotHashFromFile();
-    const senderAccount = global.db.data.users[m.sender]?.cypherTransAccount;
+    const senderAccount = user?.cypherTransAccount;
     
     // Verificaciones rápidas de seguridad
     if (!botHash || !senderAccount || !isNumber(amount) || amount < 100 || amount > user[bankType] * 1) {
+        delete user.tempCypherTrans; // Limpiar data corrupta
         return m.reply(`${emoji2} Error de seguridad/contexto. Por favor, inicia la transferencia nuevamente con *${usedPrefix}pay*.`);
     }
 
@@ -164,6 +209,10 @@ handler.transferir = async (m, { conn, args, usedPrefix }) => {
 
     // Llamar a la API
     const txResponse = await callCypherTransAPI(botHash, senderAccount, recipientAccount, amount, transferType);
+    
+    // *** LIMPIAR DATA TEMPORAL ***
+    delete user.tempCypherTrans;
+    // ******************************
     
     if (txResponse.status === 200) {
         return sendTransferConfirmation(conn, m.chat, txResponse.data, amount, user[bankType]);
