@@ -224,7 +224,7 @@ function isNumber(x) {
 
 handler.help = ['pay', 'transfer'];
 handler.tags = ['rpg'];
-handler.command = ['pay', 'transfer'];
+handler.command = ['pay', 'transfer', 'transferir'];
 handler.group = true;
 handler.register = true;
 
