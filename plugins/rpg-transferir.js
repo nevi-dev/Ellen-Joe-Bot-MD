@@ -40,17 +40,23 @@ function isNumber(x) {
 async function handler(m, { conn, args, usedPrefix, command }) {
     const user = global.db.data.users[m.sender];
     const bankType = 'bank';
-
+    
+    // El formato de argumentos esperado es: [cantidad] [destinatario] [tipo_opcional]
     if (!args[0] || !args[1]) {
         const helpMessage = `${emoji} *Uso:* Debes ingresar la cantidad y el destinatario.\n` +
             `> Ejemplo 1 (Local): *${usedPrefix + command} 25000 @mencion*\n` +
-            `> Ejemplo 2 (Multibot): *${usedPrefix + command} 25000 521XXXXXXXXMARC1234*`.trim();
+            `> Ejemplo 2 (Multibot - Menú): *${usedPrefix + command} 25000 521XXXXXXXXMARC1234*\n` +
+            `> Ejemplo 3 (Multibot - Rápido): *${usedPrefix + command} 25000 521XXXXXXXXMARC1234 2* (2=Instantánea)`
+            .trim();
         return conn.sendMessage(m.chat, {text: helpMessage, mentions: [m.sender]}, {quoted: m});
     }
 
     // Asegurar que el monto sea válido (mínimo 100)
-    const amount = Math.min(Number.MAX_SAFE_INTEGER, Math.max(100, (isNumber(args[0]) ? parseInt(args[0]) : 100))) * 1;
+    let amount = isNumber(args[0]) ? parseInt(args[0]) : 0;
+    amount = Math.min(Number.MAX_SAFE_INTEGER, Math.max(100, amount)) * 1;
+    
     const recipientArg = args[1].trim();
+    const typeShortcut = args[2] ? args[2].trim() : null; // Nuevo: Captura el 3er argumento
     const botHash = await getBotHashFromFile();
     
     // Verificación de balance
@@ -65,11 +71,13 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         const who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : (recipientArg.replace(/[@ .+-]/g, '') + '@s.whatsapp.net');
         
         if (!who || !(who in global.db.data.users)) {
-             return conn.sendMessage(m.chat, {text: `${emoji2} El usuario ${who ? who.split('@')[0] : 'mencionado'} no está en la base de datos local.`, mentions: [m.sender]}, {quoted: m});
+             const recipientDisplay = who ? who.split('@')[0] : 'mencionado';
+             return conn.sendMessage(m.chat, {text: `${emoji2} El usuario *${recipientDisplay}* no está en la base de datos local.`, mentions: [m.sender]}, {quoted: m});
         }
         
         user[bankType] -= amount * 1;
-        global.db.data.users[who]['coin'] += amount * 1; // Aumenta la coin (cartera) del receptor
+        // Asume que la transferencia local va a la 'coin' (cartera) del receptor
+        global.db.data.users[who]['coin'] = (global.db.data.users[who]['coin'] || 0) + amount * 1;
         
         const mentionText = `@${who.split('@')[0]}`;
         const totalInBank = user[bankType];
@@ -78,8 +86,6 @@ async function handler(m, { conn, args, usedPrefix, command }) {
     } 
 
     // 2. TRANSFERENCIA MULTIBOT (Formato de Cuenta CypherTrans: XXXXXMARC1234)
-    
-    // Validar el formato CypherTrans (Asegúrate de que esta validación es correcta)
     const isCypherTransAccount = recipientArg.length > 7 && ALL_PREFIXES.some(prefix => recipientArg.endsWith(prefix + recipientArg.slice(-4)));
 
     if (isCypherTransAccount) {
@@ -98,12 +104,23 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         const recipientPrefix = recipientArg.slice(-7, -4);
         const recipientAccount = recipientArg;
         
-        // C. Lógica de Tipo de Transferencia
         
-        // Si el prefijo de la cuenta es el mismo que el prefijo de este bot (ELL)
+        // C. DETERMINAR TIPO DE TRANSFERENCIA FINAL
+        let transferType = null;
+        
+        // C.1. Transferencia al mismo bot (siempre instant)
         if (BOT_KEY_PREFIX === recipientPrefix) {
-            // Transferencia al mismo bot (se asume INSTANTÁNEA sin menú)
-            const transferType = 'instant'; 
+            transferType = 'instant';
+        }
+        
+        // C.2. Transferencia con acceso directo (shortcut)
+        else if (typeShortcut === '1' || typeShortcut === '2') {
+             transferType = (typeShortcut === '1' ? 'normal' : 'instant');
+        }
+        
+        
+        // D. PROCESAR TRANSFERENCIA INMEDIATA (Mismo Bot o Shortcut Usado)
+        if (transferType) {
             
             user[bankType] -= amount * 1; // Deduce los fondos antes de llamar a la API
             
@@ -118,9 +135,8 @@ async function handler(m, { conn, args, usedPrefix, command }) {
             }
         }
         
-        // D. Bots Diferentes (Requiere seleccionar tipo)
+        // E. Bots Diferentes (Requiere seleccionar tipo, si NO se usó el shortcut)
         
-        // El buttonId incluye el monto y la cuenta para que handler.transferir los reciba
         const buttons = [
             {buttonId: `${usedPrefix}transferir 1 ${amount} ${recipientAccount}`, buttonText: {displayText: '1: Lenta (Normal)'}, type: 1},
             {buttonId: `${usedPrefix}transferir 2 ${amount} ${recipientAccount}`, buttonText: {displayText: '2: Rápida (Instantánea)'}, type: 1}
@@ -128,10 +144,10 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         
         const buttonMessage = {
             text: `🌐 Transferencia Multibot a ${recipientPrefix}.\n\n` + 
-                  `*Monto:* ${amount} ${moneda}\n\n` +
-                  `Por favor, selecciona la velocidad de transferencia:\n` +
-                  `1️⃣ *Lenta (Normal):* Tarda hasta 24h. Sin comisión base. (Recomendado)\n` +
-                  `2️⃣ *Rápida (Instantánea):* Tarda ~8min. Aplica comisión.`,
+                      `*Monto:* ${amount} ${moneda}\n\n` +
+                      `Por favor, selecciona la velocidad de transferencia o usa el comando rápido: *${usedPrefix + command} ${amount} ${recipientAccount} [1|2]*.\n\n` +
+                      `1️⃣ *Lenta (Normal):* Tarda hasta 24h. Sin comisión base. (Recomendado)\n` +
+                      `2️⃣ *Rápida (Instantánea):* Tarda ~8min. Aplica comisión.`,
             footer: 'Selecciona una opción:',
             buttons: buttons,
             headerType: 1
@@ -145,7 +161,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
 }
 
 
-// --- HANDLER SECUNDARIO PARA LA RESPUESTA DEL BOTÓN ---
+// --- HANDLER SECUNDARIO PARA LA RESPUESTA DEL BOTÓN (Se mantiene para manejar el menú) ---
 handler.transferir = async (m, { conn, args, usedPrefix }) => {
     const user = global.db.data.users[m.sender];
     const bankType = 'bank';
@@ -155,10 +171,16 @@ handler.transferir = async (m, { conn, args, usedPrefix }) => {
         return m.reply(`${emoji2} Error de contexto: Faltan argumentos para la transferencia. Por favor, reinicia la transacción con *${usedPrefix}pay*.`);
     }
     
-    const typeSelected = args[0]; // 1 o 2
+    // Verificación de seguridad adicional para los argumentos del botón
+    const typeSelected = args[0].trim(); // '1' o '2'
     const amount = parseInt(args[1]);
-    const recipientAccount = args[2];
+    const recipientAccount = args[2].trim();
     
+    // Validamos que el tipo sea '1' o '2'
+    if (typeSelected !== '1' && typeSelected !== '2') {
+         return m.reply(`${emoji2} Error de seguridad: La opción de velocidad de transferencia debe ser '1' o '2'. Reinicia la transacción.`);
+    }
+
     const transferType = (typeSelected === '1' ? 'normal' : 'instant');
     
     // --- VERIFICACIÓN DE SEGURIDAD ADICIONAL ---
@@ -192,7 +214,7 @@ handler.transferir = async (m, { conn, args, usedPrefix }) => {
     }
 };
 
-// --- FUNCIONES DE SOPORTE ---
+// --- FUNCIONES DE SOPORTE (Sin cambios) ---
 
 /** Llama a la API de CypherTrans para iniciar la transferencia. */
 async function callCypherTransAPI(botHash, sender, recipient, amount, type) {
