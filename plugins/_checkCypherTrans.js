@@ -10,7 +10,8 @@ const HASH_FILE_PATH = path.join(process.cwd(), 'src', 'hash.json');
 const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // Las variables globales 'global.db.data.users' y 'moneda' son necesarias para esta función.
-const moneda = global.moneda || 'Coin';
+// Usamos global.moneda como el código de moneda local (e.g., MARC)
+const moneda = global.moneda || 'MARC'; 
 const emoji = '✅';
 const emoji2 = '❌';
 
@@ -85,7 +86,8 @@ export async function checkCypherTransInbound(sock) {
             
             // 2. Procesar si se encontró un usuario en la DB
             if (targetJID) {
-                const amount = tx.amount; 
+                // El monto a depositar es el 'received_amount' de la API
+                const depositAmount = tx.received_amount || tx.amount; 
                 const receiptUrl = `${API_URL}/receipt/${tx.tx_id}`;
                 const contactId = userNumber; 
                 
@@ -93,18 +95,39 @@ export async function checkCypherTransInbound(sock) {
                 if (typeof global.db.data.users[targetJID].bank !== 'number') {
                     global.db.data.users[targetJID].bank = 0;
                 }
-                global.db.data.users[targetJID].bank += amount * 1; 
+                global.db.data.users[targetJID].bank += depositAmount * 1; 
                 const newBankBalance = global.db.data.users[targetJID].bank;
-                console.log(`[CypherTrans] ${amount} depositado en el banco de ${targetJID}.`);
+                console.log(`[CypherTrans] ${depositAmount} depositado en el banco de ${targetJID}.`);
                 // ------------------------------------
                 
                 // 3. Preparar el mensaje (con o sin imagen)
-                const baseCaption = `${emoji} *— ¡DEPÓSITO MULTIBOT APROBADO! —*` +
-                    `\n\n*Monto Recibido:* *${amount} ${moneda}*` +
-                    `\n*Desde:* ${tx.sender}` +
-                    `\n*ID Transacción:* \`${tx.tx_id}\`` +
-                    `\n\n*Tu Nuevo Saldo en el Banco:* ${newBankBalance} ${moneda}` +
-                    `\n\n_El dinero ha sido depositado directamente en tu cuenta de banco._`;
+                const isCrossCurrency = tx.sent_currency !== tx.received_currency;
+                
+                // Base del mensaje (Estética mejorada)
+                let baseCaption = `${emoji} *— ¡DEPÓSITO MULTIBOT APROBADO! —*` +
+                    `\n\n*Desde:* ${tx.sender}` +
+                    `\n*ID Transacción:* \`${tx.tx_id}\``;
+                
+                // Detalles del envío (Origen)
+                baseCaption += `\n\n*Monto Enviado:* ${tx.amount} ${tx.sent_currency}`;
+                if (tx.fee > 0) {
+                    baseCaption += `\n*Comisión Aplicada:* -${tx.fee} ${tx.sent_currency}`;
+                }
+
+                // Detalles de la Conversión (si aplica)
+                if (isCrossCurrency) {
+                     baseCaption += `\n*Tasa de Cambio:* 1 ${tx.sent_currency} = ${tx.exchange_rate} ${tx.received_currency}`;
+                }
+                
+                // Monto Final Recibido (Destino)
+                baseCaption += `\n\n*Monto Depositado:* *${depositAmount} ${tx.received_currency}*`;
+                
+                // Balance Final
+                baseCaption += `\n\n*Tu Nuevo Saldo en el Banco:* ${newBankBalance} ${moneda}`;
+                
+                // Footer
+                baseCaption += `\n\n_El dinero ha sido depositado directamente en tu cuenta de banco._`;
+
 
                 let messageOptions;
                 
