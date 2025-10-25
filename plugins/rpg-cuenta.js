@@ -64,7 +64,8 @@ async function getBotHashAPI(apiKey) {
 }
 
 /** Llama a la API para crear una cuenta de usuario. */
-async function createUserAccountAPI(botHash, prefix, jid) {
+// Se cambia 'jid' por 'userNumber'
+async function createUserAccountAPI(botHash, prefix, userNumber) { 
     try {
         const response = await fetch(`${API_URL}/api/v1/create_account`, {
             method: 'POST',
@@ -72,7 +73,7 @@ async function createUserAccountAPI(botHash, prefix, jid) {
             body: JSON.stringify({
                 bot_hash: botHash,
                 account_prefix: prefix,
-                user_jid: jid 
+                user_jid: userNumber // Ahora enviamos el número (sin @s.whatsapp.net)
             })
         });
 
@@ -89,6 +90,7 @@ async function createUserAccountAPI(botHash, prefix, jid) {
 async function handler(m, { conn, usedPrefix, command }) {
     const user = global.db.data.users[m.sender];
     const jid = m.sender;
+    const userNumber = jid.split('@')[0]; // <--- ¡Extraemos el número aquí!
     let botHash = await getBotHashFromFile();
 
     // =========================================================
@@ -122,7 +124,8 @@ async function handler(m, { conn, usedPrefix, command }) {
     if (!userAccount) {
         await conn.sendMessage(m.chat, {text: `⏳ *Creando tu cuenta CypherTrans...*`}, {quoted: m});
         
-        const accountResponse = await createUserAccountAPI(botHash, BOT_KEY_PREFIX, jid);
+        // CORRECCIÓN: Usamos userNumber en lugar de jid completo
+        const accountResponse = await createUserAccountAPI(botHash, BOT_KEY_PREFIX, userNumber); 
 
         if (accountResponse.status === 200 && accountResponse.data.account_number) {
             userAccount = accountResponse.data.account_number;
