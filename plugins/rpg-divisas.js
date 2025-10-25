@@ -6,8 +6,8 @@ import fetch from 'node-fetch';
 const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // --- CONSTANTES DE MENSAJE ---
-const moneda = global.moneda || 'Coin'; // Esto debería ser 'Deniques'
-const DENIQUES_CODE = 'ELL'; // Asumiendo que el código de Deniques es ELL
+const moneda = global.moneda || 'Coin'; 
+const DENIQUES_CODE = 'ELL'; // Moneda base, asumida como Deniques
 const emoji = '📊'; 
 const emoji2 = '❌';
 
@@ -21,7 +21,7 @@ async function handler(m, { conn, usedPrefix, command }) {
         const response = await fetch(`${API_URL}/api/v1/currency_market`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-            timeout: 10000 // Añadimos un timeout de 10 segundos
+            timeout: 10000 
         });
 
         const data = await response.json();
@@ -47,15 +47,24 @@ async function handler(m, { conn, usedPrefix, command }) {
             const usage = currency.usage;
             counter++;
             
-            // Determinar el emoji de fluctuación (usando 1.0 como base)
-            const fluctuationEmoji = value > 1.0001 ? '🟢🔺' : (value < 0.9999 ? '🔴🔻' : '⚪️');
+            let rateDisplay;
+            
+            if (code === DENIQUES_CODE) {
+                // Ajuste para la moneda base: Valor fijo 1.0000, sin fluctuación
+                rateDisplay = `*1.0000* ${moneda}s (Moneda Base)`;
+            } else {
+                // Para las demás divisas: Muestra fluctuación
+                const fluctuationEmoji = value > 1.0001 ? '🟢🔺' : (value < 0.9999 ? '🔴🔻' : '⚪️');
+                rateDisplay = `${fluctuationEmoji} *${value.toFixed(4)}* ${moneda}s`;
+            }
+            
             const separator = (counter > 1) ? `\n———————————————————` : ``;
 
             message += `${separator}\n`;
             message += `🏦 *Divisa:* ${key.toUpperCase()} (${code})\n`;
             
-            // CAMBIO CLAVE: Explicita la comparación 1:N
-            message += `💵 *Tasa:* 1 ${code} = ${fluctuationEmoji} *${value.toFixed(4)}* ${moneda}s\n`;
+            // CAMBIO CLAVE: Usa rateDisplay
+            message += `💵 *Tasa:* 1 ${code} = ${rateDisplay}\n`;
             
             message += `📊 *Volumen:* ${usage} Transacciones\n`;
         }
