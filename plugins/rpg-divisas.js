@@ -6,12 +6,14 @@ import fetch from 'node-fetch';
 const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // --- CONSTANTES DE MENSAJE ---
-const DENIQUES_CODE = 'ELL'; // Moneda base, asumida como Deniques
-const CT_CURRENCY_NAME = 'CT'; // Nombre explícito para CypherTrans (CT)
+// CAMBIO 1: Renombrar la moneda base a ELLEN (ELLC)
+const DENIQUES_CODE = 'ELLC'; 
+const DENIQUES_NAME = 'ELLEN';
+const CT_CURRENCY_CODE = 'CT'; // Usamos CT como nombre genérico para CypherTrans Token
 const emoji = '📊'; 
 const emoji2 = '❌';
 
-// --- FUNCIÓN PRINCIPAL DEL HANDLER (CORREGIDA PARA ELL) ---
+// --- FUNCIÓN PRINCIPAL DEL HANDLER (CORREGIDA PARA ELLEN) ---
 async function handler(m, { conn, usedPrefix, command }) {
     // Envía un mensaje de espera (Placeholder)
     const initialMessage = await conn.sendMessage(m.chat, {text: `⏳ *Consultando Mercado de Divisas CypherTrans...*`}, {quoted: m});
@@ -35,9 +37,9 @@ async function handler(m, { conn, usedPrefix, command }) {
         // 2. Procesar los datos y construir el mensaje
         let message = `${emoji} *— Mercado de Divisas CypherTrans —*\n\n`;
         
-        // CAMBIO 1: Clarificar que el ELL es la moneda base del servidor
-        message += `Base de Conversión del Servidor: *${CT_CURRENCY_NAME} (${DENIQUES_CODE})*\n`;
-        message += `_Mostrando cuánto vale *1 Deniques (ELL)* en otras divisas._\n`; // Nuevo enfoque
+        // CAMBIO 2: Mensaje de cabecera ajustado
+        message += `Base de Conversión del Servidor: *${CT_CURRENCY_CODE} (${DENIQUES_CODE})*\n`;
+        message += `_Mostrando el valor de las monedas en relación a *1 ${CT_CURRENCY_CODE}* y *1 ${DENIQUES_NAME} (${DENIQUES_CODE})*._\n`;
         message += `Los valores se actualizan constantemente.\n\n`;
         
         // Iterar sobre las divisas
@@ -45,44 +47,47 @@ async function handler(m, { conn, usedPrefix, command }) {
         for (const key in data) {
             const currency = data[key];
             const code = currency.code;
-            const value = currency.value; // Tasa: 1 [Moneda] = X ELL
+            const value = currency.value; // Tasa: 1 [Moneda] = X ELLC
             const usage = currency.usage;
             counter++;
             
-            let ellRateDisplay;
-            let ellValueInOtherCurrency; // La tasa inversa (1 ELL = X [Otra Moneda])
+            let ctRate; // 1 CT = X [Otra Moneda]
+            let ellenRate; // 1 ELLEN = X [Otra Moneda]
             
             if (code === DENIQUES_CODE) {
-                // La moneda base Deniques (ELL)
-                ellRateDisplay = `*1.0000* ${DENIQUES_CODE}s (Base)`;
-                ellValueInOtherCurrency = `*1.0000* ${DENIQUES_CODE}`;
+                // Si la moneda es la base (ELLC), ambas tasas son 1
+                ctRate = 1.0;
+                ellenRate = 1.0;
             } else {
-                // CAMBIO 2: Aquí es donde se realiza la multiplicación/inversión (1 / X)
-                // Queremos saber: 1 ELL = ? [Otra Moneda]
-                ellValueInOtherCurrency = (1 / value); 
-                
-                const fluctuationEmoji = value > 1.0001 ? '🟢🔺' : (value < 0.9999 ? '🔴🔻' : '⚪️');
-                
-                // Tasa Directa (1 [Otra Moneda] = X ELL)
-                ellRateDisplay = `${fluctuationEmoji} *${value.toFixed(4)}* ${DENIQUES_CODE}s`;
+                // La API da la tasa de 1 [Otra Moneda] en ELLC (value).
+                // Para obtener el valor de 1 ELLC en [Otra Moneda], usamos la inversa: 1 / value
+                ellenRate = (1 / value);
+
+                // La tasa de CT es la misma que la de ELLEN, ya que el servidor usa ELLC como base (CT).
+                // Si el servidor tuviera un campo separado para CT, usaríamos ese, pero aquí ELLC = CT
+                ctRate = ellenRate;
             }
+
+            // Lógica de fluctuación (usando la tasa de la API vs 1.0)
+            const fluctuationEmoji = value > 1.0001 ? '🟢🔺' : (value < 0.9999 ? '🔴🔻' : '⚪️');
             
             const separator = (counter > 1) ? `\n———————————————————` : ``;
 
             message += `${separator}\n`;
             message += `🏦 *Divisa:* ${key.toUpperCase()} (${code})\n`;
             
-            // Muestra el valor de 1 ELL en términos de esta moneda
-            // Si la divisa es ELL, muestra 1 ELL = 1 ELL
-            // Si es otra, muestra 1 ELL = X [Otra Moneda]
+            // Muestra el valor de 1 CT en términos de esta moneda
+            // CAMBIO 3: Muestra ambas tasas
             if (code === DENIQUES_CODE) {
-                message += `💵 *Tasa (1 ${DENIQUES_CODE}):* ${ellValueInOtherCurrency}\n`;
+                message += `💵 *Valor (1 ${CT_CURRENCY_CODE}):* *${ctRate.toFixed(4)}* ${CT_CURRENCY_CODE}\n`;
+                message += `💵 *Valor (1 ${DENIQUES_CODE}):* *${ellenRate.toFixed(4)}* ${DENIQUES_CODE}\n`;
             } else {
-                message += `💵 *Tasa (1 ${DENIQUES_CODE}):* *${ellValueInOtherCurrency.toFixed(4)}* ${code}\n`;
+                message += `💵 *Valor (1 ${CT_CURRENCY_CODE}):* *${ctRate.toFixed(4)}* ${code} ${fluctuationEmoji}\n`;
+                message += `💵 *Valor (1 ${DENIQUES_CODE}):* *${ellenRate.toFixed(4)}* ${code} ${fluctuationEmoji}\n`;
             }
             
-            // Se mantiene la tasa de la API como referencia para el volumen.
-            message += `ℹ️ *Referencia:* 1 ${code} = ${ellRateDisplay}\n`; 
+            // Tasa de referencia del servidor (1 [Moneda] = X ELLC)
+            message += `ℹ️ *Referencia:* 1 ${code} = *${value.toFixed(4)}* ${DENIQUES_CODE}\n`; 
             message += `📊 *Volumen:* ${usage} Transacciones\n`;
         }
         
