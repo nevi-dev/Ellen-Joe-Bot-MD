@@ -130,15 +130,20 @@ export async function checkCypherTransInbound(sock) {
 
 
                 let messageOptions;
-                
+               
+                // *** SECCIÓN CORREGIDA ***
+                // La API envía la imagen en 'image_base64' y el tipo es 'image/png'.
+                const imageBase64Data = tx.image_base64;
+               
                 // VERIFICACIÓN CLAVE: Si hay base64 y no es vacío, intentamos enviar la imagen
-                if (tx.receipt_base64 && tx.receipt_base64.length > 100) { 
-                    // Asume que la imagen es JPEG (formato común para recibos generados por servidores)
-                    const media = Buffer.from(tx.receipt_base64, 'base64');
+                if (imageBase64Data && imageBase64Data.length > 100) { 
+                    // Convertir el Base64 de la imagen a un Buffer
+                    const media = Buffer.from(imageBase64Data, 'base64');
                     messageOptions = {
-                        image: media, 
+                        image: media, 
                         caption: baseCaption,
-                        mimetype: 'image/jpeg', // <--- AJUSTE AÑADIDO
+                        // CORREGIDO: Usamos image/png
+                        mimetype: 'image/png',
                         mentions: [standardJID]
                     };
                 } else {
