@@ -6,19 +6,19 @@ import fetch from 'node-fetch';
 const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // --- CONSTANTES DE MENSAJE ---
-const DENIQUES_CODE = 'ELLC'; 
+const DENIQUES_CODE = 'ELLC'; 
 const DENIQUES_NAME = 'ELLEN';
-const CT_CURRENCY_CODE = 'CT'; // CypherTrans Token
+// const CT_CURRENCY_CODE = 'CT'; // ELIMINADO: Ya no es necesario
 const emoji = '📊'; 
 const emoji2 = '❌';
 
-// --- FUNCIÓN PRINCIPAL DEL HANDLER (CORREGIDA PARA VALOR CT ABSTRACTO) ---
+// --- FUNCIÓN PRINCIPAL DEL HANDLER (REFACTORIZADA PARA ENFOQUE EN ELLEN) ---
 async function handler(m, { conn, usedPrefix, command }) {
     // Envía un mensaje de espera (Placeholder)
     const initialMessage = await conn.sendMessage(m.chat, {text: `⏳ *Consultando Mercado de Divisas CypherTrans...*`}, {quoted: m});
     
     try {
-        // 1. Llamar a la API para obtener los datos del mercado
+        // 1. Llamar a la API para obtener los datos del mercado (Fuente para el cálculo)
         const response = await fetch(`${API_URL}/api/v1/currency_market`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -33,58 +33,42 @@ async function handler(m, { conn, usedPrefix, command }) {
         }
 
         // 2. Procesar los datos y construir el mensaje
-        let message = `${emoji} *— Mercado de Divisas CypherTrans —*\n\n`;
-        
-        // Mensaje de cabecera ajustado
-        message += `Base de Conversión del Servidor: *${DENIQUES_NAME} (${DENIQUES_CODE})*\n`;
-        message += `_Mostrando el valor abstracto de *1 ${CT_CURRENCY_CODE}* y su equivalencia en *1 ${DENIQUES_NAME}*._\n`;
-        message += `Los valores se actualizan constantemente.\n\n`;
+        let message = `${emoji} *— Tasa de Cambio Base ELLEN —*\n\n`;
+        
+        // Mensaje de cabecera ajustado para el nuevo enfoque
+        message += `Mostrando el precio de *1 ${DENIQUES_NAME} (${DENIQUES_CODE})* en otras divisas.\n`;
+        message += `_Esta tasa es calculada por el motor CypherTrans en tiempo real._\n\n`;
         
         let counter = 0;
         for (const key in data) {
             const currency = data[key];
             const code = currency.code;
-            const value = currency.value; // Tasa: 1 [Moneda] = X ELLC
+            const value = currency.value; // Tasa de Referencia: 1 [Moneda] = X ELLC
             const usage = currency.usage;
             counter++;
             
-            let ctRate; // 1 CT = X (Valor Abstracto)
-            let ellenRate; // 1 ELLEN = X [Otra Moneda]
+            let ellenRate; // 1 ELLEN = X [Otra Moneda]
             
             if (code === DENIQUES_CODE) {
-                // Si la moneda es ELLEN (ELLC)
-                ctRate = 1.0;
-                ellenRate = 1.0;
+                // 1 ELLEN = 1 ELLEN
+                ellenRate = 1.0;
             } else {
-                // 1 ELLEN = 1/value [Otra Moneda]
-                ellenRate = (1 / value);
-
-                // 1 CT (Valor Abstracto) = 1/value (Usamos la misma lógica que ELLEN)
-                ctRate = ellenRate;
+                // CALCULO (Inversión de la tasa): 1 ELLEN = 1 / (1 [Moneda] a ELLC)
+                ellenRate = (1 / value);
             }
 
-            // Lógica de fluctuación (usando la tasa de la API vs 1.0)
-            const fluctuationEmoji = value > 1.0001 ? '🟢🔺' : (value < 0.9999 ? '🔴🔻' : '⚪️');
+            // Lógica de fluctuación ELIMINADA para simplificar el mensaje.
             
             const separator = (counter > 1) ? `\n———————————————————` : ``;
 
             message += `${separator}\n`;
             message += `🏦 *Divisa:* ${key.toUpperCase()} (${code})\n`;
             
-            // CAMBIO CLAVE 1: Muestra 1 CT = X (SIN UNIDAD DE MONEDA)
-            if (code === DENIQUES_CODE) {
-                // Para ELLC, el valor es 1
-                message += `✨ *Valor (1 ${CT_CURRENCY_CODE}):* *${ctRate.toFixed(4)}*\n`;
-                message += `💵 *Valor (1 ${DENIQUES_CODE}):* *${ellenRate.toFixed(4)}* ${DENIQUES_CODE}\n`;
-            } else {
-                // Para otras monedas, muestra el valor abstracto de CT
-                message += `✨ *Valor (1 ${CT_CURRENCY_CODE}):* *${ctRate.toFixed(4)}* ${fluctuationEmoji}\n`;
-                // CAMBIO CLAVE 2: Muestra 1 ELLEN = X [Otra Moneda]
-                message += `💵 *Valor (1 ${DENIQUES_CODE}):* *${ellenRate.toFixed(4)}* ${code} ${fluctuationEmoji}\n`;
-            }
+            // Precio de 1 ELLEN
+            message += `💵 *Precio (1 ${DENIQUES_CODE}):* *${ellenRate.toFixed(4)}* ${code}\n`;
             
-            // Tasa de referencia del servidor (1 [Moneda] = X ELLC)
-            message += `ℹ️ *Referencia:* 1 ${code} = *${value.toFixed(4)}* ${DENIQUES_CODE}\n`; 
+            // Tasa de referencia del servidor (1 [Moneda] = X ELLC)
+            message += `ℹ️ *Referencia:* 1 ${code} = *${value.toFixed(4)}* ${DENIQUES_CODE}\n`; 
             message += `📊 *Volumen:* ${usage} Transacciones\n`;
         }
         
