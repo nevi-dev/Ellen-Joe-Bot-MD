@@ -7,7 +7,7 @@ const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // --- CONSTANTES DE MENSAJE ---
 const DENIQUES_CODE = 'ELLC'; 
-const DENIQUES_NAME = 'ELLEN';
+const DENIQUES_NAME = 'Deniques';
 // const CT_CURRENCY_CODE = 'CT'; // ELIMINADO: Ya no es necesario
 const emoji = '📊'; 
 const emoji2 = '❌';
