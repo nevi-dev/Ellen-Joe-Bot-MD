@@ -6,11 +6,34 @@ import fetch from 'node-fetch';
 const API_URL = 'https://cyphertrans.duckdns.org'; 
 
 // --- CONSTANTES DE MENSAJE ---
-const DENIQUES_CODE = 'ELLC'; 
-const DENIQUES_NAME = 'Deniques';
-// const CT_CURRENCY_CODE = 'CT'; // ELIMINADO: Ya no es necesario
+const BASE_CODE = 'ELLC'; // Deniques, usado como base de la API
+const BASE_NAME = 'Deniques';
 const emoji = '📊'; 
 const emoji2 = '❌';
+
+/**
+ * Mapea el código de la divisa (ELLC, DEN, BER, WON) a su nombre completo.
+ */
+function getCurrencyName(code) {
+    if (!code) return 'Moneda Desconocida';
+    const upperCode = code.toUpperCase();
+    switch (upperCode) {
+        case 'ELLC': // Código base anterior
+        case 'DEN':  // Prefijo actual (Deniques)
+            return 'Deniques';
+        case 'BER':  // Prefijo actual (Berries)
+        case 'LUFC': // Código antiguo (si aplica)
+            return 'Berries';
+        case 'WON':  // Prefijo actual (Wones)
+        case 'MARC': // Código antiguo (si aplica)
+            return 'Wones';
+        case 'CT':
+        case 'CYPHERTRANS':
+            return 'CypherTrans (CT)';
+        default:
+            return code; // Devuelve el código si no es reconocido
+    }
+}
 
 // --- FUNCIÓN PRINCIPAL DEL HANDLER (REFACTORIZADA PARA ENFOQUE EN ELLEN) ---
 async function handler(m, { conn, usedPrefix, command }) {
@@ -33,11 +56,11 @@ async function handler(m, { conn, usedPrefix, command }) {
         }
 
         // 2. Procesar los datos y construir el mensaje
-        let message = `${emoji} *— Tasa de Cambio Base ELLEN —*\n\n`;
+        let message = `${emoji} *— Tasa de Cambio Base ${BASE_NAME} —*\n\n`;
         
-        // Mensaje de cabecera ajustado para el nuevo enfoque
-        message += `Mostrando el precio de *1 ${DENIQUES_NAME} (${DENIQUES_CODE})* en otras divisas.\n`;
-        message += `_Esta tasa es calculada por el motor CypherTrans en tiempo real._\n\n`;
+        // Mensaje de cabecera ajustado, usando el nombre completo
+        message += `Mostrando el precio de *1 ${BASE_NAME} (${BASE_CODE})* en otras divisas.\n`;
+        message += `_Esta tasa es calculada por el motor CypherTrans en tiempo real._\n\n`;
         
         let counter = 0;
         for (const key in data) {
@@ -49,7 +72,7 @@ async function handler(m, { conn, usedPrefix, command }) {
             
             let ellenRate; // 1 ELLEN = X [Otra Moneda]
             
-            if (code === DENIQUES_CODE) {
+            if (code === BASE_CODE) {
                 // 1 ELLEN = 1 ELLEN
                 ellenRate = 1.0;
             } else {
@@ -62,13 +85,16 @@ async function handler(m, { conn, usedPrefix, command }) {
             const separator = (counter > 1) ? `\n———————————————————` : ``;
 
             message += `${separator}\n`;
-            message += `🏦 *Divisa:* ${key.toUpperCase()} (${code})\n`;
+            // USADO: Nombre completo de la divisa (ej. Berries)
+            message += `🏦 *Divisa:* ${getCurrencyName(code)} (${code})\n`;
             
-            // Precio de 1 ELLEN
-            message += `💵 *Precio (1 ${DENIQUES_CODE}):* *${ellenRate.toFixed(4)}* ${code}\n`;
+            // Precio de 1 DENIQUES (ELLC) en la otra divisa
+            // USADO: Nombre completo de la base (ej. Deniques) y el objetivo (ej. Wones)
+            message += `💵 *Precio (1 ${BASE_NAME}):* *${ellenRate.toFixed(4)}* ${getCurrencyName(code)}\n`;
             
             // Tasa de referencia del servidor (1 [Moneda] = X ELLC)
-            message += `ℹ️ *Referencia:* 1 ${code} = *${value.toFixed(4)}* ${DENIQUES_CODE}\n`; 
+            // USADO: Nombre completo de la divisa (ej. Wones) y la base (ej. Deniques)
+            message += `ℹ️ *Referencia:* 1 ${getCurrencyName(code)} = *${value.toFixed(4)}* ${BASE_NAME}\n`; 
             message += `📊 *Volumen:* ${usage} Transacciones\n`;
         }
         
