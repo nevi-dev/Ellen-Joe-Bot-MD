@@ -25,19 +25,19 @@ const emojiWait = '⏳'; // Usado para transferencias pendientes
  * NOTA: Esta función DEBE coincidir con la de tu otro handler.
  */
 function getCurrencyName(code) {
-    if (!code) return 'Moneda Desconocida';
-    const upperCode = code.toUpperCase();
-    switch (upperCode) {
-        case 'ELLC': // Código base anterior
-        case 'DEN':  // Prefijo actual (Deniques)
-            return 'Deniques';
-        case 'BER':  // Prefijo actual (Berries)
-            return 'Berries';
-        case 'WON':  // Prefijo actual (Wones)
-            return 'Wones';
-        default:
-            return code; // Devuelve el código si no es reconocido
-    }
+    if (!code) return 'Moneda Desconocida';
+    const upperCode = code.toUpperCase();
+    switch (upperCode) {
+        case 'ELLC': // Código base anterior
+        case 'DEN':  // Prefijo actual (Deniques)
+            return 'Deniques';
+        case 'BER':  // Prefijo actual (Berries)
+            return 'Berries';
+        case 'WON':  // Prefijo actual (Wones)
+            return 'Wones';
+        default:
+            return code; // Devuelve el código si no es reconocido
+    }
 }
 
 // =========================================================================
@@ -61,16 +61,16 @@ function isNumber(x) {
 
 /** Extrae el prefijo (WON, BER, DEN) del número de cuenta CypherTrans. */
 function getAccountPrefix(accountNumber) {
-    if (accountNumber && accountNumber.length >= 7) {
-        return accountNumber.slice(-7, -4).toUpperCase();
-    }
-    return null;
+    if (accountNumber && accountNumber.length >= 7) {
+        return accountNumber.slice(-7, -4).toUpperCase();
+    }
+    return null;
 }
 
 /** Verifica si la cuenta es de CypherTrans. */
 function isCypherTransAccount(recipientArg) {
-    const prefix = getAccountPrefix(recipientArg);
-    return ALL_PREFIXES.includes(prefix);
+    const prefix = getAccountPrefix(recipientArg);
+    return ALL_PREFIXES.includes(prefix);
 }
 
 async function callCypherTransAPI(botHash, sender, recipient, amount, type) {
@@ -139,7 +139,7 @@ ${emoji2} *Balance de tu Banco:* ${totalInBank} ${moneda}
 
 /** Envía la confirmación de transferencia externa (PENDIENTE o APROBADA) incluyendo el recibo si existe. */
 function sendFinalTransferConfirmation(conn, chatId, txData, amount, newBankBalance, m) {
-    // ... (Esta función sigue igual que en tu código original)
+    // ... (Esta función sigue igual que en tu código original)
     const isApproved = txData.status === 'APROBADA';
     const isPending = txData.status.startsWith('PENDIENTE');
     const hasReceipt = txData.receipt_base64 && Buffer.from(txData.receipt_base64, 'base64').length > 0;
@@ -159,7 +159,7 @@ function sendFinalTransferConfirmation(conn, chatId, txData, amount, newBankBala
     }
 
     // Desglose del mensaje (usando los nuevos campos de la API)
-    // Usamos getCurrencyName()
+    // Usamos getCurrencyName()
     const sentCurrency = getCurrencyName(txData.sent_currency || BOT_KEY_PREFIX);
     const receivedCurrency = getCurrencyName(txData.received_currency || BOT_KEY_PREFIX);
     const isCrossCurrency = sentCurrency !== receivedCurrency;
@@ -213,41 +213,41 @@ async function handler(m, { conn, args, usedPrefix, command }) {
 
     const user = global.db.data.users[m.sender];
     const bankType = 'bank';
-    const txState = 'pendingCypherTransTx'; // Clave para guardar la transacción pendiente
+    const txState = 'pendingCypherTransTx'; // Clave para guardar la transacción pendiente
     
     let amount, recipientArg, typeShortcut;
-    let isConfirmation = false;
+    let isConfirmation = false;
     
     // 1. Lógica para manejar comandos y respuestas de botones
 
-    // Comandos de confirmación (Sí/No) o ejecución rápida
-    if (args.length === 4 && (args[0] === 'CONFIRM' || args[0] === 'CANCEL') && isNumber(args[1])) {
-        // Formato: .transferir CONFIRM <amount> <recipient> <type>
-        isConfirmation = true;
-        const action = args[0]; // CONFIRM o CANCEL
-        amount = parseInt(args[1]);
-        recipientArg = args[2].trim();
-        typeShortcut = args[3].trim();
-        
-        // Verifica que la transacción pendiente guardada coincida
-        const pendingTx = user[txState];
-        if (!pendingTx || pendingTx.amount !== amount || pendingTx.recipient !== recipientArg || pendingTx.type !== typeShortcut) {
-            return m.reply(`${emoji2} La confirmación no coincide con la última transferencia pendiente. Intenta de nuevo.`);
-        }
+    // Comandos de confirmación (Sí/No) o ejecución rápida
+    if (args.length === 4 && (args[0] === 'CONFIRM' || args[0] === 'CANCEL') && isNumber(args[1])) {
+        // Formato: .transferir CONFIRM <amount> <recipient> <type>
+        isConfirmation = true;
+        const action = args[0]; // CONFIRM o CANCEL
+        amount = parseInt(args[1]);
+        recipientArg = args[2].trim();
+        typeShortcut = args[3].trim();
+        
+        // Verifica que la transacción pendiente guardada coincida
+        const pendingTx = user[txState];
+        if (!pendingTx || pendingTx.amount !== amount || pendingTx.recipient !== recipientArg || pendingTx.type !== typeShortcut) {
+            return m.reply(`${emoji2} La confirmación no coincide con la última transferencia pendiente. Intenta de nuevo.`);
+        }
 
-        // Si es CANCEL, borra y notifica
-        if (action === 'CANCEL') {
-            user[txState] = null; // Elimina el estado pendiente
-            return m.reply(`${emoji2} Transferencia a ${recipientArg} por ${amount} ${moneda} *cancelada*.`);
-        }
-        // Si es CONFIRM, continúa la ejecución después del bloque if
-    }
-    // Comando inicial de transferencia
-    else if (args.length >= 2) {
-        amount = isNumber(args[0]) ? parseInt(args[0]) : 0;
-        recipientArg = args[1].trim();
-        typeShortcut = args[2] ? args[2].trim() : null; // Para tipo 1 o 2 en el comando inicial
-    } else {
+        // Si es CANCEL, borra y notifica
+        if (action === 'CANCEL') {
+            user[txState] = null; // Elimina el estado pendiente
+            return m.reply(`${emoji2} Transferencia a ${recipientArg} por ${amount} ${moneda} *cancelada*.`);
+        }
+        // Si es CONFIRM, continúa la ejecución después del bloque if
+    }
+    // Comando inicial de transferencia
+    else if (args.length >= 2) {
+        amount = isNumber(args[0]) ? parseInt(args[0]) : 0;
+        recipientArg = args[1].trim();
+        typeShortcut = args[2] ? args[2].trim() : null; // Para tipo 1 o 2 en el comando inicial
+    } else {
         // Uso incorrecto - Muestra ayuda mejorada
         return sendHelpMessage(conn, m, usedPrefix, command);
     }
@@ -261,10 +261,10 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         return conn.sendMessage(m.chat, {text: `${emoji2} Solo tienes *${user[bankType]} ${moneda}* en el banco para transferir.`, mentions: [m.sender]}, {quoted: m});
     }
 
-    // Si ya existe una transacción pendiente y no es una confirmación, no deja continuar
-    if (user[txState] && !isConfirmation) {
-         return m.reply(`${emojiWait} Ya tienes una transferencia pendiente de confirmación a *${user[txState].recipient}* por *${user[txState].amount} ${moneda}*. Responde al mensaje anterior o usa ${usedPrefix + command} CANCEL.`);
-    }
+    // Si ya existe una transacción pendiente y no es una confirmación, no deja continuar
+    if (user[txState] && !isConfirmation) {
+         return m.reply(`${emojiWait} Ya tienes una transferencia pendiente de confirmación a *${user[txState].recipient}* por *${user[txState].amount} ${moneda}*. Responde al mensaje anterior o usa ${usedPrefix + command} CANCEL.`);
+    }
 
     // --- LÓGICA DE TRANSFERENCIA ---
 
@@ -297,80 +297,82 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         const recipientPrefix = getAccountPrefix(recipientArg);
         const recipientAccount = recipientArg;
         let transferType = null;
-        const isInternalBot = BOT_KEY_PREFIX === recipientPrefix;
+        const isInternalBot = BOT_KEY_PREFIX === recipientPrefix;
         
         // C.1. Transferencia al mismo bot (DEN)
         if (isInternalBot) {
             transferType = 'instant';
-        } 
-        // C.2. Tipo de transferencia definido por el usuario (1 o 2)
-        else if (typeShortcut === '1' || typeShortcut === '2') {
+        } 
+        // C.2. Tipo de transferencia definido por el usuario (1 o 2)
+        else if (typeShortcut === '1' || typeShortcut === '2') {
              transferType = (typeShortcut === '1' ? 'normal' : 'instant');
         }
 
-        // --- Bucle de Confirmación/Ejecución ---
+        // --- Bucle de Confirmación/Ejecución ---
 
-        // Si es la PRIMERA VEZ (No es confirmación) y requiere tipo (no es interno), se pide la selección
-        if (!isConfirmation && !isInternalBot && !transferType) {
-            
-            // E. Bots Diferentes (Menú de selección)
-            const buttons = [
-                {buttonId: `${usedPrefix + command} ${amount} ${recipientAccount} 1`, buttonText: {displayText: '1: Lenta (Normal) 🐢'}, type: 1},
-                {buttonId: `${usedPrefix + command} ${amount} ${recipientAccount} 2`, buttonText: {displayText: '2: Rápida (Instantánea) ⚡'}, type: 1}
-            ];
+        // Si es la PRIMERA VEZ (No es confirmación) y requiere tipo (no es interno), se pide la selección
+        if (!isConfirmation && !isInternalBot && !transferType) {
+            
+            // E. Bots Diferentes (Menú de selección)
+            const buttons = [
+                {buttonId: `${usedPrefix + command} ${amount} ${recipientAccount} 1`, buttonText: {displayText: '1: Lenta (Normal) 🐢'}, type: 1},
+                {buttonId: `${usedPrefix + command} ${amount} ${recipientAccount} 2`, buttonText: {displayText: '2: Rápida (Instantánea) ⚡'}, type: 1}
+            ];
         
-            const buttonMessage = {
-                text: `🌐 *Selecciona la Velocidad de Transferencia*\n\n` + 
+            const buttonMessage = {
+                text: `🌐 *Selecciona la Velocidad de Transferencia*\n\n` + 
                       `*Destino:* ${getCurrencyName(recipientPrefix)} | *Monto:* ${amount} ${moneda}\n\n` +
-                      `*1. Lenta (Normal):* Tarda hasta 24h. Sin comisión base. (Recomendado)\n` +
-                      `*2. Rápida (Instantánea):* Tarda ~8min. Aplica comisión.`,
-                footer: 'CypherTrans | Selecciona una opción:',
-                buttons: buttons,
-                headerType: 1
-            };
+                      `*1. Lenta (Normal):* Tarda **hasta 24 horas**. Comisión Cero (0.0%). (Recomendado)\n` + // <-- CORRECCIÓN DE DESCRIPCIÓN 1
+                      `*2. Rápida (Instantánea):* Tarda ~8min *si no hay contratiempos*. Aplica comisión.`,
+                footer: 'CypherTrans | Selecciona una opción:',
+                buttons: buttons,
+                headerType: 1
+            };
 
-            return conn.sendMessage(m.chat, buttonMessage, { quoted: m });
-        }
-        
-        // Si YA SE TIENE el tipo de transferencia (Interna, o Externa y ya seleccionó), se pide la confirmación SI NO HA CONFIRMADO
-        if (!isConfirmation && transferType) {
+            return conn.sendMessage(m.chat, buttonMessage, { quoted: m });
+        }
+        
+        // Si YA SE TIENE el tipo de transferencia (Interna, o Externa y ya seleccionó), se pide la confirmación SI NO HA CONFIRMADO
+        if (!isConfirmation && transferType) {
 
-            // Guarda el estado de la transacción pendiente
-            user[txState] = { amount, recipient: recipientAccount, type: typeShortcut || 'instant' };
+            // Guarda el estado de la transacción pendiente
+            user[txState] = { amount, recipient: recipientAccount, type: typeShortcut || 'instant' };
 
-            const buttons = [
-                // Los botones envían el comando completo de confirmación (CONFIRM/CANCEL <amount> <recipient> <type>)
-                {buttonId: `${usedPrefix + command} CONFIRM ${amount} ${recipientAccount} ${typeShortcut || 'instant'}`, buttonText: {displayText: '✅ SÍ, CONFIRMO'}, type: 1},
-                {buttonId: `${usedPrefix + command} CANCEL ${amount} ${recipientAccount} ${typeShortcut || 'instant'}`, buttonText: {displayText: '❌ NO, CANCELAR'}, type: 1}
-            ];
+            const buttons = [
+                // Los botones envían el comando completo de confirmación (CONFIRM/CANCEL <amount> <recipient> <type>)
+                {buttonId: `${usedPrefix + command} CONFIRM ${amount} ${recipientAccount} ${typeShortcut || 'instant'}`, buttonText: {displayText: '✅ SÍ, CONFIRMO'}, type: 1},
+                {buttonId: `${usedPrefix + command} CANCEL ${amount} ${recipientAccount} ${typeShortcut || 'instant'}`, buttonText: {displayText: '❌ NO, CANCELAR'}, type: 1}
+            ];
 
-            const transferTypeText = isInternalBot ? 'INSTANTÁNEA (Mismo Bot)' : (transferType === 'instant' ? 'RÁPIDA (Instantánea)' : 'LENTA (Normal)');
+            const transferTypeText = isInternalBot ? 'INSTANTÁNEA (Mismo Bot)' : (transferType === 'instant' ? 'RÁPIDA (Instantánea)' : 'LENTA (Normal)');
 
-            const confirmationMessage = {
-                text: `⚠️ *¿CONFIRMAS ESTA TRANSFERENCIA MULTIBOT?* ⚠️\n\n` + 
+            const confirmationMessage = {
+                text: `⚠️ *¿CONFIRMAS ESTA TRANSFERENCIA MULTIBOT?* ⚠️\n\n` + 
                       `*Monto:* *${amount} ${moneda}*\n` +
                       `*Destino:* ${recipientAccount} (${getCurrencyName(recipientPrefix)})\n` +
                       `*Tipo:* ${transferTypeText}\n\n` +
                       `*¡El dinero será restado de tu banco inmediatamente al confirmar!*`,
-                footer: 'Pulsa SÍ para continuar. Pulsa NO para cancelar.',
-                buttons: buttons,
-                headerType: 1
-            };
+                footer: 'Pulsa SÍ para continuar. Pulsa NO para cancelar.',
+                buttons: buttons,
+                headerType: 1
+            };
 
-            return conn.sendMessage(m.chat, confirmationMessage, { quoted: m });
-        }
+            return conn.sendMessage(m.chat, confirmationMessage, { quoted: m });
+        }
 
-        // --- Lógica de EJECUCIÓN FINAL (Solo llega aquí si isConfirmation es true) ---
-        if (isConfirmation) {
-            
-            // Limpia el estado pendiente
-            user[txState] = null;
-            
-            // Se resta el dinero ANTES de la llamada a la API
-            user[bankType] -= amount * 1;
-            
-            // Usamos el tipo que viene en el estado, si no, 'instant' (default para interno)
-            const finalTransferType = typeShortcut || 'instant'; 
+        // --- Lógica de EJECUCIÓN FINAL (Solo llega aquí si isConfirmation es true) ---
+        if (isConfirmation) {
+            
+            // Limpia el estado pendiente
+            user[txState] = null;
+            
+            // Se resta el dinero ANTES de la llamada a la API
+            user[bankType] -= amount * 1;
+            
+            // CORRECCIÓN CLAVE: Mapear el atajo ('1' o '2') al valor de la API ('normal' o 'instant')
+            const finalTransferType = (typeShortcut === '1' ? 'normal' : 
+                                   (typeShortcut === '2' ? 'instant' : 
+                                    'instant')); // Por defecto 'instant' si viene de un transferType interno
             
             const txResponse = await callCypherTransAPI(botHash, senderAccount, recipientAccount, amount, finalTransferType);
             
@@ -384,7 +386,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
                 user[bankType] += amount * 1; 
                 return m.reply(`${emoji2} Falló la transferencia a ${recipientAccount}. Se te ha devuelto el dinero. ${txResponse.data.error || 'Error desconocido'}`);
             }
-        }
+        }
 
     }
 
