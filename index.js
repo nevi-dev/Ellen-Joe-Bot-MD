@@ -2,6 +2,7 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'
 import './settings.js'
 import { setupMaster, fork } from 'cluster'
 import { checkCypherTransInbound } from './plugins/_checkCypherTrans.js';
+import { runCharacterMaintenance } from './plugins/_maintenance.js';
 import { watchFile, unwatchFile } from 'fs'
 import cfonts from 'cfonts'
 import {createRequire} from 'module'
@@ -255,19 +256,39 @@ if (connection == 'open') {
 console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 }
 // -------------------------------------------------------------------
-// 🔥 INICIO DE LA LÓGICA DE CHEQUEO DE CYPHERTRANS 🔥
-// -------------------------------------------------------------------
-console.log(chalk.bold.cyan('🎛️  Inicializando monitoreo de transferencias CypherTrans...'));
+    // 🔥 INICIO DE LA LÓGICA DE CHEQUEO DE CYPHERTRANS 🔥
+    // -------------------------------------------------------------------
+// Configuración del intervalo unificado
+    const UNIFIED_CHECK_INTERVAL_MS = 60 * 1000; // 60 segundos
 
-// 1. Ejecutar el chequeo inmediatamente al conectar
-checkCypherTransInbound(conn); 
+    // Función que ejecutará ambas tareas
+    const runAllMaintenanceTasks = async () => {
+        // --- 1. Chequeo de CypherTrans ---
+        try {
+            console.log(chalk.bold.cyan('🎛️ Ejecutando chequeo de CypherTrans...'));
+            await checkCypherTransInbound(conn);
+        } catch (error) {
+            console.error(`❌ [CypherTrans] Error en chequeo: ${error.message}`);
+        }
 
-// 2. Ejecutar el chequeo cada 60 segundos (60,000 milisegundos)
-// Guarda el ID del intervalo en una variable global si necesitas detenerlo luego.
-global.cypherTransInterval = setInterval(() => {
-    checkCypherTransInbound(conn); 
-}, 60 * 1000); 
+        // --- 2. Mantenimiento de Waifus ---
+        try {
+            console.log(chalk.bold.magenta('💖 Ejecutando mantenimiento de Waifus...'));
+            // Llamamos directamente a la función de limpieza
+            await runCharacterMaintenance(conn); 
+        } catch (error) {
+            console.error(`❌ [Waifus] Error en mantenimiento: ${error.message}`);
+        }
+    };
 
+    // 1. Ejecutar ambas tareas INMEDIATAMENTE al conectar
+    runAllMaintenanceTasks(); 
+
+    // 2. Ejecutar ambas tareas cada 60 segundos
+    global.maintenanceInterval = setInterval(runAllMaintenanceTasks, UNIFIED_CHECK_INTERVAL_MS); 
+    
+    console.log(chalk.cyan(`[Tareas] Monitoreo unificado programado cada ${UNIFIED_CHECK_INTERVAL_MS / 1000}s.`));
+}
 // -------------------------------------------------------------------
   
 let reason = new Boom(lastDisconnect?.error)?.output?.statusCode
