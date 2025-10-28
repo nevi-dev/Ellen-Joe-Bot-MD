@@ -254,7 +254,7 @@ console.log(chalk.bold.yellow(`\n❐ ESCANEA EL CÓDIGO QR, EXPIRA EN 45 SEGUNDO
 }
 if (connection == 'open') {
 console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
-}
+
 // -------------------------------------------------------------------
     // 🔥 INICIO DE LA LÓGICA DE CHEQUEO DE CYPHERTRANS 🔥
     // -------------------------------------------------------------------
@@ -290,7 +290,7 @@ console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
     console.log(chalk.cyan(`[Tareas] Monitoreo unificado programado cada ${UNIFIED_CHECK_INTERVAL_MS / 1000}s.`));
 }
 // -------------------------------------------------------------------
-{
+
 let reason = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
 if (reason === DisconnectReason.badSession) {
