@@ -290,7 +290,7 @@ console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
     console.log(chalk.cyan(`[Tareas] Monitoreo unificado programado cada ${UNIFIED_CHECK_INTERVAL_MS / 1000}s.`));
 }
 // -------------------------------------------------------------------
-  
+{
 let reason = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
 if (reason === DisconnectReason.badSession) {
