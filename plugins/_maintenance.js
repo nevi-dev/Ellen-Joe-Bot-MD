@@ -24,70 +24,80 @@ async function saveCharacters(characters) {
 }
 
 // -----------------------------------------------------------------------
-// 🚀 FUNCIÓN CRÍTICA: BUSCAR JIDs ACTIVOS EN GRUPOS 🚀
-// Usamos el método Baileys de la conexión 'sock' para obtener grupos.
+// 🚀 FUNCIÓN CRÍTICA: BUSCAR JIDs ACTIVOS EN GRUPOS (INCLUYE SUB-BOTS) 🚀
 // -----------------------------------------------------------------------
 /**
  * Obtiene todos los JIDs de usuarios (miembros o dueños) que están en cualquier
- * grupo donde el bot es miembro.
- * @param {object} sock El objeto de conexión del bot (ej. 'conn' o 'sock').
+ * grupo compartido con el bot principal O con cualquiera de sus sub-bots.
+ * @param {object} mainSock El objeto de conexión del bot principal (ej. 'conn' o 'sock').
  * @returns {Promise<Set<string>>} Un conjunto de JIDs (IDs de usuario) activos en grupos.
  */
-async function getAllUsersInGroups(sock) {
+async function getAllUsersInGroups(mainSock) {
     const activeUsers = new Set();
+    const allSocks = [mainSock]; // Empezamos con el bot principal
     
-    try {
-        // Asumiendo que sock.groupFetchAllParticipating() funciona
-        const groups = await sock.groupFetchAllParticipating();
-        
-        console.log(`[Waifu-MAINTENANCE] Grupos encontrados: ${Object.keys(groups).length}`);
+    // 1. Agregar las conexiones de los sub-bots (asumiendo global.subSocks es un array)
+    if (global.subSocks && Array.isArray(global.subSocks)) {
+        // Solo incluimos socks que existen y que tienen la función de grupos
+        const validSubSocks = global.subSocks.filter(s => s && s.groupFetchAllParticipating);
+        allSocks.push(...validSubSocks);
+        console.log(`[Waifu-MAINTENANCE] Incluyendo ${validSubSocks.length} conexiones de sub-bots en el chequeo.`);
+    }
 
-        for (const jid in groups) {
-            const group = groups[jid];
+    // 2. Iterar sobre todas las conexiones (principal + sub-bots)
+    for (const sock of allSocks) {
+        const botJid = sock.user?.id || 'desconocido';
+        try {
+            console.log(`[Waifu-MAINTENANCE] Chequeando grupos del bot: ${botJid.split(':')[0]}`);
             
-            if (group && group.participants) {
-                group.participants.forEach(p => {
-                    if (p.id) {
-                        // 1. Añadir el JID estándar (@s.whatsapp.net)
-                        const standardJID = p.id; 
-                        activeUsers.add(standardJID);
-                        
-                        // 2. Intentar añadir el JID @lid (si existe en tu DB)
-                        // Esto asegura que la comprobación cubra ambos formatos.
-                        const lidJID = standardJID.replace('@s.whatsapp.net', '@lid');
-                        activeUsers.add(lidJID);
-                    }
-                });
+            // Obtener la lista de grupos
+            const groups = await sock.groupFetchAllParticipating();
+            
+            // 3. Procesar los participantes de cada grupo
+            for (const jid in groups) {
+                const group = groups[jid];
+                
+                if (group && group.participants) {
+                    group.participants.forEach(p => {
+                        if (p.id) {
+                            const standardJID = p.id; 
+                            activeUsers.add(standardJID); // Ej: 521XXX@s.whatsapp.net
+                            
+                            // Asegurar la compatibilidad con el formato @lid
+                            const lidJID = standardJID.includes('@s.whatsapp.net') 
+                                ? standardJID.replace('@s.whatsapp.net', '@lid')
+                                : standardJID;
+                            activeUsers.add(lidJID); // Ej: 521XXX@lid
+                        }
+                    });
+                }
             }
-        }
-        
-        // 3. Añadir el JID del bot mismo, para evitar que se libere si tiene personajes.
-        if (sock.user && sock.user.id) {
-            activeUsers.add(sock.user.id);
-            // También la versión @s.whatsapp.net si es @lid
-            const standardBotJID = sock.user.id.includes('@lid') 
-                ? sock.user.id.replace('@lid', '@s.whatsapp.net') 
-                : sock.user.id;
-            activeUsers.add(standardBotJID);
-        }
+            
+            // 4. Asegurar que el bot actual esté en la lista (para evitar liberarse si tiene waifus)
+            if (sock.user && sock.user.id) {
+                activeUsers.add(sock.user.id);
+            }
 
-        console.log(`[Waifu-MAINTENANCE] JIDs únicos activos recolectados: ${activeUsers.size}`);
-        
-    } catch (e) {
-        console.error("❌ ERROR CRÍTICO al obtener miembros de grupos. ¡PELIGRO DE LIBERACIÓN MASIVA!", e);
-        // Devolver Set vacío es MUY PELIGROSO. Es mejor lanzar un error o devolver la última lista conocida.
-        throw new Error("Fallo al obtener usuarios activos."); 
+        } catch (e) {
+            console.error(`❌ ERROR al obtener grupos del bot ${botJid}:`, e.message);
+        }
+    }
+    
+    console.log(`[Waifu-MAINTENANCE] JIDs únicos activos recolectados (Total): ${activeUsers.size}`);
+    
+    // Si la lista está vacía y esperabas usuarios, esto indica un problema crítico
+    if (activeUsers.size === 0 && allSocks.length > 0) {
+        throw new Error("Fallo al obtener usuarios activos: La lista está vacía. ¡PELIGRO!"); 
     }
     
     return activeUsers;
 }
 // -----------------------------------------------------------------------
 
-// --- Función Principal de Mantenimiento ---
+// --- Función Principal de Mantenimiento (runCharacterMaintenance) ---
 
 /**
- * Revisa la base de datos de personajes y libera (pone 'user' a null)
- * los personajes de los dueños que ya no están en ningún grupo con el bot.
+ * Revisa la base de datos de personajes y libera los personajes de los dueños inactivos.
  * * @param {object} conn La conexión del bot.
  */
 export async function runCharacterMaintenance(conn) {
@@ -98,20 +108,18 @@ export async function runCharacterMaintenance(conn) {
     
     try {
         const characters = await loadCharacters();
-        // OBTENER LA LISTA DE JIDs ACTIVOS (CRÍTICO)
+        // OBTENER LA LISTA DE JIDs ACTIVOS (PRINCIPAL + SUB-BOTS)
         const activeUsers = await getAllUsersInGroups(conn); 
 
         let charactersModified = false;
         const usersToClear = new Set();
 
         const updatedCharacters = characters.map(char => {
-            // Si el personaje NO tiene dueño o el dueño es el bot, lo mantiene
+            // ... (Lógica de liberación igual a la anterior) ...
             if (!char.user || char.user.includes(conn.user.id.split(':')[0])) { 
                 return char;
             }
 
-            // ⚠️ Chequea si el dueño (char.user, que puede ser @lid o @s.whatsapp.net)
-            // NO está en la lista de usuarios activos que generamos
             if (!activeUsers.has(char.user)) {
                 
                 usersToClear.add(char.user);
@@ -119,11 +127,9 @@ export async function runCharacterMaintenance(conn) {
                 
                 console.log(`[Waifu-LIBERADO] Personaje: ${char.name} de ${char.user.split('@')[0]}`);
                 
-                // Devuelve el personaje con el campo 'user' a null para liberarlo
-                return { ...char, user: null, status: 'Libre' }; // También reiniciamos el status
+                return { ...char, user: null, status: 'Libre' }; 
             }
 
-            // Si el usuario es activo, mantiene el personaje
             return char;
         });
 
@@ -138,6 +144,3 @@ export async function runCharacterMaintenance(conn) {
         console.error('❌ [ERROR EN MANTENIMIENTO DE WAIFUS]:', error.message);
     }
 }
-
-// --- Función Opcional para Ejecución Periódica (startMaintenanceInterval) ---
-// ... (mantenida igual si la necesitas aparte)
