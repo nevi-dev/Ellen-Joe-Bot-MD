@@ -156,6 +156,6 @@ let handler = async (m, { conn, args, isOwner }) => {
     }
 }
 
-handler.command = ['transferirwaifu', 'transferwaifu', 'yoshy'];
+handler.command = ['yoshy'];
 handler.rowner = true; 
 export default handler;
