@@ -10,8 +10,9 @@ const charactersFilePath = path.join(process.cwd(), './src/database/characters.j
  * @returns {string}
  */
 function normalizeName(text) {
-    // Normaliza a minúsculas y elimina espacios innecesarios
-    return text.trim().toLowerCase();
+    // Normaliza a minúsculas, elimina espacios y REEMPLAZA GUIONES con espacios
+    // Esto permite que "Mariya-Kujou" (input) coincida con "Mariya Kujou" (DB)
+    return text.trim().toLowerCase().replace(/-/g, ' '); // <-- CAMBIO AQUÍ
 }
 
 /**
@@ -37,8 +38,9 @@ let handler = async (m, { conn, args, isOwner }) => {
             let usage = '⚠️ *USO INCORRECTO*\n\n';
             usage += 'Usa el formato: `.transferirwaifu <Nombre 1> [Nombre 2...] <JID>`';
             usage += '\nO responde a un usuario: `.transferirwaifu <Nombre 1> [Nombre 2...]`';
+            usage += '\n\n*Nota:* Si un nombre tiene espacios, usa un guión (`-`).'; // <-- CAMBIO AQUÍ
             usage += '\n\n*Ejemplo 1:* `.transferirwaifu Mariya 1234567890@s.whatsapp.net`';
-            usage += '\n*Ejemplo 2 (nombres con espacios):* `.transferirwaifu "Mariya Kujou" "Rias Gremory" 1234567890@s.whatsapp.net`';
+            usage += '\n*Ejemplo 2 (nombres con espacios):* `.transferirwaifu Mariya-Kujou Rias-Gremory 1234567890@s.whatsapp.net`'; // <-- CAMBIO AQUÍ
             return m.reply(usage);
         }
         
@@ -47,7 +49,6 @@ let handler = async (m, { conn, args, isOwner }) => {
     }
     
     // 3. Validar JID
-    // La validación se relaja para aceptar JIDs de usuario (@s.whatsapp.net) o de grupo (@lid, @g.us)
     if (!targetJID || !targetJID.includes('@')) {
         return m.reply(`❌ JID no válido: ${targetJID}. Debe ser un JID completo (ej: 12345@s.whatsapp.net).`);
     }
@@ -72,11 +73,12 @@ let handler = async (m, { conn, args, isOwner }) => {
 
     // 6. Procesar la transferencia
     try {
+        // Normalizamos los nombres de entrada (ej: "Mariya-Kujou" -> "mariya kujou")
         const normalizedNamesToFind = characterNames.map(normalizeName);
-        // Usamos un Map para rastrear el nombre original que el usuario escribió
+        
+        // Usamos un Map para rastrear el nombre original que el usuario escribió (ej: "Mariya-Kujou")
         const originalNameMap = new Map();
         characterNames.forEach(name => {
-            // Si varios nombres normalizan a lo mismo (ej: "Goku" y "goku"), se usará el último para el reporte de "no encontrado"
             originalNameMap.set(normalizeName(name), name);
         });
 
@@ -85,22 +87,20 @@ let handler = async (m, { conn, args, isOwner }) => {
         const foundNormalized = new Set(); // Para rastrear qué nombres normalizados encontramos
 
         const updatedCharacters = characters.map(char => {
+            // Normalizamos el nombre de la DB (ej: "Mariya Kujou" -> "mariya kujou")
             const normDBName = normalizeName(char.name);
             
             // Comprobar si este personaje está en la lista de los que queremos transferir
             if (normalizedNamesToFind.includes(normDBName)) {
                 
-                // Marcar este nombre normalizado como encontrado
                 foundNormalized.add(normDBName);
 
                 if (char.user === targetJID) {
-                    // Ya pertenece al destino
                     alreadyOwned.push(char.name);
                 } else {
-                    // Realizar la transferencia
                     const previousOwner = char.user ? char.user.split('@')[0] : 'nadie (estaba Libre)';
                     char.user = targetJID;
-                    char.status = 'Reclamado'; // O el estado que uses
+                    char.status = 'Reclamado'; 
                     transferred.push(char.name);
                     
                     console.log(`[TRANSFER] ${char.name} transferido de ${previousOwner} a ${targetJID.split('@')[0]}`);
@@ -113,8 +113,8 @@ let handler = async (m, { conn, args, isOwner }) => {
         const notFoundOriginal = [];
         normalizedNamesToFind.forEach(normName => {
             if (!foundNormalized.has(normName)) {
-                // Obtener el nombre original que escribió el usuario para el reporte
-                notFoundOriginal.push(originalNameMap.get(normName) || normName); // Fallback por si acaso
+                // Obtener el nombre original que escribió el usuario (ej: "Mariya-Kujou")
+                notFoundOriginal.push(originalNameMap.get(normName) || normName); 
             }
         });
 
@@ -138,6 +138,7 @@ let handler = async (m, { conn, args, isOwner }) => {
             replyMsg += `- ${alreadyOwned.join('\n- ')}\n\n`;
         }
 
+        // Usamos los nombres originales (con guión) para el reporte de "no encontrados"
         if (notFoundOriginal.length > 0) {
             replyMsg += `*Personajes No Encontrados:* (${notFoundOriginal.length})\n`;
             replyMsg += `- ${notFoundOriginal.join('\n- ')}\n\n`;
@@ -155,7 +156,6 @@ let handler = async (m, { conn, args, isOwner }) => {
     }
 }
 
-// Actualizamos el comando y mantenemos el rowner
-handler.command = ['yoshy'];
-handler.rowner = true; // Solo para dueños/administradores del bot
+handler.command = ['transferirwaifu', 'transferwaifu', 'yoshy'];
+handler.rowner = true; 
 export default handler;
