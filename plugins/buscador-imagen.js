@@ -1,21 +1,14 @@
 import fetch from 'node-fetch';
-import * as cheerio from 'cheerio'; // Importar cheerio para analizar el HTML
+import * as cheerio from 'cheerio'; 
 
-// --- Constantes y Configuración de Transmisión (Estilo Ellen Joe) ---
-// NOTA: Estas variables (icons, redes) DEBEN estar definidas y accesibles en tu entorno global.
+// --- Constantes y Configuración de Transmisión ---
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 
-// --- Función Auxiliar para Extracción de Imagen de la Página de Origen ---
-/**
- * Intenta encontrar la imagen principal de alta resolución en una página web dada.
- * @param {string} pageUrl - La URL de la página web de origen.
- * @returns {Promise<string|null>} - La URL de la imagen grande o null.
- */
+// --- Función Auxiliar findHighResImage (sin cambios) ---
 async function findHighResImage(pageUrl) {
     try {
         const response = await fetch(pageUrl, {
-            // Usar headers también para la página de origen
             headers: {
                 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0',
                 'Accept': 'text/html',
@@ -26,21 +19,20 @@ async function findHighResImage(pageUrl) {
 
         let finalImageUrl = null;
 
-        // Búsqueda 1: Tags Open Graph (Metadata de redes sociales, alta probabilidad de éxito)
+        // Búsqueda 1: Tags Open Graph
         finalImageUrl = $('meta[property="og:image"]').attr('content');
         if (finalImageUrl) return finalImageUrl;
         
-        // Búsqueda 2: Tags de Twitter Card (también metadata)
+        // Búsqueda 2: Tags de Twitter Card
         finalImageUrl = $('meta[name="twitter:image"]').attr('content');
         if (finalImageUrl) return finalImageUrl;
 
-        // Búsqueda 3: Imágenes grandes en la página (heurística, buscando un 'src' que no sea un ícono)
+        // Búsqueda 3: Imágenes grandes en la página
         $('img').each((i, element) => {
              const src = $(element).attr('src') || $(element).attr('data-src');
-             // Si el src existe, es un enlace HTTP completo y no parece ser un ícono/miniatura
              if (src && src.startsWith('http') && !src.includes('logo') && !src.includes('icon') && !src.includes('thumb')) {
                  finalImageUrl = src;
-                 return false; // Detener después de encontrar el primero válido
+                 return false; 
              }
         });
         
@@ -53,42 +45,24 @@ async function findHighResImage(pageUrl) {
 }
 
 
-// --- Handler Principal ---
+// --- Handler Principal con Extracción de JSON ---
 const handler = async (m, { conn, text, usedPrefix, command }) => {
     const name = conn.getName(m.sender);
-
-    // --- Definición de Context Info (External Ad Reply) ---
-    const contextInfo = {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardingScore: 999,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid,
-            newsletterName,
-            serverMessageId: -1
-        },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, 
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
-    };
+    // Asumo que 'icons' y 'redes' están definidos globalmente
+    const contextInfo = { /* ... */ }; 
 
     if (!text) {
         return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para localizar imágenes.`, m, { contextInfo, quoted: m });
     }
 
     await m.react('🔄'); 
-    conn.reply(m.chat, `🔄 *Iniciando protocolo de doble barrido (SC), Proxy ${name}.* Buscando el enlace de origen con contingencia.`, m, { contextInfo, quoted: m });
+    conn.reply(m.chat, `🔄 *Iniciando protocolo de JSON/Doble barrido, Proxy ${name}.* Extrayendo datos brutos de Google.`, m, { contextInfo, quoted: m });
 
     try {
         const encodedText = encodeURIComponent(text);
         const searchUrl = `https://www.google.com/search?q=${encodedText}&udm=2&safe=active`; 
 
-        // --- Nivel 1: Obtener los enlaces de la página de resultados de Google ---
+        // --- Nivel 1: Obtener el enlace de la página de origen del JSON ---
         const response = await fetch(searchUrl, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0',
@@ -100,38 +74,31 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         const $ = cheerio.load(html);
         
         let sourcePageLink = null;
-        let firstResultHref = null;
+        let jsonText = null;
 
-        // **INICIO DE LA SOLUCIÓN 1: Múltiples Selectores de Contingencia**
-        
-        // 1. Contingencia A: Busca enlaces con 'imgurl' (Más común)
-        firstResultHref = $('a[href*="imgurl"]').first().attr('href');
+        // 1. Buscar la etiqueta script que contenga el JSON de resultados
+        $('script').each((i, element) => {
+            const scriptContent = $(element).html();
+            if (scriptContent && scriptContent.includes('AF_initDataCallback')) {
+                jsonText = scriptContent;
+                return false; 
+            }
+        });
 
-        // 2. Contingencia B: Busca enlaces con 'imgrefurl' (Alternativa común)
-        if (!firstResultHref) {
-            firstResultHref = $('a[href*="imgrefurl"]').first().attr('href');
-        }
-
-        // 3. Contingencia C: Selector de contenedor de resultados (Heurística)
-        if (!firstResultHref) {
-            firstResultHref = $('.DS1iW a').first().attr('href');
-        }
-        
-        // **FIN DE LA SOLUCIÓN 1**
-
-        // --- Procesamiento del Enlace Encontrado ---
-
-        if (firstResultHref) {
-            // Se usa URLSearchParams para extraer la URL de origen real de los parámetros de Google
-            const urlParams = new URLSearchParams(firstResultHref);
+        if (jsonText) {
+            // 2. Usar RegEx para extraer la primera URL de origen dentro del JSON.
+            // La URL de origen (imgrefurl) suele ser el primer string importante en la estructura de datos.
+            const jsonRegex = /data:\[null,null,null,null,null,\[\[\["([^"]+)"/g;
+            let match = jsonRegex.exec(jsonText);
             
-            // El parámetro 'url' o 'imgurl' a menudo contiene el enlace a la página de origen real.
-            sourcePageLink = urlParams.get('url') || urlParams.get('imgurl');
+            if (match && match[1]) {
+                sourcePageLink = match[1];
+            }
         }
 
         if (!sourcePageLink) {
             await m.react('❌'); 
-            return conn.reply(m.chat, `❌ *Fallo en Nivel 1, Proxy ${name}.*\nNo se pudo encontrar el enlace a la página de origen para "${text}".`, m, { contextInfo, quoted: m });
+            return conn.reply(m.chat, `❌ *Fallo en Nivel 1, Proxy ${name}.*\nNo se pudo encontrar el enlace de origen en el JSON incrustado.`, m, { contextInfo, quoted: m });
         }
         
         // --- Nivel 2: Entrar a la página de origen y buscar la imagen grande ---
@@ -153,7 +120,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         await m.react('✅'); 
 
     } catch (error) {
-        console.error("Error al procesar Google Image (2 Niveles):", error);
+        console.error("Error al procesar Google Image (JSON/2 Niveles):", error);
         await m.react('❌'); 
         conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de doble barrido, Proxy ${name}.*\nError: ${error.message}`, m, { contextInfo, quoted: m });
     }
