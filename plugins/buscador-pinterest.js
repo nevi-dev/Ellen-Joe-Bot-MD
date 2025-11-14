@@ -6,10 +6,8 @@ const { generateWAMessageContent, generateWAMessageFromContent, proto } = (await
 // --- CONSTANTES DE CONFIGURACIÓN DE TU BOT ---
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
-// Nota: 'icons' y 'redes' deben estar definidos globalmente en tu entorno.
 
-// --- COOKIE DE SESIÓN RECIÉN GENERADA (¡USAR ESTA AHORA!) ---
-// ESTA ES LA CLAVE PARA EVITAR EL BLOQUEO 403.
+// --- COOKIE DE SESIÓN (Debe estar actualizada) ---
 const PINTEREST_SESSION_COOKIE = '_auth=0; _pinterest_sess=TWc9PSZtTkY0MDA3S21zdFJKNTVjOHl1aGU3NFhMeUFtbkVQODFzN1A3T3F1R2FoY1dLUGJTY0RlRVByTWlXVncyeTZnY0FPaXFFeDc3OXhJYll1M01oNVNZMDcwaFRGWXUrcVozRlhXYjV6azY5QT0maGRKanRxb1ZHMVZKV1Erc0htbU55YWNnVmxRPQ==; _routing_id="e1f58f6a-8596-4102-97a2-2b5f5ef5e2e7"; csrftoken=4cf353aa31282b83edf202ec4f62fdfc';
 
 // --- HEADERS OPTIMIZADOS (Incluyendo la cookie) ---
@@ -25,16 +23,18 @@ const PINTEREST_HEADERS = {
     'sec-fetch-site': 'none',
     'sec-fetch-user': '?1',
     'upgrade-insecure-requests': '1',
-    'cookie': PINTEREST_SESSION_COOKIE // <<<<< USAMOS LA COOKIE FRESCA
+    'cookie': PINTEREST_SESSION_COOKIE 
 };
 
 /**
  * Función para extraer URLs de imagen de la búsqueda de Pinterest mediante Scrapeo HTML y JSON.
+ * Se ha cambiado el dominio a 'es.pinterest.com'.
  * @param {string} query - Término de búsqueda.
  * @returns {Promise<string[]>} - Array de URLs de imágenes encontradas.
  */
 async function scrapePinterest(query) {
-    const searchUrl = `https://id.pinterest.com/search/pins/?autologin=true&q=${encodeURIComponent(query)}`;
+    // URL MODIFICADA: Usando el dominio 'es.pinterest.com'
+    const searchUrl = `https://es.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`;
 
     const response = await axios.get(searchUrl, { headers: PINTEREST_HEADERS });
     const html = response.data;
@@ -78,7 +78,7 @@ async function scrapePinterest(query) {
 }
 
 
-// --- FUNCIONES AUXILIARES (Mantener estas implementaciones en tu archivo) ---
+// --- FUNCIONES AUXILIARES (Asumo que ya están definidas en tu entorno) ---
 // Estas funciones DEBEN existir y ser accesibles en tu bot.
 async function getImageMessage(imageUrl) { 
     const { imageMessage } = await generateWAMessageContent({
@@ -110,7 +110,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     externalAdReply: {
       title: 'Ellen Joe: Pista localizada. 🦈',
       body: `Procesando solicitud para el/la Proxy ${name}...`,
-      thumbnail: icons,
+      thumbnail: icons, // Asume que 'icons' y 'redes' existen
       sourceUrl: redes,
       mediaType: 1,
       renderLargerThumbnail: false
@@ -122,10 +122,10 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   }
 
   await m.react('🔄');
-  conn.reply(m.chat, `🔄 *Iniciando protocolo de barrido en Pinterest (Con Cookie), Proxy ${name}.* Aguarda, la carga visual está siendo procesada.`, m, { contextInfo, quoted: m });
+  conn.reply(m.chat, `🔄 *Iniciando protocolo de barrido en Pinterest (Dominio ES), Proxy ${name}.* Aguarda, la carga visual está siendo procesada.`, m, { contextInfo, quoted: m });
 
   try {
-    // 1. USAR LA FUNCIÓN DE SCRAPEO HTML CON COOKIE
+    // 1. USAR LA FUNCIÓN DE SCRAPEO HTML CON COOKIE Y DOMINIO ES
     let imageUrls = await scrapePinterest(text);
 
     shuffleArray(imageUrls);
@@ -136,63 +136,63 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       return conn.reply(m.chat, `❌ *Carga visual fallida, Proxy ${name}.*\nNo se encontraron imágenes en Pinterest. **La cookie de sesión podría haber caducado.**`, m, { contextInfo, quoted: m });
     }
 
-    // 2. Lógica de Carousel
-    let carouselCards = [];
-    let imageCounter = 1;
+    // 2. Lógica de Carousel (Envío de Mensajes)
+    let carouselCards = [];
+    let imageCounter = 1;
 
-    for (let imageUrl of selectedImages) {
-      carouselCards.push({
-        'body': proto.Message.InteractiveMessage.Body.fromObject({
-          'text': `Imagen de ${text} - ${imageCounter++}`
-        }),
-        'footer': proto.Message.InteractiveMessage.Footer.fromObject({
-          'text': `Procesado por Ellen Joe's Service`
-        }),
-        'header': proto.Message.InteractiveMessage.Header.fromObject({
-          'title': '',
-          'hasMediaAttachment': true,
-          'imageMessage': await getImageMessage(imageUrl)
-        }),
-        'nativeFlowMessage': proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
-          'buttons': [{
-            'name': "cta_url",
-            'buttonParamsJson': JSON.stringify({
-              "display_text": "Ver en Pinterest 🔗",
-              "url": `https://www.pinterest.com/search/pins/?rs=typed&q=${encodeURIComponent(text)}`,
-              "merchant_url": `https://www.pinterest.com/search/pins/?rs=typed&q=${encodeURIComponent(text)}`
-            })
-          }]
-        })
-      });
-    }
+    for (let imageUrl of selectedImages) {
+      carouselCards.push({
+        'body': proto.Message.InteractiveMessage.Body.fromObject({
+          'text': `Imagen de ${text} - ${imageCounter++}`
+        }),
+        'footer': proto.Message.InteractiveMessage.Footer.fromObject({
+          'text': `Procesado por Ellen Joe's Service`
+        }),
+        'header': proto.Message.InteractiveMessage.Header.fromObject({
+          'title': '',
+          'hasMediaAttachment': true,
+          'imageMessage': await getImageMessage(imageUrl)
+        }),
+        'nativeFlowMessage': proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
+          'buttons': [{
+            'name': "cta_url",
+            'buttonParamsJson': JSON.stringify({
+              "display_text": "Ver en Pinterest 🔗",
+              "url": `https://www.pinterest.com/search/pins/?rs=typed&q=${encodeURIComponent(text)}`,
+              "merchant_url": `https://www.pinterest.com/search/pins/?rs=typed&q=${encodeURIComponent(text)}`
+            })
+          }]
+        })
+      });
+    }
 
-    const carouselMessage = generateWAMessageFromContent(m.chat, {
-      'viewOnceMessage': {
-        'message': {
-          'messageContextInfo': {
-            'deviceListMetadata': {},
-            'deviceListMetadataVersion': 2
-          },
-          'interactiveMessage': proto.Message.InteractiveMessage.fromObject({
-            'body': proto.Message.InteractiveMessage.Body.create({
-              'text': `╭━━━━[ 𝙿𝚒𝚗𝚝𝚎𝚛𝚎𝚜𝚝 𝙳𝚎𝚌𝚘𝚍𝚎𝚍: 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘𝚜 𝚅𝚒𝚜𝚞𝚊𝚕𝚎𝚜 ]━━━━⬣\n🖼️ *Término de Búsqueda:* ${text}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`
-            }),
-            'footer': proto.Message.InteractiveMessage.Footer.create({
-              'text': "⪛✰ Barrido de Pinterest - Ellen Joe's Service ✰⪜"
-            }),
-            'header': proto.Message.InteractiveMessage.Header.create({
-              'hasMediaAttachment': false
-            }),
-            'carouselMessage': proto.Message.InteractiveMessage.CarouselMessage.fromObject({
-              'cards': carouselCards
-            })
-          })
-        }
-      }
-    }, { 'quoted': m });
+    const carouselMessage = generateWAMessageFromContent(m.chat, {
+      'viewOnceMessage': {
+        'message': {
+          'messageContextInfo': {
+            'deviceListMetadata': {},
+            'deviceListMetadataVersion': 2
+          },
+          'interactiveMessage': proto.Message.InteractiveMessage.fromObject({
+            'body': proto.Message.InteractiveMessage.Body.create({
+              'text': `╭━━━━[ 𝙿𝚒𝚗𝚝𝚎𝚛𝚎𝚜𝚝 𝙳𝚎𝚌𝚘𝚍𝚎𝚍: 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘𝚜 𝚅𝚒𝚜𝚞𝚊𝚕𝚎𝚜 ]━━━━⬣\n🖼️ *Término de Búsqueda:* ${text}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`
+            }),
+            'footer': proto.Message.InteractiveMessage.Footer.create({
+              'text': "⪛✰ Barrido de Pinterest - Ellen Joe's Service ✰⪜"
+            }),
+            'header': proto.Message.InteractiveMessage.Header.create({
+              'hasMediaAttachment': false
+            }),
+            'carouselMessage': proto.Message.InteractiveMessage.CarouselMessage.fromObject({
+              'cards': carouselCards
+            })
+          })
+        }
+      }
+    }, { 'quoted': m });
 
-    await m.react('✅');
-    await conn.relayMessage(m.chat, carouselMessage.message, { 'messageId': carouselMessage.key.id });
+    await m.react('✅');
+    await conn.relayMessage(m.chat, carouselMessage.message, { 'messageId': carouselMessage.key.id });
 
   } catch (error) {
     console.error("Error al procesar Pinterest search:", error);
