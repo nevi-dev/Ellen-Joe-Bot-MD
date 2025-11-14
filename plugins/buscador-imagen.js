@@ -1,7 +1,8 @@
 import fetch from 'node-fetch';
-import * as cheerio from 'cheerio'; 
+import * as cheerio from 'cheerio'; // Importar cheerio para analizar el HTML
 
-// --- Constantes y Configuración de Transmisión ---
+// --- Constantes y Configuración de Transmisión (Estilo Ellen Joe) ---
+// NOTA: Estas variables (icons, redes) DEBEN estar definidas y accesibles en tu entorno global.
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 
@@ -33,14 +34,13 @@ async function findHighResImage(pageUrl) {
         finalImageUrl = $('meta[name="twitter:image"]').attr('content');
         if (finalImageUrl) return finalImageUrl;
 
-        // Búsqueda 3: Imágenes grandes en la página (heurística)
-        // Busca la primera imagen que parezca ser la principal y tenga un 'src' válido
+        // Búsqueda 3: Imágenes grandes en la página (heurística, buscando un 'src' que no sea un ícono)
         $('img').each((i, element) => {
              const src = $(element).attr('src') || $(element).attr('data-src');
-             // Si el src existe, no es un ícono pequeño y parece una imagen principal
+             // Si el src existe, es un enlace HTTP completo y no parece ser un ícono/miniatura
              if (src && src.startsWith('http') && !src.includes('logo') && !src.includes('icon') && !src.includes('thumb')) {
                  finalImageUrl = src;
-                 return false; // Detener después de encontrar la primera
+                 return false; // Detener después de encontrar el primero válido
              }
         });
         
@@ -52,17 +52,37 @@ async function findHighResImage(pageUrl) {
     }
 }
 
+
+// --- Handler Principal ---
 const handler = async (m, { conn, text, usedPrefix, command }) => {
-    const name = conn.getName(m.sender); 
-    // ... (contextInfo, validación de permisos y mensajes de proceso omitidos por brevedad) ...
-    const contextInfo = { /* ... */ }; // Definición de contextInfo
+    const name = conn.getName(m.sender);
+
+    // --- Definición de Context Info (External Ad Reply) ---
+    const contextInfo = {
+        mentionedJid: [m.sender],
+        isForwarded: true,
+        forwardingScore: 999,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid,
+            newsletterName,
+            serverMessageId: -1
+        },
+        externalAdReply: {
+            title: 'Ellen Joe: Pista localizada. 🦈',
+            body: `Procesando solicitud para el/la Proxy ${name}...`,
+            thumbnail: icons, 
+            sourceUrl: redes,
+            mediaType: 1,
+            renderLargerThumbnail: false
+        }
+    };
 
     if (!text) {
         return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para localizar imágenes.`, m, { contextInfo, quoted: m });
     }
 
     await m.react('🔄'); 
-    conn.reply(m.chat, `🔄 *Iniciando protocolo de doble barrido (SC), Proxy ${name}.* Se buscará en la página de origen.`, m, { contextInfo, quoted: m });
+    conn.reply(m.chat, `🔄 *Iniciando protocolo de doble barrido (SC), Proxy ${name}.* Buscando el enlace de origen con contingencia.`, m, { contextInfo, quoted: m });
 
     try {
         const encodedText = encodeURIComponent(text);
@@ -80,17 +100,33 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         const $ = cheerio.load(html);
         
         let sourcePageLink = null;
-        
-        // Selector simplificado para buscar el enlace de la página de origen.
-        // Google envuelve sus resultados de imágenes en un <a> o un <div> con un enlace a la fuente.
-        // Buscaremos el enlace que Google usa para la página de origen de la primera imagen.
-        const firstResultLink = $('a[href*="imgurl"]').first().attr('href');
+        let firstResultHref = null;
 
-        if (firstResultLink) {
-             // El enlace de Google a menudo es un redirector complejo. Intentaremos extraer la URL de origen de los parámetros.
-             const urlParams = new URLSearchParams(firstResultLink);
-             // El parámetro 'url' o 'imgurl' a menudo contiene el enlace a la página de origen real.
-             sourcePageLink = urlParams.get('url') || urlParams.get('imgurl');
+        // **INICIO DE LA SOLUCIÓN 1: Múltiples Selectores de Contingencia**
+        
+        // 1. Contingencia A: Busca enlaces con 'imgurl' (Más común)
+        firstResultHref = $('a[href*="imgurl"]').first().attr('href');
+
+        // 2. Contingencia B: Busca enlaces con 'imgrefurl' (Alternativa común)
+        if (!firstResultHref) {
+            firstResultHref = $('a[href*="imgrefurl"]').first().attr('href');
+        }
+
+        // 3. Contingencia C: Selector de contenedor de resultados (Heurística)
+        if (!firstResultHref) {
+            firstResultHref = $('.DS1iW a').first().attr('href');
+        }
+        
+        // **FIN DE LA SOLUCIÓN 1**
+
+        // --- Procesamiento del Enlace Encontrado ---
+
+        if (firstResultHref) {
+            // Se usa URLSearchParams para extraer la URL de origen real de los parámetros de Google
+            const urlParams = new URLSearchParams(firstResultHref);
+            
+            // El parámetro 'url' o 'imgurl' a menudo contiene el enlace a la página de origen real.
+            sourcePageLink = urlParams.get('url') || urlParams.get('imgurl');
         }
 
         if (!sourcePageLink) {
