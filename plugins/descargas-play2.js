@@ -1,5 +1,4 @@
 let handler = async (m, { conn, command, usedPrefix }) => {
-let img = 'icons'
 let staff = `ᥫ᭡ *EQUIPO DE AYUDANTES* ❀
 ✰ *Dueño* ${author}
 ✦ *Bot: ${namebot}
@@ -7,7 +6,7 @@ let staff = `ᥫ᭡ *EQUIPO DE AYUDANTES* ❀
 ❖ *Libreria:* ${libreria} ${baileys}
 > ✧ GitHub » https://github.com/nevi-dev
 `
-await conn.sendFile(m.chat, img, 'Ellen.jpg', staff.trim(), fkontak)
+await conn.sendFile(m.chat, icons, 'Ellen.jpg', staff.trim(), fkontak)
 }
   
 handler.help = ['prueba']
@@ -16,4 +15,5 @@ handler.register = true
 handler.tags = ['main']
 
 export default handler
+
 
