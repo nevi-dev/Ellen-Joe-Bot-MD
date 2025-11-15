@@ -1,7 +1,10 @@
 // Importa las librerías necesarias
 import fetch from "node-fetch";
-// Importa exclusivamente las funciones yta y ytv desde tu módulo y2mate.js.
-import { yta, ytv } from '../lib/y2mate.js'; 
+
+// --- CAMBIO CLAVE: Importamos las nuevas funciones de descarga (ytmp3 y ytmp4) ---
+// ASUME que el archivo ../lib/ytscraper.js exporta estas funciones (module.exports = { ytmp3, ytmp4, ... })
+import { ytmp3, ytmp4 } from '../lib/ytscraper.js';  
+
 import yts from "yt-search";
 import axios from 'axios';
 import crypto from 'crypto';
@@ -12,7 +15,7 @@ import fs from 'fs';
 // Constantes y definiciones (mantenidas)
 const SIZE_LIMIT_MB = 100;
 const newsletterJid = '120363418071540900@newsletter';
-const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏᴇ 𖥔 Sᥱrvice';
+const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
@@ -51,7 +54,7 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
   
   let video;
 
-  // --- Lógica de Descarga con Y2Mate (si se especifica el modo y la URL) ---
+  // --- Lógica de Descarga con YTSCRAPER (si se especifica el modo y la URL) ---
   if (isMode && isInputUrl) {
     await m.react("📥");
     const mode = args[0].toLowerCase();
@@ -87,45 +90,49 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
       }
     };
 
-    // LÓGICA EXCLUSIVA DE Y2MATE
+    // LÓGICA EXCLUSIVA DE YTSCRAPER
     try {
-        // Determina qué función usar (ytv para video, yta para audio)
-        const downloadFunction = mode === 'audio' ? yta : ytv;
+        // Determina qué función usar (ytmp4 para video, ytmp3 para audio)
+        const downloadFunction = mode === 'audio' ? ytmp3 : ytmp4;
+        const serviceName = "Savetube/Vreden API";
 
-        await conn.reply(m.chat, `⏳ *Dame un momento, estoy convirtiendo el archivo a ${mode.toUpperCase()} usando Y2Mate...*`, m);
+        await conn.reply(m.chat, `⏳ *Dame un momento, estoy procesando el archivo a ${mode.toUpperCase()} usando ${serviceName}...*`, m);
         await m.react("🔃");
 
-        // Llama a la función y2mate.js
-        const y2mateResult = await downloadFunction(queryOrUrl);
+        // Llama a la función ytmp3/ytmp4
+        const scraperResult = await downloadFunction(queryOrUrl);
 
         // Verifica el resultado
-        if (y2mateResult && y2mateResult.link) {
-            const title = y2mateResult.title || 'Título Desconocido';
-            
+        if (scraperResult && scraperResult.status && scraperResult.download && scraperResult.download.url) {
+            const downloadUrl = scraperResult.download.url;
+            // Usamos el título de la metadata
+            const title = scraperResult.metadata.title || 'Título Desconocido';
+            
             // Envía el archivo
-            await sendMediaFile(y2mateResult.link, title, mode);
+            await sendMediaFile(downloadUrl, title, mode);
             return;
         }
-        
-        // Si la función no lanzó un error pero no devolvió el enlace, lanzamos un error genérico.
-        throw new Error("Y2Mate falló silenciosamente y no devolvió un enlace.");
+        
+        // Si la función no lanzó un error pero no devolvió el enlace (status: false o URL faltante)
+        throw new Error(scraperResult.download?.message || scraperResult.message || "La API del scraper falló y no devolvió un enlace.");
+
 
     } catch (e) {
-        console.error("Error con y2mate.js:", e);
+        console.error("Error con ytscraper.js:", e);
         await m.react("❌");
-        
-        // --- CAMBIO CLAVE: Muestra el mensaje de error de y2mate.js ---
-        const errorMessage = e.message;
-        
+        
+        // Muestra el mensaje de error del scraper
+        const errorMessage = e.message;
+        
         return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.*
-El servicio **Y2Mate** no pudo generar el enlace.
+El servicio **ytscraper** no pudo generar el enlace.
 
 *Razón del fallo:*
 \`\`\`
 ${errorMessage}
 \`\`\`
 
-*Solución:* El error es interno del servicio. Podrías necesitar actualizar la URL de la API (\`en71\`) o los selectores en \`../lib/y2mate.js\`.`, m);
+*Solución:* El error es en la API externa de descarga (\`savetube.me\` o \`vreden.my.id\`), no en tu código local.`, m);
     }
     return; // Termina el bloque de descarga
   }
