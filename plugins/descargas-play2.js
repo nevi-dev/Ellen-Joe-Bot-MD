@@ -1,7 +1,7 @@
 // Importa las librerías necesarias
 import fetch from "node-fetch";
 
-// --- CAMBIO CLAVE: Importamos las funciones del scraper que creamos ---
+// --- CAMBIO CLAVE: Importamos las funciones de nuestro scraper ---
 // ASUMIMOS que ../lib/ytscraper.js ahora exporta ytmp3, ytmp4 y get_id
 import { ytmp3, ytmp4, get_id } from '../lib/ytscraper.js'; 
 
@@ -22,11 +22,6 @@ const SIZE_LIMIT_MB = 100;
 const MIN_AUDIO_SIZE_BYTES = 50000;
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
-
-// [⚠️ CORRECCIÓN] Define las variables faltantes
-const icons = 'https://i.imgur.com/placeholder.jpg'; // Reemplaza con una URL real
-const redes = 'https://link.a.tu.red.social'; // Reemplaza con una URL real
-
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
@@ -64,7 +59,7 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
   
   let video;
 
-  // Función reutilizada para enviar el archivo (mantenida igual)
+  // Función reutilizada para enviar el archivo
   const sendMediaFile = async (downloadUrl, title, currentMode) => {
     try {
       await m.react("📥");
@@ -107,6 +102,7 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
     // ------------------------------------
     // TIER 1: YTSCRAPER (PRIMARIO)
     // ------------------------------------
+    // [✅ CAMBIO SOLICITADO] Mensaje genérico para el primer intento.
     await conn.reply(m.chat, `⏳ *Dame un momento, estoy procesando el archivo a ${mode.toUpperCase()}...* (Método 1/3)`, m);
     await m.react("🔃");
     
@@ -234,6 +230,7 @@ no pude traerte nada.`, m);
 
   if (videoId) {
     try {
+      // Búsqueda por ID usando yts
       const searchResult = await yts({ videoId: videoId });
       video = searchResult.videos?.[0];
     } catch (e) {
@@ -245,6 +242,7 @@ no pude traerte nada.`, m);
      return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.* Esa URL parece un enlace, pero no es un video de YouTube válido.`, m, { contextInfo });
   } else {
     try {
+      // Búsqueda por query de texto
       const searchResult = await yts(queryOrUrl);
       video = searchResult.videos?.[0];
     } catch (e) {
