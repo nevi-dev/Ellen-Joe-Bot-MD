@@ -3,7 +3,7 @@ const handler = async (m, { isPrems, conn }) => {
     throw `${emoji4} Usuario no encontrado.`;
   }
 
-  const lastCofreTime = global.db.data.users[m.sender].lastcofre;
+  const lastCofreTime = global.db.data.users[m.sender].lastcofre2;
   const timeToNextCofre = lastCofreTime + 86400000;
 
   if (Date.now() < timeToNextCofre) {
@@ -22,7 +22,7 @@ const handler = async (m, { isPrems, conn }) => {
   global.db.data.users[m.sender].diamonds += ai;
   global.db.data.users[m.sender].joincount += tok;
   global.db.data.users[m.sender].exp += expp;
-  global.db.data.users[m.sender].lastcofre = Date.now();
+  global.db.data.users[m.sender].lastcofre2 = Date.now();
 
   const texto = `
 ╭━〔 Cσϝɾҽ Aʅҽαƚσɾισ 〕⬣
@@ -65,3 +65,4 @@ function msToTime(duration) {
 
   return `${hours} Horas ${minutes} Minutos`;
 }
+
