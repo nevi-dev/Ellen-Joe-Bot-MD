@@ -51,7 +51,7 @@ ${description}
                 title: '✧ Perfil de Usuario ✧',
                 body: dev,
                 thumbnailUrl: perfil,
-                mediaType: 1,
+                mediaType: 2,
                 showAdAttribution: true,
                 renderLargerThumbnail: true
             }
@@ -64,5 +64,6 @@ handler.tags = ['rg'];
 handler.command = ['prueba'];
 
 export default handler;
+
 
 
