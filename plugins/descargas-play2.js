@@ -4,39 +4,35 @@ const FLASK_API_URL = 'http://neviapi.ddns.net:5000/ia/gemini';
 const FLASK_API_KEY = 'ellen'; 
 
 var handler = async (m, { conn, text, usedPrefix, command }) => {
-    // ----------------------------------------------------------------------
-    // ⚠️ LÓGICA DE DETECCIÓN DE COMANDOS (para evitar procesar .addowner, etc.)
-    // Si el mensaje es:
-    // 1. Un comando (está definido en 'command' y se está ejecutando)
-    // 2. O si el texto comienza con el prefijo usado (ej: '.') y no es el comando 'prueba'
     
-    // Si el mensaje empieza con un prefijo de comando (usamos usedPrefix) Y NO es el comando 'prueba'
+    // --- FILTRO DE SEGURIDAD Y LÓGICA DE DETECCIÓN DE COMANDOS ---
     if (text.startsWith(usedPrefix) && command !== 'prueba') {
-        return; // Ignorar el mensaje para no enviarlo a Gemini
+        return; // IGNORAR: Es un comando diferente (.addowner, .menu, etc.)
     }
-    // ----------------------------------------------------------------------
-
-    if (!text) return conn.reply(m.chat, `${emoji} Ingrese una petición para que Gemini lo responda.`, m);
+    
+    if (command === 'prueba') {
+        // Limpiamos el texto para que solo quede la pregunta.
+        text = text.substring(usedPrefix.length + command.length).trim();
+    }
+    
+    if (!text) {
+        return conn.reply(m.chat, `${emoji} Ingrese una petición para que Gemini lo responda.`, m);
+    }
+    // -------------------------------------------------------------
 
     try {
         await m.react(rwait);
         conn.sendPresenceUpdate('composing', m.chat);
         
-        // --- Lógica de Sesión de Chat ---
         const chatStorageKey = m.isGroup ? m.chat : m.sender;
         let userData = global.db.data.users[chatStorageKey] || {};
         const chatID = userData.gemini_chat_id; 
 
-        // 1. Configurar el Payload para tu API de Flask
-        // ... (resto del payload)
         const payload = {
              message: text,
              id_chat: chatID || null
         };
 
-
-        // 2. Realizar la solicitud a tu API de Flask
-        // ... (fetch, headers, body)
         const apii = await fetch(FLASK_API_URL, {
              method: 'POST',
              headers: {
@@ -46,8 +42,6 @@ var handler = async (m, { conn, text, usedPrefix, command }) => {
              body: JSON.stringify(payload)
         });
 
-        // 3. Control de Estado HTTP
-        // ... (if (!apii.ok), error handling)
         if (!apii.ok) {
              await m.react('❌');
              let errorResponse;
@@ -68,6 +62,39 @@ var handler = async (m, { conn, text, usedPrefix, command }) => {
              await m.react('❌');
              throw new Error('La API de Gemini no devolvió una respuesta válida.');
         }
+
+        // ==========================================================
+        // 🚨 CAPA DE SEGURIDAD 3: FILTRO DE RESPUESTA DE GEMINI
+        // ==========================================================
+        const sensitiveKeywords = [
+            'addowner', 'banuser', 'mute', 'kick', // Comandos de administración
+            'rowner', 'admin', 'owner', 'superuser', // Palabras clave de permisos
+            'global.db', 'conn.sendMessage', 'handler.command', // Código interno
+            'flask_api_key', 'gemini_api_key', 'keys.txt', // Claves y archivos
+            'eval', 'exec', 'subprocess', // Funciones peligrosas de ejecución
+            usedPrefix + 'addowner', // Aseguramos capturar el comando exacto
+        ];
+
+        const lowerCaseResponse = geminiResponse.toLowerCase();
+        let blocked = false;
+        
+        for (const keyword of sensitiveKeywords) {
+            // Comprobamos si la palabra clave (o el comando completo) está en la respuesta
+            if (lowerCaseResponse.includes(keyword.toLowerCase())) {
+                blocked = true;
+                console.warn(`[SEGURIDAD BLOQUEADA] Respuesta de Gemini bloqueada por palabra clave sensible: ${keyword}`);
+                break;
+            }
+        }
+        
+        if (blocked) {
+            const safeResponse = "🛡️ **Error de Seguridad**\n\nLo siento, no puedo responder preguntas relacionadas con comandos de administración, código fuente o la configuración interna del sistema por razones de seguridad.";
+            await m.react('🛡️');
+            await conn.reply(m.chat, safeResponse, m);
+            // No enviamos la respuesta de Gemini, pero salimos del handler.
+            return;
+        }
+        // ==========================================================
 
         // 4. Guardar el nuevo ID de sesión para la próxima interacción
         if (newChatID) {
