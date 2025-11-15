@@ -4,9 +4,14 @@ import axios from 'axios';
 const YOUR_API_URL = 'http://neviapi.ddns.net:5000'; 
 const YOUR_API_KEY = 'ellen'; 
 
-// Caracteres prohibidos SOLO para la RESPUESTA de la API (Output)
-// Lista actual: punto (.), barra (/), barra inversa (\), mayor que (>), dólar ($), exclamación (!).
-const PROHIBITED_OUTPUT_CHARS_REGEX = /[./\\>$!]/; 
+// --- LÓGICA DE VALIDACIÓN DE RESPUESTA ---
+
+// 1. Bloquea comandos de prefijo: (., /, !, #) solo si están al INICIO Y SEGUIDOS de otro carácter.
+const PREFIX_COMMAND_BLOCK_REGEX = /^[./!#]./; 
+
+// 2. Bloquea caracteres peligrosos/de código: ($ y >) si aparecen en CUALQUIER LUGAR.
+const GLOBAL_DANGER_CHARS_REGEX = /[>$]/;
+
 
 /**
  * Función centralizada para llamar a la API de Chat.
@@ -17,7 +22,6 @@ const PROHIBITED_OUTPUT_CHARS_REGEX = /[./\\>$!]/;
 async function callChatApi(text, chatId = null) {
     const apiUrl = `${YOUR_API_URL}/bot`;
     
-    // Construir el cuerpo de la solicitud: incluye id_chat solo si no es null
     const requestBody = {
         message: text,
     };
@@ -43,8 +47,6 @@ const handler = async (m, {conn, text, command, args, usedPrefix}) => {
         return conn.reply(m.chat, `🤖 Te faltó el texto para hablar con la **Bot**`, m);
     }
     
-    // El filtro de INPUT ha sido previamente eliminado.
-
     try {
         let apiResponse;
         let attempt = 1;
@@ -99,10 +101,14 @@ const handler = async (m, {conn, text, command, args, usedPrefix}) => {
             let botResponse = apiResponse.message;
             const newChatId = apiResponse.id_chat; 
 
-            // Verificación de Caracteres Prohibidos en el OUTPUT 
-            if (PROHIBITED_OUTPUT_CHARS_REGEX.test(botResponse)) {
-                // Mensaje de error ajustado para reflejar: ., /, \, >, $, !
-                return conn.reply(m.chat, `❌ Ellen no puede ofrecer ese servicio. La respuesta generada contiene caracteres prohibidos (., /, \\, >, $, !). Por favor, reformule su consulta.`, m);
+            // ** VALIDACIÓN FINAL DE LA RESPUESTA (DOBLE CHEQUEO) **
+            if (PREFIX_COMMAND_BLOCK_REGEX.test(botResponse) || GLOBAL_DANGER_CHARS_REGEX.test(botResponse)) {
+                
+                // Mensaje de error detallado sobre ambas reglas.
+                return conn.reply(m.chat, 
+                    `❌ Ellen no puede ofrecer ese servicio. La respuesta contiene caracteres prohibidos globalmente ($, >) o inicia con un comando de prefijo (., /, !, #). Por favor, reformule su consulta.`, 
+                    m
+                );
             }
             
             // Etiquetado del Mensaje y Envío
