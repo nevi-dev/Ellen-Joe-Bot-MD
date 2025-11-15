@@ -2,6 +2,7 @@
 import fetch from "node-fetch";
 // Restauramos youtubedl/ogmp3 y las librerías locales necesarias para el respaldo Tier 3
 import { ogmp3 } from '../lib/youtubedl.js';
+// Asegúrate de que estas funciones existan en tu ../lib/ytscraper.js
 import { ytmp3, ytmp4, get_id } from '../lib/ytscraper.js'; 
 import yts from "yt-search";
 import axios from 'axios';
@@ -17,7 +18,6 @@ const SIZE_LIMIT_MB = 100;
 const MIN_AUDIO_SIZE_BYTES = 50000;
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
-
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
@@ -94,7 +94,7 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
     
     let scraperResult, finalDownloadUrl, finalTitle;
 
-    // [✅ CAMBIO SOLICITADO] Reacción inicial (el único indicativo de que algo está pasando).
+    // Reacción inicial (el único indicativo de que algo está pasando).
     await m.react(mode === 'audio' ? "🎧" : "📽️"); 
     
     // ------------------------------------
@@ -118,10 +118,9 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
     }
     
     // ------------------------------------
-    // TIER 2: NEVI API (RESPALDO 1)
+    // TIER 2: NEVI API (RESPALDO 1) - Silencioso
     // ------------------------------------
     try {
-        // Intento silencioso
         const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
         const format = mode === "audio" ? "mp3" : "mp4";
         const res = await fetch(neviApiUrl, {
@@ -146,10 +145,9 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
     }
     
     // ------------------------------------
-    // TIER 3: OGMP3/YOUTUBEDL (RESPALDO 2/LOCAL)
+    // TIER 3: OGMP3/YOUTUBEDL (RESPALDO 2/LOCAL) - Silencioso
     // ------------------------------------
     try {
-        // Intento silencioso
         const tempFilePath = path.join(process.cwd(), './tmp', `${Date.now()}_${mode === 'audio' ? 'audio' : 'video'}.tmp`);
         
         const downloadResult = await ogmp3.download(queryOrUrl, tempFilePath, mode);
@@ -192,7 +190,7 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
             fs.unlinkSync(tempFilePath);
         }
         
-        // [✅ CAMBIO SOLICITADO] Falla definitiva (único mensaje de error visible)
+        // Falla definitiva (único mensaje de error visible)
         await conn.reply(m.chat, `💔 *fallé. pero tú más.*
 no pude traerte nada.`, m);
         await m.react("❌");
@@ -268,4 +266,3 @@ handler.register = true;
 handler.prefix = /^[./#]/;
 
 export default handler;
-
