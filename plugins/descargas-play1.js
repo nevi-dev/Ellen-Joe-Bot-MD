@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 // Restauramos youtubedl/ogmp3 y las librerías locales necesarias para el respaldo Tier 3
 import { ogmp3 } from '../lib/youtubedl.js';
 // Asegúrate de que estas funciones existan en tu ../lib/ytscraper.js
-import { ytmp3, ytmp4 } from '../lib/ytscraper.js'; 
+import { ytmp3, ytmp4, get_id } from '../lib/ytscraper.js';  // ⬅️ ¡Añade get_id aquí! 
 import yts from "yt-search";
 import axios from 'axios';
 import crypto from 'crypto';
