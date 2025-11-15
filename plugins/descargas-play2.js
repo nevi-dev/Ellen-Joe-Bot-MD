@@ -49,6 +49,7 @@ ${description}
             mentionedJid: [userId],
             externalAdReply: {
                 title: '✧ Perfil de Usuario ✧',
+                body: dev,
                 thumbnailUrl: perfil,
                 mediaType: 2,
                 showAdAttribution: true,
@@ -63,6 +64,7 @@ handler.tags = ['rg'];
 handler.command = ['prueba'];
 
 export default handler;
+
 
 
 
