@@ -5,7 +5,7 @@ const YOUR_API_URL = 'http://neviapi.ddns.net:5000';
 const YOUR_API_KEY = 'ellen'; 
 
 // Caracteres prohibidos SOLO para la RESPUESTA de la API (Output)
-// Ahora incluye: punto (.), barra (/), barra inversa (\), mayor que (>), dólar ($), interrogación invertida (¿).
+// Lista actual: punto (.), barra (/), barra inversa (\), mayor que (>), dólar ($), exclamación (!).
 const PROHIBITED_OUTPUT_CHARS_REGEX = /[./\\>$!]/; 
 
 /**
@@ -101,8 +101,8 @@ const handler = async (m, {conn, text, command, args, usedPrefix}) => {
 
             // Verificación de Caracteres Prohibidos en el OUTPUT 
             if (PROHIBITED_OUTPUT_CHARS_REGEX.test(botResponse)) {
-                // Mensaje de error ajustado.
-                return conn.reply(m.chat, `❌ Ellen no puede ofrecer ese servicio. La respuesta generada contiene caracteres prohibidos (., /, \\, >, $, ¿). Por favor, reformule su consulta.`, m);
+                // Mensaje de error ajustado para reflejar: ., /, \, >, $, !
+                return conn.reply(m.chat, `❌ Ellen no puede ofrecer ese servicio. La respuesta generada contiene caracteres prohibidos (., /, \\, >, $, !). Por favor, reformule su consulta.`, m);
             }
             
             // Etiquetado del Mensaje y Envío
