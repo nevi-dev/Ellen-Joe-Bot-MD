@@ -4,11 +4,9 @@ import axios from 'axios';
 const YOUR_API_URL = 'http://neviapi.ddns.net:5000'; 
 const YOUR_API_KEY = 'ellen'; 
 
-// Caracteres prohibidos para el mensaje de ENTRADA (Input)
-const PROHIBITED_INPUT_CHARS_REGEX = /[./\\>$¡¿]/; 
-
-// Caracteres prohibidos para la RESPUESTA de la API (Output)
-const PROHIBITED_OUTPUT_CHARS_REGEX = /[./\\>$¡¿]/; 
+// Caracteres prohibidos SOLO para la RESPUESTA de la API (Output)
+// Ahora incluye: punto (.), barra (/), barra inversa (\), mayor que (>), dólar ($), interrogación invertida (¿).
+const PROHIBITED_OUTPUT_CHARS_REGEX = /[./\\>$!]/; 
 
 /**
  * Función centralizada para llamar a la API de Chat.
@@ -45,18 +43,15 @@ const handler = async (m, {conn, text, command, args, usedPrefix}) => {
         return conn.reply(m.chat, `🤖 Te faltó el texto para hablar con la **Bot**`, m);
     }
     
-    // 2. Detección de Caracteres Prohibidos en el INPUT
-    if (PROHIBITED_INPUT_CHARS_REGEX.test(text)) {
-        return conn.reply(m.chat, `❌ Ellen no puede procesar un comando, detecté un carácter prohibido (., /, \\, >, $, ¡, ¿) en tu mensaje.`, m);
-    }
+    // El filtro de INPUT ha sido previamente eliminado.
 
     try {
         let apiResponse;
         let attempt = 1;
         const maxAttempts = 2;
-        const chatIdentifier = m.chat; // Usamos m.chat como base para el ID de sesión
+        const chatIdentifier = m.chat; 
 
-        // 3. --- Lógica de Llamada y Reintento ---
+        // 2. --- Lógica de Llamada y Reintento ---
         
         while (attempt <= maxAttempts) {
             try {
@@ -89,7 +84,7 @@ const handler = async (m, {conn, text, command, args, usedPrefix}) => {
                 if (attempt === 1 && (errorMessage.includes('expirada') || errorMessage.includes('inválido'))) {
                     console.log("Sesión expirada detectada. Reintentando sin ID de chat.");
                     attempt++;
-                    continue; // Pasa al Intento 2
+                    continue; 
                 }
 
                 // Si es un error diferente (e.g., Clave inválida, error de Gemini)
@@ -98,21 +93,23 @@ const handler = async (m, {conn, text, command, args, usedPrefix}) => {
             }
         }
         
-        // --- 4. Procesamiento de la Respuesta Exitosa (Después del bucle) ---
+        // --- 3. Procesamiento de la Respuesta Exitosa (Después del bucle) ---
         
         if (apiResponse && apiResponse.status === 'success') {
             let botResponse = apiResponse.message;
             const newChatId = apiResponse.id_chat; 
 
-            // Verificación de Caracteres Prohibidos en el OUTPUT
+            // Verificación de Caracteres Prohibidos en el OUTPUT 
             if (PROHIBITED_OUTPUT_CHARS_REGEX.test(botResponse)) {
-                return conn.reply(m.chat, `❌ Ellen no puede ofrecer ese servicio. La respuesta generada contiene caracteres prohibidos (${PROHIBITED_OUTPUT_CHARS_REGEX.source.slice(1, -1)}). Por favor, reformule su consulta.`, m);
+                // Mensaje de error ajustado.
+                return conn.reply(m.chat, `❌ Ellen no puede ofrecer ese servicio. La respuesta generada contiene caracteres prohibidos (., /, \\, >, $, ¿). Por favor, reformule su consulta.`, m);
             }
             
             // Etiquetado del Mensaje y Envío
             const fullBotResponse = `${botResponse}\n\n[ID: ${newChatId}] |ellen`;
 
             conn.sendMessage(m.chat, { text: fullBotResponse }, { quoted: m });
+
         } else {
              // Si salimos del bucle sin éxito (ej. maxAttempts alcanzado)
              throw new Error("No se pudo obtener una respuesta válida de la API después de reintentar.");
