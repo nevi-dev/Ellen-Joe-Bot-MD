@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 // Nota: Eliminamos 'translate' y 'axios' ya que Gemini maneja el idioma y el endpoint.
 
 // ⚠️ Configuración de tu API de Flask
-const FLASK_API_URL = 'http://neviapi.ddns.net:5000/ia/bot'; // <-- CAMBIADO A /ia/bot
+const FLASK_API_URL = 'http://neviapi.ddns.net:5000/bot'; // <-- CAMBIADO A /ia/bot
 const FLASK_API_KEY = 'ellen'; 
 // Asumimos que 'emoji', 'rwait', y 'msm' están disponibles globalmente.
 
@@ -107,3 +107,4 @@ handler.register = true
 handler.command = ['prueba']; // Mantener los comandos para usar la nueva IA
 
 export default handler;
+
