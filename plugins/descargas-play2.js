@@ -1,13 +1,8 @@
 // Importa las librerías necesarias
 import fetch from "node-fetch";
-
-// --- CAMBIO CLAVE: Importamos las funciones de nuestro scraper ---
-// ASUMIMOS que ../lib/ytscraper.js ahora exporta ytmp3, ytmp4 y get_id
+// Restauramos youtubedl/ogmp3 y las librerías locales necesarias para el respaldo Tier 3
+import { ogmp3 } from '../lib/youtubedl.js';
 import { ytmp3, ytmp4, get_id } from '../lib/ytscraper.js'; 
-
-// Importa el módulo de respaldo (Mantenemos youtubedl si ogmp3 lo necesita)
-import { ogmp3 } from '../lib/youtubedl.js'; 
-
 import yts from "yt-search";
 import axios from 'axios';
 import crypto from 'crypto';
@@ -15,13 +10,18 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-// Reemplaza 'TU_CLAVE_API' con tu clave real.
+// Restauramos la clave de la API de respaldo Tier 2
 const NEVI_API_KEY = 'ellen';
 
 const SIZE_LIMIT_MB = 100;
 const MIN_AUDIO_SIZE_BYTES = 50000;
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
+
+// Define las variables faltantes (placeholders)
+const icons = 'https://i.imgur.com/placeholder.jpg'; 
+const redes = 'https://link.a.tu.red.social'; 
+
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
@@ -92,132 +92,114 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
   };
 
 
-  // --- LÓGICA DE DESCARGA CON FALLBACKS (si se especifica el modo y el enlace) ---
+  // --- LÓGICA DE DESCARGA CON FALLBACKS (SILENCIOSOS) ---
   if (isMode && queryOrUrl) {
     const mode = args[0].toLowerCase();
     
     let scraperResult, finalDownloadUrl, finalTitle;
-    let fallbackToNevi = false;
 
+    // [✅ CAMBIO SOLICITADO] Reacción inicial (el único indicativo de que algo está pasando).
+    await m.react(mode === 'audio' ? "🎧" : "📽️"); 
+    
     // ------------------------------------
     // TIER 1: YTSCRAPER (PRIMARIO)
     // ------------------------------------
-    // [✅ CAMBIO SOLICITADO] Mensaje genérico para el primer intento.
-    await conn.reply(m.chat, `⏳ *Dame un momento, estoy procesando el archivo a ${mode.toUpperCase()}...* (Método 1/3)`, m);
-    await m.react("🔃");
-    
     try {
         const downloadFunction = mode === 'audio' ? ytmp3 : ytmp4;
         scraperResult = await downloadFunction(queryOrUrl);
 
-        if (scraperResult && scraperResult.status && scraperResult.download && scraperResult.download.url) {
+        if (scraperResult?.status && scraperResult.download?.url) {
             finalDownloadUrl = scraperResult.download.url;
             finalTitle = scraperResult.metadata?.title || 'Título Desconocido';
-            
-            // Éxito en Tier 1
             await sendMediaFile(finalDownloadUrl, finalTitle, mode);
-            return;
+            return; // Éxito
         }
-        throw new Error(scraperResult.download?.message || scraperResult.message || "La API del scraper falló y no devolvió un enlace.");
+        throw new Error(scraperResult?.download?.message || scraperResult?.message || "La API del scraper falló y no devolvió un enlace.");
 
     } catch (e1) {
         console.error("Error en Tier 1 (ytscraper):", e1.message);
-        fallbackToNevi = true;
+        // Fallback silencioso a Tier 2
     }
     
     // ------------------------------------
     // TIER 2: NEVI API (RESPALDO 1)
     // ------------------------------------
-    if (fallbackToNevi) {
-        await conn.reply(m.chat, `💔 *Fallé al procesar con el primer método.*
-Intentando con el método de respaldo. (Método 2/3)`, m);
-        await m.react("🔄");
+    try {
+        // Intento silencioso
+        const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
+        const format = mode === "audio" ? "mp3" : "mp4";
+        const res = await fetch(neviApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-API-KEY': NEVI_API_KEY },
+            body: JSON.stringify({ url: queryOrUrl, format: format }),
+        });
 
-        try {
-            const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
-            const format = mode === "audio" ? "mp3" : "mp4";
-            const res = await fetch(neviApiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-KEY': NEVI_API_KEY,
-                },
-                body: JSON.stringify({
-                    url: queryOrUrl,
-                    format: format
-                }),
-            });
-
-            const json = await res.json();
-            
-            if (json.status === "success" && json.download_link) {
-                finalDownloadUrl = json.download_link;
-                finalTitle = json.title || 'Título Desconocido';
-                
-                // Éxito en Tier 2
-                await sendMediaFile(finalDownloadUrl, finalTitle, mode);
-                return;
-            }
-            throw new Error(json.message || "NEVI API falló.");
-            
-        } catch (e2) {
-            console.error("Error en Tier 2 (NEVI API):", e2.message);
-            
-            // ------------------------------------
-            // TIER 3: OGMP3/YOUTUBEDL (RESPALDO 2/LOCAL)
-            // ------------------------------------
-            await conn.reply(m.chat, `💔 *El segundo método también falló.*
-Intentando con la descarga directa local (Último recurso). (Método 3/3)`, m);
-            await m.react("⬇️");
-
-            try {
-                const tempFilePath = path.join(process.cwd(), './tmp', `${Date.now()}_${mode === 'audio' ? 'audio' : 'video'}.tmp`);
-                
-                const downloadResult = await ogmp3.download(queryOrUrl, tempFilePath, mode);
-                
-                if (downloadResult.status && fs.existsSync(tempFilePath)) {
-                    const stats = fs.statSync(tempFilePath);
-                    const fileSizeMb = stats.size / (1024 * 1024);
-                    
-                    let mediaOptions;
-                    const fileBuffer = fs.readFileSync(tempFilePath);
-
-                    if (fileSizeMb > SIZE_LIMIT_MB) {
-                        mediaOptions = {
-                            document: fileBuffer,
-                            fileName: `${downloadResult.result.title}.${mode === 'audio' ? 'mp3' : 'mp4'}`,
-                            mimetype: mode === 'audio' ? 'audio/mpeg' : 'video/mp4',
-                            caption: `⚠️ *El archivo es muy grande (${fileSizeMb.toFixed(2)} MB), lo envío como documento. Puede tardar más en descargar.*
-🖤 *Título:* ${downloadResult.result.title}`
-                        };
-                        await m.react("📄");
-                    } else {
-                        mediaOptions = mode === 'audio'
-                            ? { audio: fileBuffer, mimetype: 'audio/mpeg', fileName: `${downloadResult.result.title}.mp3` }
-                            : { video: fileBuffer, caption: `🎬 *Listo.* 🖤 *Título:* ${downloadResult.result.title}`, fileName: `${downloadResult.result.title}.mp4`, mimetype: 'video/mp4' };
-                        await m.react(mode === 'audio' ? "🎧" : "📽️");
-                    }
-
-                    await conn.sendMessage(m.chat, mediaOptions, { quoted: m });
-                    fs.unlinkSync(tempFilePath);
-                    return;
-                }
-                throw new Error("ogmp3 no pudo descargar el archivo.");
-
-            } catch (e3) {
-                console.error("Error en Tier 3 (ogmp3/youtubedl):", e3.message);
-                
-                const tempFilePath = path.join(process.cwd(), './tmp', `${Date.now()}_${mode === 'audio' ? 'audio' : 'video'}.tmp`);
-                if (fs.existsSync(tempFilePath)) {
-                    fs.unlinkSync(tempFilePath);
-                }
-                
-                // Falla definitiva
-                await conn.reply(m.chat, `💔 *fallé. pero tú más.*
-no pude traerte nada.`, m);
-                await m.react("❌");
-            }
+        const json = await res.json();
+        
+        if (json.status === "success" && json.download_link) {
+            finalDownloadUrl = json.download_link;
+            finalTitle = json.title || 'Título Desconocido';
+            await sendMediaFile(finalDownloadUrl, finalTitle, mode);
+            return; // Éxito
         }
+        throw new Error(json.message || "NEVI API falló.");
+        
+    } catch (e2) {
+        console.error("Error en Tier 2 (NEVI API):", e2.message);
+        // Fallback silencioso a Tier 3
+    }
+    
+    // ------------------------------------
+    // TIER 3: OGMP3/YOUTUBEDL (RESPALDO 2/LOCAL)
+    // ------------------------------------
+    try {
+        // Intento silencioso
+        const tempFilePath = path.join(process.cwd(), './tmp', `${Date.now()}_${mode === 'audio' ? 'audio' : 'video'}.tmp`);
+        
+        const downloadResult = await ogmp3.download(queryOrUrl, tempFilePath, mode);
+        
+        if (downloadResult.status && fs.existsSync(tempFilePath)) {
+            const stats = fs.statSync(tempFilePath);
+            const fileSizeMb = stats.size / (1024 * 1024);
+            
+            let mediaOptions;
+            const fileBuffer = fs.readFileSync(tempFilePath);
+
+            if (fileSizeMb > SIZE_LIMIT_MB) {
+                mediaOptions = {
+                    document: fileBuffer,
+                    fileName: `${downloadResult.result.title}.${mode === 'audio' ? 'mp3' : 'mp4'}`,
+                    mimetype: mode === 'audio' ? 'audio/mpeg' : 'video/mp4',
+                    caption: `⚠️ *El archivo es muy grande (${fileSizeMb.toFixed(2)} MB), lo envío como documento. Puede tardar más en descargar.*
+🖤 *Título:* ${downloadResult.result.title}`
+                };
+                await m.react("📄");
+            } else {
+                mediaOptions = mode === 'audio'
+                    ? { audio: fileBuffer, mimetype: 'audio/mpeg', fileName: `${downloadResult.result.title}.mp3` }
+                    : { video: fileBuffer, caption: `🎬 *Listo.* 🖤 *Título:* ${downloadResult.result.title}`, fileName: `${downloadResult.result.title}.mp4`, mimetype: 'video/mp4' };
+                await m.react(mode === 'audio' ? "🎧" : "📽️");
+            }
+
+            await conn.sendMessage(m.chat, mediaOptions, { quoted: m });
+            fs.unlinkSync(tempFilePath);
+            return; // Éxito
+        }
+        throw new Error("ogmp3 no pudo descargar el archivo.");
+
+    } catch (e3) {
+        console.error("Error en Tier 3 (ogmp3/youtubedl):", e3.message);
+        
+        // Limpiar archivo temporal si existe
+        const tempFilePath = path.join(process.cwd(), './tmp', `${Date.now()}_${mode === 'audio' ? 'audio' : 'video'}.tmp`);
+        if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
+        }
+        
+        // [✅ CAMBIO SOLICITADO] Falla definitiva (único mensaje de error visible)
+        await conn.reply(m.chat, `💔 *fallé. pero tú más.*
+no pude traerte nada.`, m);
+        await m.react("❌");
     }
     return;
   }
@@ -225,12 +207,10 @@ no pude traerte nada.`, m);
   // ------------------------------------
   // Lógica de búsqueda o metadatos
   // ------------------------------------
-  // Uso la función get_id del scraper para extraer el ID de la URL
   const videoId = get_id(queryOrUrl);
 
   if (videoId) {
     try {
-      // Búsqueda por ID usando yts
       const searchResult = await yts({ videoId: videoId });
       video = searchResult.videos?.[0];
     } catch (e) {
@@ -238,11 +218,9 @@ no pude traerte nada.`, m);
       return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.* La URL es válida, pero no pude obtener la información del video.`, m, { contextInfo });
     }
   } else if (queryOrUrl && /^(https?:\/\/)/i.test(queryOrUrl)) { 
-     // Si parece un link pero get_id falló
      return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.* Esa URL parece un enlace, pero no es un video de YouTube válido.`, m, { contextInfo });
   } else {
     try {
-      // Búsqueda por query de texto
       const searchResult = await yts(queryOrUrl);
       video = searchResult.videos?.[0];
     } catch (e) {
