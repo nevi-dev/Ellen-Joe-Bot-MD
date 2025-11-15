@@ -1,9 +1,12 @@
 // Importa las librerías necesarias
 import fetch from "node-fetch";
 
-// --- CAMBIO CLAVE: Importamos las nuevas funciones de descarga (ytmp3 y ytmp4) ---
-// ASUME que el archivo ../lib/ytscraper.js exporta estas funciones (module.exports = { ytmp3, ytmp4, ... })
-import { ytmp3, ytmp4 } from '../lib/ytscraper.js';  
+// --- CAMBIO CLAVE: Importamos las funciones del scraper que creamos ---
+// ASUMIMOS que ../lib/ytscraper.js ahora exporta ytmp3, ytmp4 y get_id
+import { ytmp3, ytmp4, get_id } from '../lib/ytscraper.js'; 
+
+// Importa el módulo de respaldo (Mantenemos youtubedl si ogmp3 lo necesita)
+import { ogmp3 } from '../lib/youtubedl.js'; 
 
 import yts from "yt-search";
 import axios from 'axios';
@@ -12,10 +15,18 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-// Constantes y definiciones (mantenidas)
+// Reemplaza 'TU_CLAVE_API' con tu clave real.
+const NEVI_API_KEY = 'ellen';
+
 const SIZE_LIMIT_MB = 100;
+const MIN_AUDIO_SIZE_BYTES = 50000;
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
+
+// [⚠️ CORRECCIÓN] Define las variables faltantes
+const icons = 'https://i.imgur.com/placeholder.jpg'; // Reemplaza con una URL real
+const redes = 'https://link.a.tu.red.social'; // Reemplaza con una URL real
+
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
@@ -33,8 +44,8 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     externalAdReply: {
       title: '🖤 ⏤͟͟͞͞𝙀𝙇𝙇𝙀𝙉 - 𝘽𝙊𝙏 ᨶ႒ᩚ',
       body: `✦ 𝙀sperando 𝙩u s𝙤𝙡𝙞𝙘𝙞𝙩u𝙙, ${name}. ♡~٩( ˃▽˂ )۶~♡`,
-      thumbnail: icons, // Asume que 'icons' está definido
-      sourceUrl: redes, // Asume que 'redes' está definido
+      thumbnail: icons, 
+      sourceUrl: redes, 
       mediaType: 1,
       renderLargerThumbnail: false
     }
@@ -50,105 +61,188 @@ ${usedPrefix}play moonlight - kali uchis`, m, { contextInfo });
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
   const queryOrUrl = isMode ? args.slice(1).join(" ") : args.join(" ");
-  const isInputUrl = /^(https?:\/\/)?(www\.)?(m\.)?(youtube\.com|youtu\.be)\/.+$/i.test(queryOrUrl);
   
   let video;
 
-  // --- Lógica de Descarga con YTSCRAPER (si se especifica el modo y la URL) ---
-  if (isMode && isInputUrl) {
-    await m.react("📥");
-    const mode = args[0].toLowerCase();
-    
-    // Función reutilizada para enviar el archivo
-    const sendMediaFile = async (downloadUrl, title, currentMode) => {
-      try {
-        const response = await axios.head(downloadUrl);
-        const contentLength = response.headers['content-length'];
-        const fileSizeMb = contentLength / (1024 * 1024);
+  // Función reutilizada para enviar el archivo (mantenida igual)
+  const sendMediaFile = async (downloadUrl, title, currentMode) => {
+    try {
+      await m.react("📥");
+      const response = await axios.head(downloadUrl);
+      const contentLength = response.headers['content-length'];
+      const fileSizeMb = contentLength / (1024 * 1024);
 
-        if (fileSizeMb > SIZE_LIMIT_MB) {
-          await conn.sendMessage(m.chat, {
-            document: { url: downloadUrl },
-            fileName: `${title}.${currentMode === 'audio' ? 'mp3' : 'mp4'}`,
-            mimetype: currentMode === 'audio' ? 'audio/mpeg' : 'video/mp4',
-            caption: `⚠️ *El archivo es muy grande (${fileSizeMb.toFixed(2)} MB), así que lo envío como documento. Puede tardar más en descargar.*
+      if (fileSizeMb > SIZE_LIMIT_MB) {
+        await conn.sendMessage(m.chat, {
+          document: { url: downloadUrl },
+          fileName: `${title}.${currentMode === 'audio' ? 'mp3' : 'mp4'}`,
+          mimetype: currentMode === 'audio' ? 'audio/mpeg' : 'video/mp4',
+          caption: `⚠️ *El archivo es muy grande (${fileSizeMb.toFixed(2)} MB), así que lo envío como documento. Puede tardar más en descargar.*
 🖤 *Título:* ${title}`
-          }, { quoted: m });
-          await m.react("📄");
-        } else {
-          const mediaOptions = currentMode === 'audio'
-            ? { audio: { url: downloadUrl }, mimetype: "audio/mpeg", fileName: `${title}.mp3` }
-            : { video: { url: downloadUrl }, caption: `🎬 *Listo.*
+        }, { quoted: m });
+        await m.react("📄");
+      } else {
+        const mediaOptions = currentMode === 'audio'
+          ? { audio: { url: downloadUrl }, mimetype: "audio/mpeg", fileName: `${title}.mp3` }
+          : { video: { url: downloadUrl }, caption: `🎬 *Listo.*
 🖤 *Título:* ${title}`, fileName: `${title}.mp4`, mimetype: "video/mp4" };
 
-          await conn.sendMessage(m.chat, mediaOptions, { quoted: m });
-          await m.react(currentMode === 'audio' ? "🎧" : "📽️");
-        }
-      } catch (error) {
-        console.error("Error al obtener el tamaño del archivo o al enviarlo:", error);
-        throw new Error("No se pudo obtener el tamaño del archivo o falló el envío.");
+        await conn.sendMessage(m.chat, mediaOptions, { quoted: m });
+        await m.react(currentMode === 'audio' ? "🎧" : "📽️");
       }
-    };
+    } catch (error) {
+      console.error("Error al obtener el tamaño del archivo o al enviarlo:", error);
+      throw new Error("No se pudo obtener el tamaño del archivo o falló el envío. Se intentará de nuevo.");
+    }
+  };
 
-    // LÓGICA EXCLUSIVA DE YTSCRAPER
+
+  // --- LÓGICA DE DESCARGA CON FALLBACKS (si se especifica el modo y el enlace) ---
+  if (isMode && queryOrUrl) {
+    const mode = args[0].toLowerCase();
+    
+    let scraperResult, finalDownloadUrl, finalTitle;
+    let fallbackToNevi = false;
+
+    // ------------------------------------
+    // TIER 1: YTSCRAPER (PRIMARIO)
+    // ------------------------------------
+    await conn.reply(m.chat, `⏳ *Dame un momento, estoy procesando el archivo a ${mode.toUpperCase()}...* (Método 1/3)`, m);
+    await m.react("🔃");
+    
     try {
-        // Determina qué función usar (ytmp4 para video, ytmp3 para audio)
         const downloadFunction = mode === 'audio' ? ytmp3 : ytmp4;
-        const serviceName = "Savetube/Vreden API";
+        scraperResult = await downloadFunction(queryOrUrl);
 
-        await conn.reply(m.chat, `⏳ *Dame un momento, estoy procesando el archivo a ${mode.toUpperCase()} usando ${serviceName}...*`, m);
-        await m.react("🔃");
-
-        // Llama a la función ytmp3/ytmp4
-        const scraperResult = await downloadFunction(queryOrUrl);
-
-        // Verifica el resultado
         if (scraperResult && scraperResult.status && scraperResult.download && scraperResult.download.url) {
-            const downloadUrl = scraperResult.download.url;
-            // Usamos el título de la metadata
-            const title = scraperResult.metadata.title || 'Título Desconocido';
-            
-            // Envía el archivo
-            await sendMediaFile(downloadUrl, title, mode);
+            finalDownloadUrl = scraperResult.download.url;
+            finalTitle = scraperResult.metadata?.title || 'Título Desconocido';
+            
+            // Éxito en Tier 1
+            await sendMediaFile(finalDownloadUrl, finalTitle, mode);
             return;
         }
-        
-        // Si la función no lanzó un error pero no devolvió el enlace (status: false o URL faltante)
         throw new Error(scraperResult.download?.message || scraperResult.message || "La API del scraper falló y no devolvió un enlace.");
 
-
-    } catch (e) {
-        console.error("Error con ytscraper.js:", e);
-        await m.react("❌");
-        
-        // Muestra el mensaje de error del scraper
-        const errorMessage = e.message;
-        
-        return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.*
-El servicio **ytscraper** no pudo generar el enlace.
-
-*Razón del fallo:*
-\`\`\`
-${errorMessage}
-\`\`\`
-
-*Solución:* El error es en la API externa de descarga (\`savetube.me\` o \`vreden.my.id\`), no en tu código local.`, m);
+    } catch (e1) {
+        console.error("Error en Tier 1 (ytscraper):", e1.message);
+        fallbackToNevi = true;
     }
-    return; // Termina el bloque de descarga
+    
+    // ------------------------------------
+    // TIER 2: NEVI API (RESPALDO 1)
+    // ------------------------------------
+    if (fallbackToNevi) {
+        await conn.reply(m.chat, `💔 *Fallé al procesar con el primer método.*
+Intentando con el método de respaldo. (Método 2/3)`, m);
+        await m.react("🔄");
+
+        try {
+            const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
+            const format = mode === "audio" ? "mp3" : "mp4";
+            const res = await fetch(neviApiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-KEY': NEVI_API_KEY,
+                },
+                body: JSON.stringify({
+                    url: queryOrUrl,
+                    format: format
+                }),
+            });
+
+            const json = await res.json();
+            
+            if (json.status === "success" && json.download_link) {
+                finalDownloadUrl = json.download_link;
+                finalTitle = json.title || 'Título Desconocido';
+                
+                // Éxito en Tier 2
+                await sendMediaFile(finalDownloadUrl, finalTitle, mode);
+                return;
+            }
+            throw new Error(json.message || "NEVI API falló.");
+            
+        } catch (e2) {
+            console.error("Error en Tier 2 (NEVI API):", e2.message);
+            
+            // ------------------------------------
+            // TIER 3: OGMP3/YOUTUBEDL (RESPALDO 2/LOCAL)
+            // ------------------------------------
+            await conn.reply(m.chat, `💔 *El segundo método también falló.*
+Intentando con la descarga directa local (Último recurso). (Método 3/3)`, m);
+            await m.react("⬇️");
+
+            try {
+                const tempFilePath = path.join(process.cwd(), './tmp', `${Date.now()}_${mode === 'audio' ? 'audio' : 'video'}.tmp`);
+                
+                const downloadResult = await ogmp3.download(queryOrUrl, tempFilePath, mode);
+                
+                if (downloadResult.status && fs.existsSync(tempFilePath)) {
+                    const stats = fs.statSync(tempFilePath);
+                    const fileSizeMb = stats.size / (1024 * 1024);
+                    
+                    let mediaOptions;
+                    const fileBuffer = fs.readFileSync(tempFilePath);
+
+                    if (fileSizeMb > SIZE_LIMIT_MB) {
+                        mediaOptions = {
+                            document: fileBuffer,
+                            fileName: `${downloadResult.result.title}.${mode === 'audio' ? 'mp3' : 'mp4'}`,
+                            mimetype: mode === 'audio' ? 'audio/mpeg' : 'video/mp4',
+                            caption: `⚠️ *El archivo es muy grande (${fileSizeMb.toFixed(2)} MB), lo envío como documento. Puede tardar más en descargar.*
+🖤 *Título:* ${downloadResult.result.title}`
+                        };
+                        await m.react("📄");
+                    } else {
+                        mediaOptions = mode === 'audio'
+                            ? { audio: fileBuffer, mimetype: 'audio/mpeg', fileName: `${downloadResult.result.title}.mp3` }
+                            : { video: fileBuffer, caption: `🎬 *Listo.* 🖤 *Título:* ${downloadResult.result.title}`, fileName: `${downloadResult.result.title}.mp4`, mimetype: 'video/mp4' };
+                        await m.react(mode === 'audio' ? "🎧" : "📽️");
+                    }
+
+                    await conn.sendMessage(m.chat, mediaOptions, { quoted: m });
+                    fs.unlinkSync(tempFilePath);
+                    return;
+                }
+                throw new Error("ogmp3 no pudo descargar el archivo.");
+
+            } catch (e3) {
+                console.error("Error en Tier 3 (ogmp3/youtubedl):", e3.message);
+                
+                const tempFilePath = path.join(process.cwd(), './tmp', `${Date.now()}_${mode === 'audio' ? 'audio' : 'video'}.tmp`);
+                if (fs.existsSync(tempFilePath)) {
+                    fs.unlinkSync(tempFilePath);
+                }
+                
+                // Falla definitiva
+                await conn.reply(m.chat, `💔 *fallé. pero tú más.*
+no pude traerte nada.`, m);
+                await m.react("❌");
+            }
+        }
+    }
+    return;
   }
   
-  // --- Lógica de búsqueda o metadatos (si no se especifica el modo) ---
-  if (isInputUrl) {
+  // ------------------------------------
+  // Lógica de búsqueda o metadatos
+  // ------------------------------------
+  // Uso la función get_id del scraper para extraer el ID de la URL
+  const videoId = get_id(queryOrUrl);
+
+  if (videoId) {
     try {
-      const urlObj = new URL(queryOrUrl);
-      const videoID = urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop();
-      const searchResult = await yts({ videoId: videoID });
+      const searchResult = await yts({ videoId: videoId });
       video = searchResult.videos?.[0];
     } catch (e) {
-      console.error("Error al obtener info de la URL:", e);
-      return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.*
-Esa URL me da un dolor de cabeza, ¿estás seguro de que es una URL de YouTube válida?`, m, { contextInfo });
+      console.error("Error al obtener info de la URL con ID:", e);
+      return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.* La URL es válida, pero no pude obtener la información del video.`, m, { contextInfo });
     }
+  } else if (queryOrUrl && /^(https?:\/\/)/i.test(queryOrUrl)) { 
+     // Si parece un link pero get_id falló
+     return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.* Esa URL parece un enlace, pero no es un video de YouTube válido.`, m, { contextInfo });
   } else {
     try {
       const searchResult = await yts(queryOrUrl);
@@ -159,6 +253,7 @@ Esa URL me da un dolor de cabeza, ¿estás seguro de que es una URL de YouTube v
 no logré encontrar nada con lo que pediste`, m, { contextInfo });
     }
   }
+
 
   if (!video) {
     return conn.reply(m.chat, `🦈 *esta cosa murió antes de empezar.*
