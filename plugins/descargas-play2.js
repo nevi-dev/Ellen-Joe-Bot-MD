@@ -2,8 +2,8 @@ import axios from 'axios'; // Mantenemos axios para la llamada a tu API
 
 // --- Configuración de tu API ---
 // Reemplaza esto con la URL base y la clave real de tu API
-const YOUR_API_URL = 'https://tudominio.com'; // O la URL donde esté tu API de Flask
-const YOUR_API_KEY = 'TU_CLAVE_SECRETA_DE_API'; // La clave que espera tu endpoint /bot
+const YOUR_API_URL = 'http://neviapi.ddns.net:5000'; // O la URL donde esté tu API de Flask
+const YOUR_API_KEY = 'ellen'; // La clave que espera tu endpoint /bot
 
 // Caracteres prohibidos según tu solicitud.
 const PROHIBITED_CHARS_REGEX = /[./\\>$¡¿]/; // Usamos regex para una verificación eficiente
@@ -62,5 +62,6 @@ handler.register = true
 handler.command = ['prueba']; // Mantener los comandos para usar la nueva IA
 
 export default handler;
+
 
 
