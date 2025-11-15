@@ -1,68 +1,45 @@
-const handler = async (m, { isPrems, conn }) => {
-  if (!global.db.data.users[m.sender]) {
-    throw `${emoji4} Usuario no encontrado.`;
-  }
+import db from '../lib/database.js';
+import moment from 'moment-timezone';
 
-  const lastCofreTime = global.db.data.users[m.sender].lastcofre2;
-  const timeToNextCofre = lastCofreTime + 86400000;
+let handler = async (m, { conn, usedPrefix }) => {
+    let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
 
-  if (Date.now() < timeToNextCofre) {
-    const tiempoRestante = timeToNextCofre - Date.now();
-    const mensajeEspera = `${emoji3} Ya reclamaste tu cofre\n⏰️ Regresa en: *${msToTime(tiempoRestante)}* para volver a reclamar.`;
-    await conn.sendMessage(m.chat, { text: mensajeEspera }, { quoted: m });
-    return;
-  }
+    if (!(who in global.db.data.users)) {
+        return conn.reply(m.chat, `${emoji} El usuario no se encuentra en mi base de Datos.`, m);
+    }
+    
+    let user = global.db.data.users[who];
+    let name = conn.getName(who);
 
-  const dia = Math.floor(Math.random() * 100);
-  const tok = Math.floor(Math.random() * 10);
-  const ai = Math.floor(Math.random() * 40);
-  const expp = Math.floor(Math.random() * 5000);
+    let premium = user.premium ? '✅' : '❌';
 
-  global.db.data.users[m.sender].coin += dia;
-  global.db.data.users[m.sender].diamonds += ai;
-  global.db.data.users[m.sender].joincount += tok;
-  global.db.data.users[m.sender].exp += expp;
-  global.db.data.users[m.sender].lastcofre2 = Date.now();
+    let text = `╭━〔 Inventario de ${name} 〕⬣\n` +
+               `┋ 💸 *${moneda} en Cartera:* ${user.coin || 0}\n` +  
+               `┋ 🏦 *${moneda} en Banco:* ${user.bank || 0}\n` + 
+               `┋ ♦️ *Esmeraldas:* ${user.emerald || 0}\n` + 
+               `┋ 🔩 *Hierro:* ${user.iron || 0}\n` +  
+               `┋ 🏅 *Oro:* ${user.gold || 0}\n` + 
+               `┋ 🕋 *Carbón:* ${user.coal || 0}\n` +  
+               `┋ 🪨 *Piedra:* ${user.stone || 0}\n` +  
+               `┋ ✨ *Experiencia:* ${user.exp || 0}\n` + 
+               `┋ ❤️ *Salud:* ${user.health || 100}\n` + 
+               `┋ 💎 *Diamantes:* ${user.diamond || 0}\n` +   
+               `┋ 🍬 *Dulces:* ${user.candies || 0}\n` + 
+               `┋ 🎁 *Regalos:* ${user.gifts || 0}\n` + 
+               `┋ 🎟️ *Tokens:* ${user.joincount || 0}\n` +  
+               `┋ ⚜️ *Premium:* ${premium}\n` + 
+               `┋ ⏳ *Última Aventura:* ${user.lastAdventure ? moment(user.lastAdventure).fromNow() : 'Nunca'}\n` + 
+               `┋ 📅 *Fecha:* ${new Date().toLocaleString('id-ID')}\n` +
+               `╰━━━━━━━━━━━━⬣`;
 
-  const texto = `
-╭━〔 Cσϝɾҽ Aʅҽαƚσɾισ 〕⬣
-┃📦 *Obtienes Un Cofre*
-┃ ¡Felicidades!
-╰━━━━━━━━━━━━⬣
-
-╭━〔 Nυҽʋσʂ Rҽƈυɾʂσʂ 〕⬣
-┃ *${dia} ${moneda}* 💸
-┃ *${tok} Tokens* ⚜️
-┃ *${ai} Diamantes* 💎
-┃ *${expp} Exp* ✨
-╰━━━━━━━━━━━━⬣`;
-
-  try {
-    await conn.sendFile(m.chat, icons, 'Ellen.jpg', texto, fkontak);
-  } catch (error) {
-    throw `${msm} Ocurrió un error al enviar el cofre.`;
-  }
-};
+    await conn.sendFile(m.chat, icons, 'Ellen.jpg', text, fkontak);
+}
 
 handler.help = ['prueba'];
 handler.tags = ['rpg'];
-handler.command = ['prueba'];
-handler.level = 5;
+handler.command = ['prueba']; 
 handler.group = true;
+handler.rowner = true;
 handler.register = true;
 
 export default handler;
-
-function msToTime(duration) {
-  const milliseconds = parseInt((duration % 1000) / 100);
-  let seconds = Math.floor((duration / 1000) % 60);
-  let minutes = Math.floor((duration / (1000 * 60)) % 60);
-  let hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
-
-  hours = (hours < 10) ? '0' + hours : hours;
-  minutes = (minutes < 10) ? '0' + minutes : minutes;
-  seconds = (seconds < 10) ? '0' + seconds : seconds;
-
-  return `${hours} Horas ${minutes} Minutos`;
-}
-
