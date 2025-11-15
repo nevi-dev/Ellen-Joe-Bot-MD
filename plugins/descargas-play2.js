@@ -23,7 +23,7 @@ let handler = async (m, { conn, args }) => {
     let coins = user.coin || 0;
     let bankCoins = user.bank || 0;
 
-    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => icons());
+    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => icons);
 
     let profileText = `
 「✿」 *Perfil* ◢@${userId.split('@')[0]}◤
@@ -64,4 +64,5 @@ handler.tags = ['rg'];
 handler.command = ['prueba'];
 
 export default handler;
+
 
