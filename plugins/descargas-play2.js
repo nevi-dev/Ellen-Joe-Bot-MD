@@ -1,5 +1,4 @@
 import fetch from "node-fetch";
-import crypto from "crypto";
 import { FormData, Blob } from "formdata-node";
 import { fileTypeFromBuffer } from "file-type";
 
@@ -10,7 +9,7 @@ const error = "❌";
 const emoji = "❕";
 const ellen = "🦈 Ellen Joe aquí... *ugh* que flojera~";
 
-// --- NUEVAS CONSTANTES DE LA API ---
+// --- URLS DE LA API ---
 const VREDEN_API_URL = "https://api.vreden.my.id/api/v1/artificial/imglarger/upscale";
 const CATBOX_API_URL = "https://catbox.moe/user/api.php"; // Endpoint de subida de Catbox
 
@@ -37,13 +36,13 @@ async function uploadToCatbox(buffer, mimeType, ext) {
         const result = await response.text();
         
         if (result.startsWith("https://files.catbox.moe/")) {
-            console.log("DEBUG: Catbox OK."); // Log de depuración
             return result;
         }
-        throw new Error(`Catbox falló al devolver una URL. Respuesta: ${result.substring(0, 100)}...`); 
+        // Error simple si Catbox no devuelve la URL esperada
+        throw new Error(`Catbox falló la subida. Contacta al admin.`); 
         
     } catch (e) {
-        throw new Error(`Fallo en la subida a Catbox: ${e.message}`);
+        throw new Error(`Fallo en la subida temporal: ${e.message}`);
     }
 }
 
@@ -65,7 +64,7 @@ let handler = async (m, { conn }) => {
     );
 
   await m.react(rwait);
-  const scaleFactor = 4; // Escala fija a 4x
+  const scaleFactor = 4;
 
   try {
     let media = await q.download();
@@ -78,7 +77,6 @@ let handler = async (m, { conn }) => {
     // [PASO 1] SUBIR IMAGEN A CATBOX
     // ----------------------------------------------------
     const publicImageUrl = await uploadToCatbox(media, fileMime, ext);
-    console.log("URL pública de Catbox:", publicImageUrl); // Log de depuración
     
     // ----------------------------------------------------
     // [PASO 2] LLAMAR A LA API DE VREDEN (GET)
@@ -87,12 +85,9 @@ let handler = async (m, { conn }) => {
 
     const upscaleResponse = await fetch(vredenUrl);
 
-    // Verificar el estado HTTP
+    // Verificar el estado HTTP y lanzar error simple
     if (!upscaleResponse.ok) {
-        const errorBody = await upscaleResponse.text();
-        throw new Error(`VREDEN API FALLÓ. HTTP Status: ${upscaleResponse.status}.
-> **DEBUG: RESPUESTA COMPLETA DE LA WEB:**
-> ${errorBody.substring(0, 1000)}...`); // Incluye el cuerpo del error HTTP
+        throw new Error(`VREDEN API devolvió un error HTTP ${upscaleResponse.status}.`);
     }
 
     // Intentar parsear JSON
@@ -100,21 +95,14 @@ let handler = async (m, { conn }) => {
     try {
         upscaleData = await upscaleResponse.json();
     } catch (e) {
-        // Si falla el parseo, leemos el cuerpo como texto para depurar (esto captura el "<!DOCTYPE")
-        const errorBody = await upscaleResponse.text();
-        throw new Error(`VREDEN API FALLÓ. JSON Inválido.
-> **DEBUG: RESPUESTA COMPLETA DE LA WEB:**
-> ${errorBody.substring(0, 1000)}...`);
+        // Si falla el parseo, el error original es suficiente
+        throw new Error(`VREDEN API devolvió una respuesta ilegible.`);
     }
 
     // Verificar el status de la API dentro del JSON
     if (upscaleData.status !== true || !upscaleData.result?.download) {
-        throw new Error(`VREDEN API FALLÓ. Procesamiento rechazado.
-> **DEBUG: JSON DE RESPUESTA DE LA API:**
-> ${JSON.stringify(upscaleData, null, 2).substring(0, 1000)}...`); // Incluye el JSON de error
+        throw new Error(`VREDEN API rechazó el procesamiento. Mensaje: ${upscaleData.creator || "Error interno."}`);
     }
-
-    console.log("DEBUG: Vreden OK."); // Log de depuración
     
     // ----------------------------------------------------
     // [PASO 3] DESCARGAR IMAGEN ESCALADA
@@ -124,20 +112,14 @@ let handler = async (m, { conn }) => {
     const downloadResponse = await fetch(downloadUrl);
 
     if (!downloadResponse.ok) {
-        const errorBody = await downloadResponse.text();
-        throw new Error(`DESCARGA FINAL FALLÓ. HTTP Status: ${downloadResponse.status}.
-> **DEBUG: RESPUESTA DE LA DESCARGA:**
-> ${errorBody.substring(0, 100)}...`);
+        throw new Error(`Fallo al descargar el resultado final. HTTP ${downloadResponse.status}.`);
     }
 
     const bufferHD = Buffer.from(await downloadResponse.arrayBuffer());
 
-    console.log("DEBUG: Descarga OK."); // Log de depuración
-
     let textoEllen = `
 🦈 *Listo… aquí tienes tu imagen en HD (${scaleFactor}x de escala).*
 > *Tamaño final:* ${formatBytes(bufferHD.length)}
-> *DEBUG: Catbox OK / Vreden OK / Descarga OK.*
 > Supongo que ahora puedes ver cada pixel, feliz, ¿no?
 
 💤 *Ahora… ¿puedo volver a mi siesta?*
@@ -155,7 +137,7 @@ let handler = async (m, { conn }) => {
     await m.react(done);
     
   } catch (e) {
-    console.error(e);
+    // El bloque catch ahora solo usa el mensaje de error simplificado
     await m.react(error);
     return conn.reply(
       m.chat,
@@ -165,7 +147,7 @@ let handler = async (m, { conn }) => {
   }
 };
 
-handler.help = ["prueba"];
+handler.help = ["hd"];
 handler.tags = ["ai"];
 handler.command = ["prueba"];
 export default handler;
