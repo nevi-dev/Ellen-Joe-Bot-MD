@@ -21,30 +21,30 @@ function formatBytes(bytes) {
   return `${(bytes / 1024 ** i).toFixed(2)} ${sizes[i]}`;
 }
 
-// [NUEVA FUNCIÓN] Subir imagen a Catbox para obtener URL pública
+// Función para subir imagen a Catbox para obtener URL pública
 async function uploadToCatbox(buffer, mimeType, ext) {
-  const blob = new Blob([buffer.toArrayBuffer()], { type: mimeType });
-  const formData = new FormData();
-  formData.append("reqtype", "fileupload");
-  formData.append("fileToUpload", blob, `image.${ext}`);
+    const blob = new Blob([buffer], { type: mimeType }); 
+    const formData = new FormData();
+    formData.append("reqtype", "fileupload");
+    formData.append("fileToUpload", blob, `image.${ext}`);
 
-  try {
-    const response = await fetch(CATBOX_API_URL, {
-      method: "POST",
-      body: formData,
-    });
+    try {
+        const response = await fetch(CATBOX_API_URL, {
+            method: "POST",
+            body: formData,
+        });
 
-    const result = await response.text();
-    
-    // Catbox devuelve la URL directamente en texto si tiene éxito, o 'Userhash' si falla.
-    if (result.startsWith("https://files.catbox.moe/")) {
-      return result;
+        const result = await response.text();
+        
+        if (result.startsWith("https://files.catbox.moe/")) {
+            console.log("DEBUG: Catbox OK."); // Log de depuración
+            return result;
+        }
+        throw new Error(`Catbox falló al devolver una URL. Respuesta: ${result.substring(0, 100)}...`); 
+        
+    } catch (e) {
+        throw new Error(`Fallo en la subida a Catbox: ${e.message}`);
     }
-    throw new Error(`Catbox no devolvió una URL válida: ${result}`);
-    
-  } catch (e) {
-    throw new Error(`Fallo al subir a Catbox: ${e.message}`);
-  }
 }
 
 
@@ -65,6 +65,7 @@ let handler = async (m, { conn }) => {
     );
 
   await m.react(rwait);
+  const scaleFactor = 4; // Escala fija a 4x
 
   try {
     let media = await q.download();
@@ -77,23 +78,44 @@ let handler = async (m, { conn }) => {
     // [PASO 1] SUBIR IMAGEN A CATBOX
     // ----------------------------------------------------
     const publicImageUrl = await uploadToCatbox(media, fileMime, ext);
-    console.log("URL pública de Catbox:", publicImageUrl);
+    console.log("URL pública de Catbox:", publicImageUrl); // Log de depuración
     
     // ----------------------------------------------------
     // [PASO 2] LLAMAR A LA API DE VREDEN (GET)
     // ----------------------------------------------------
-    const scaleFactor = 4; // Puedes hacer esto configurable si lo deseas
     const vredenUrl = `${VREDEN_API_URL}?url=${encodeURIComponent(publicImageUrl)}&scale=${scaleFactor}`;
 
     const upscaleResponse = await fetch(vredenUrl);
 
-    const upscaleData = await upscaleResponse.json();
-
-    if (!upscaleResponse.ok || upscaleData.status !== true) {
-      throw new Error(`La API de HD se rindió, igual que yo después de 5 minutos de esfuerzo.
-Error: ${upscaleData.status_code} - ${upscaleData.creator || "Error desconocido"}`);
+    // Verificar el estado HTTP
+    if (!upscaleResponse.ok) {
+        const errorBody = await upscaleResponse.text();
+        throw new Error(`VREDEN API FALLÓ. HTTP Status: ${upscaleResponse.status}.
+> **DEBUG: RESPUESTA COMPLETA DE LA WEB:**
+> ${errorBody.substring(0, 1000)}...`); // Incluye el cuerpo del error HTTP
     }
-    
+
+    // Intentar parsear JSON
+    let upscaleData;
+    try {
+        upscaleData = await upscaleResponse.json();
+    } catch (e) {
+        // Si falla el parseo, leemos el cuerpo como texto para depurar (esto captura el "<!DOCTYPE")
+        const errorBody = await upscaleResponse.text();
+        throw new Error(`VREDEN API FALLÓ. JSON Inválido.
+> **DEBUG: RESPUESTA COMPLETA DE LA WEB:**
+> ${errorBody.substring(0, 1000)}...`);
+    }
+
+    // Verificar el status de la API dentro del JSON
+    if (upscaleData.status !== true || !upscaleData.result?.download) {
+        throw new Error(`VREDEN API FALLÓ. Procesamiento rechazado.
+> **DEBUG: JSON DE RESPUESTA DE LA API:**
+> ${JSON.stringify(upscaleData, null, 2).substring(0, 1000)}...`); // Incluye el JSON de error
+    }
+
+    console.log("DEBUG: Vreden OK."); // Log de depuración
+    
     // ----------------------------------------------------
     // [PASO 3] DESCARGAR IMAGEN ESCALADA
     // ----------------------------------------------------
@@ -102,16 +124,20 @@ Error: ${upscaleData.status_code} - ${upscaleData.creator || "Error desconocido"
     const downloadResponse = await fetch(downloadUrl);
 
     if (!downloadResponse.ok) {
-      throw new Error("No pude descargar la imagen mejorada de la URL final.");
+        const errorBody = await downloadResponse.text();
+        throw new Error(`DESCARGA FINAL FALLÓ. HTTP Status: ${downloadResponse.status}.
+> **DEBUG: RESPUESTA DE LA DESCARGA:**
+> ${errorBody.substring(0, 100)}...`);
     }
 
     const bufferHD = Buffer.from(await downloadResponse.arrayBuffer());
 
+    console.log("DEBUG: Descarga OK."); // Log de depuración
+
     let textoEllen = `
 🦈 *Listo… aquí tienes tu imagen en HD (${scaleFactor}x de escala).*
-> *Original:* ${publicImageUrl}
-> *Final:* ${formatBytes(bufferHD.length)}
-> Aunque sinceramente, no sé por qué me haces gastar energía en esto…
+> *Tamaño final:* ${formatBytes(bufferHD.length)}
+> *DEBUG: Catbox OK / Vreden OK / Descarga OK.*
 > Supongo que ahora puedes ver cada pixel, feliz, ¿no?
 
 💤 *Ahora… ¿puedo volver a mi siesta?*
@@ -128,8 +154,6 @@ Error: ${upscaleData.status_code} - ${upscaleData.creator || "Error desconocido"
 
     await m.react(done);
     
-    // Nota: Eliminada la solicitud POST /done/{fileId} ya que Vreden API no parece requerir limpieza.
-
   } catch (e) {
     console.error(e);
     await m.react(error);
