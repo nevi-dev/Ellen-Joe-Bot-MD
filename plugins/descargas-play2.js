@@ -18,10 +18,6 @@ const MIN_AUDIO_SIZE_BYTES = 50000;
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
-// Define las variables faltantes (placeholders)
-const icons = 'https://i.imgur.com/placeholder.jpg'; 
-const redes = 'https://link.a.tu.red.social'; 
-
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
@@ -272,3 +268,4 @@ handler.register = true;
 handler.prefix = /^[./#]/;
 
 export default handler;
+
