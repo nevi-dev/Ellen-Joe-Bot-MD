@@ -10,9 +10,10 @@ let staff = `ᥫ᭡ *EQUIPO DE AYUDANTES* ❀
 await conn.sendFile(m.chat, img, 'Ellen.jpg', staff.trim(), fkontak)
 }
   
-handler.help = ['staff']
-handler.command = ['colaboradores', 'staff']
+handler.help = ['prueba']
+handler.command = ['prueba']
 handler.register = true
 handler.tags = ['main']
 
 export default handler
+
