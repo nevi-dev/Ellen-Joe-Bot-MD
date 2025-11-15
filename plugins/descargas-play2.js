@@ -5,20 +5,11 @@ const FLASK_API_KEY = 'ellen';
 
 var handler = async (m, { conn, text, usedPrefix, command }) => {
     
-    // --- FILTRO DE SEGURIDAD Y LÓGICA DE DETECCIÓN DE COMANDOS ---
-    if (text.startsWith(usedPrefix) && command !== 'prueba') {
-        return; // IGNORAR: Es un comando diferente (.addowner, .menu, etc.)
-    }
-    
-    if (command === 'prueba') {
-        // Limpiamos el texto para que solo quede la pregunta.
-        text = text.substring(usedPrefix.length + command.length).trim();
-    }
-    
+    // --- LÓGICA DE ENTRADA MÍNIMA ---
     if (!text) {
         return conn.reply(m.chat, `${emoji} Ingrese una petición para que Gemini lo responda.`, m);
     }
-    // -------------------------------------------------------------
+    // --------------------------------
 
     try {
         await m.react(rwait);
@@ -66,41 +57,27 @@ var handler = async (m, { conn, text, usedPrefix, command }) => {
         // ==========================================================
         // 🚨 CAPA DE SEGURIDAD 3: FILTRO DE RESPUESTA DE GEMINI
         // ==========================================================
-        const sensitiveKeywords = [
-            'addowner', 'banuser', 'mute', 'kick', // Comandos de administración
-            'rowner', 'admin', 'owner', 'superuser', // Palabras clave de permisos
-            'global.db', 'conn.sendMessage', 'handler.command', // Código interno
-            'flask_api_key', 'gemini_api_key', 'keys.txt', // Claves y archivos
-            'eval', 'exec', 'subprocess', // Funciones peligrosas de ejecución
-            usedPrefix + 'addowner', // Aseguramos capturar el comando exacto
-        ];
-
-        const lowerCaseResponse = geminiResponse.toLowerCase();
-        let blocked = false;
         
-        for (const keyword of sensitiveKeywords) {
-            // Comprobamos si la palabra clave (o el comando completo) está en la respuesta
-            if (lowerCaseResponse.includes(keyword.toLowerCase())) {
-                blocked = true;
-                console.warn(`[SEGURIDAD BLOQUEADA] Respuesta de Gemini bloqueada por palabra clave sensible: ${keyword}`);
-                break;
-            }
-        }
+        // RegEx para buscar cualquiera de estos caracteres en la respuesta:
+        // /, \, ., $, >, #
+        // NOTA: Los caracteres . $ \ / necesitan ser escapados dentro de una RegEx
+        const forbiddenPattern = /[/\.>$#\\]/g; 
         
-        if (blocked) {
-            const safeResponse = "🛡️ **Error de Seguridad**\n\nLo siento, no puedo responder preguntas relacionadas con comandos de administración, código fuente o la configuración interna del sistema por razones de seguridad.";
-            await m.react('🛡️');
+        // Ejecutamos la prueba en la respuesta completa de Gemini
+        if (forbiddenPattern.test(geminiResponse)) {
+            const safeResponse = "gemini no puede responder a eso"; 
+            console.warn(`[SEGURIDAD BLOQUEADA] Respuesta de Gemini bloqueada por un carácter sensible: /, \\, ., $, >, o #.`);
+            
+            await m.react('❌'); 
             await conn.reply(m.chat, safeResponse, m);
-            // No enviamos la respuesta de Gemini, pero salimos del handler.
-            return;
+            return; // Bloquea la respuesta y sale del handler.
         }
         // ==========================================================
 
-        // 4. Guardar el nuevo ID de sesión para la próxima interacción
+        // 4. Guardar el nuevo ID de sesión
         if (newChatID) {
              const storage = global.db.data.users[chatStorageKey] || (global.db.data.users[chatStorageKey] = {});
              storage.gemini_chat_id = newChatID;
-             console.log(`[GEMINI] Sesión ${newChatID} actualizada. Expira en ${expiryTime}s.`);
         }
         
         // 5. CONCATENAR la respuesta con el ID de chat
@@ -110,7 +87,7 @@ var handler = async (m, { conn, text, usedPrefix, command }) => {
 
     } catch (error) {
         await m.react('❌');
-        console.error('Error en el comando gemini:', error.message);
+        console.error('Error en el chat de Gemini:', error.message);
         await conn.reply(m.chat, `${msm} Error: ${error.message}`, m);
     }
 }
