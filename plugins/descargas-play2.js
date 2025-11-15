@@ -1,102 +1,57 @@
-import fetch from 'node-fetch';
-// Nota: Eliminamos 'translate' y 'axios' ya que Gemini maneja el idioma y el endpoint.
+import axios from 'axios'; // Mantenemos axios para la llamada a tu API
 
-// ⚠️ Configuración de tu API de Flask
-const FLASK_API_URL = 'http://neviapi.ddns.net:5000/bot'; // <-- CAMBIADO A /ia/bot
-const FLASK_API_KEY = 'ellen'; 
-// Asumimos que 'emoji', 'rwait', y 'msm' están disponibles globalmente.
+// --- Configuración de tu API ---
+// Reemplaza esto con la URL base y la clave real de tu API
+const YOUR_API_URL = 'https://tudominio.com'; // O la URL donde esté tu API de Flask
+const YOUR_API_KEY = 'TU_CLAVE_SECRETA_DE_API'; // La clave que espera tu endpoint /bot
 
-const handler = async (m, { conn, text, command, usedPrefix }) => {
+// Caracteres prohibidos según tu solicitud.
+const PROHIBITED_CHARS_REGEX = /[./\\>$¡¿]/; // Usamos regex para una verificación eficiente
 
-    // 1. Verificación de texto
+const handler = async (m, {conn, text, command, args, usedPrefix}) => {
+    // 1. Verificación Inicial
     if (!text) {
-        // Usamos el nombre del comando actual para ser más específicos
-        const commandName = usedPrefix + command;
-        return conn.reply(m.chat, `${emoji} Te faltó el texto para hablar con ${commandName}.`, m);
+        // Asumiendo que 'emoji' y 'm.chat' son definidos previamente o accesibles
+        return conn.reply(m.chat, `🤖 Te faltó el texto para hablar con la **Bot**`, m);
     }
     
-    // 2. Inicialización y preparación de la solicitud
+    // 2. Detección de Caracteres Prohibidos
+    if (PROHIBITED_CHARS_REGEX.test(text)) {
+        return conn.reply(m.chat, `❌ Ellen no puede responder eso, detecté un carácter prohibido (., /, \\, >, $, ¡, ¿) en tu mensaje.`, m);
+    }
+
     try {
-        await m.react(rwait); // Reacción de espera
-        conn.sendPresenceUpdate('composing', m.chat);
+        // 3. Llamada a tu API de Chat con Personalidad (Gemini)
+        // No se necesita el módulo 'translate' ni 'node-fetch' ahora.
+        const apiUrl = `${YOUR_API_URL}/bot`;
         
-        // Determinar la clave de almacenamiento (chat privado o grupo)
-        const chatStorageKey = m.isGroup ? m.chat : m.sender;
-        let userData = global.db.data.users[chatStorageKey] || {};
-        
-        // Obtener el ID de sesión de chat previo (si existe)
-        const chatID = userData.gemini_chat_id; 
-
-        // 3. Configurar el Payload para tu API de Flask
-        const payload = {
-             message: text,
-             id_chat: chatID || null // Envía el ID para continuidad de sesión
-        };
-
-        // 4. Realizar la solicitud a tu API de Flask
-        const apii = await fetch(FLASK_API_URL, {
-             method: 'POST',
-             headers: {
-                 'Content-Type': 'application/json',
-                 'X-API-KEY': FLASK_API_KEY 
-             },
-             body: JSON.stringify(payload)
+        const response = await axios.post(apiUrl, {
+            message: text,
+            // Opcional: Si quieres mantener la sesión, puedes añadir 'id_chat' aquí
+            // id_chat: m.chat // Usar el ID del chat como identificador de sesión
+        }, {
+            headers: {
+                'X-API-KEY': YOUR_API_KEY,
+                'Content-Type': 'application/json'
+            }
         });
 
-        // 5. Control de Estado HTTP
-        if (!apii.ok) {
-             await m.react('❌');
-             let errorResponse;
-             try {
-                 errorResponse = await apii.json();
-             } catch {
-                 throw new Error(`Fallo HTTP: ${apii.status} ${apii.statusText}`);
-             }
-             // Capturamos mensajes de error de Redis o Gemini desde tu API de Flask
-             throw new Error(errorResponse.message || 'Error desconocido del servidor Flask.');
+        const apiResponse = response.data;
+
+        if (apiResponse.status === 'success') {
+            const botResponse = apiResponse.message;
+
+            // 4. Envío de la Respuesta
+            conn.sendMessage(m.chat, { text: botResponse }, { quoted: m });
+        } else {
+            // Manejo de errores de tu propia API (e.g., clave inválida, error de Gemini)
+            throw new Error(`Error de la API: ${apiResponse.message}`);
         }
-
-        const res = await apii.json();
-        const geminiResponse = res.message;
-        const newChatID = res.id_chat;
-        const expiryTime = res.expires_in; // Tiempo de expiración en segundos
-
-        if (!geminiResponse) {
-             await m.react('❌');
-             throw new Error('La API de Gemini no devolvió una respuesta válida.');
-        }
-
-        // ==========================================================
-        // 🚨 FILTRO DE SEGURIDAD (MANTENEMOS EL FILTRO ESTRICTO)
-        // Bloquea cualquier respuesta que contenga caracteres sensibles
-        // ==========================================================
-        const forbiddenPattern = /[/\.>$#\\]/g; 
-        
-        if (forbiddenPattern.test(geminiResponse)) {
-            const safeResponse = "gemini no puede responder a eso"; 
-            console.warn(`[SEGURIDAD BLOQUEADA] Respuesta de Gemini bloqueada por un carácter sensible.`);
-            
-            await m.react('❌'); 
-            await conn.reply(m.chat, safeResponse, m);
-            return; 
-        }
-        // ==========================================================
-
-        // 6. Guardar el nuevo ID de sesión para la próxima interacción (SILENCIOSAMENTE)
-        if (newChatID) {
-             const storage = global.db.data.users[chatStorageKey] || (global.db.data.users[chatStorageKey] = {});
-             storage.gemini_chat_id = newChatID;
-        }
-        
-        // 7. Enviar respuesta - CONCATENAMOS la respuesta de Gemini con la información de la sesión
-        const finalResponse = `${geminiResponse}\n\n---\n💬 ID de Sesión: ${newChatID}\n(Expira en ${expiryTime / 60} minutos de inactividad)`;
-
-        await conn.reply(m.chat, finalResponse, m);
-
     } catch (error) {
-        await m.react('❌');
-        console.error('Error en el comando Gemini/Ellen:', error.message);
-        await conn.reply(m.chat, `${msm} Error: ${error.message}`, m);
+        // Captura errores de red (axios) o errores arrojados en el bloque try
+        // Asumiendo que 'msm' es una variable para un mensaje de error genérico.
+        console.error("Error en el handler de Ellen:", error.message);
+        conn.reply(m.chat, `💥 Ocurrió un error al contactar a la Bot. Inténtalo de nuevo.`, m);
     }
 };
 
@@ -107,4 +62,5 @@ handler.register = true
 handler.command = ['prueba']; // Mantener los comandos para usar la nueva IA
 
 export default handler;
+
 
