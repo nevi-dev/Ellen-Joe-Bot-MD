@@ -33,7 +33,7 @@ const handler = async (m, { conn, args, usedPrefix }) => {
     
     // Construcción de la URL de la API con tags y autenticación
     const apiUrl = `${R34_API_URL}&tags=${tags}&json=1&user_id=${R34_USER_ID}&api_key=${R34_API_KEY}`;
-    
+    
     // Caption de éxito (con tema navideño y de dinero)
     let captionText = `${successEmoji} Regalo de *Ellen Joe* por tus *${displayTags}*... ¡y me deben una compensación navideña! 🎁`;
 
@@ -44,7 +44,7 @@ const handler = async (m, { conn, args, usedPrefix }) => {
         const response = await fetch(apiUrl);
         const textResponse = await response.text();
 
-        // Verificar errores de API
+        // 2. Verificar errores de API (XML/Autenticación)
         if (textResponse.includes("<error>")) {
             await m.react(error);
             console.error('Error de API Rule34 (XML Response):', textResponse);
@@ -52,6 +52,15 @@ const handler = async (m, { conn, args, usedPrefix }) => {
             await conn.reply(m.chat, `Qué fastidio. La API de Rule34 se rompió. ¿De verdad? En plenas fiestas... *UGH*. 💔`, m);
             return;
         }
+
+        // <<<< SOLUCIÓN ROBUSTA: CHEQUEO DE RESPUESTA VACÍA >>>>
+        if (textResponse.trim() === "") {
+             await m.react(error);
+             await conn.reply(m.chat, `¿Ni siquiera para eso tienes suerte? Vaya. No encontré nada para *${displayTags}*. ¡Feliz fracaso navideño! 🎄`, m);
+             return;
+        }
+        // <<<< FIN SOLUCIÓN ROBUSTA >>>>
+
 
         let posts;
         try {
@@ -62,7 +71,7 @@ const handler = async (m, { conn, args, usedPrefix }) => {
             await conn.reply(m.chat, `La base de datos vomitó algo. Si no es dinero, no lo quiero. Inténtalo de nuevo. 🤢`, m);
             return;
         }
-        
+        
         if (!posts || posts.length === 0) {
             await m.react(error);
             // Ellen Joe: No hay resultados
@@ -70,7 +79,7 @@ const handler = async (m, { conn, args, usedPrefix }) => {
             return;
         }
 
-        // 2. Seleccionar post aleatorio y obtener URL directa
+        // 3. Seleccionar post aleatorio y obtener URL directa
         const randomIndex = Math.floor(Math.random() * posts.length);
         const randomPost = posts[randomIndex];
         const imageUrl = randomPost.file_url; // URL directa del archivo
@@ -82,20 +91,20 @@ const handler = async (m, { conn, args, usedPrefix }) => {
             return;
         }
         
-        // 3. Envío del archivo: Determina si es imagen o video
-        const extension = imageUrl.split('.').pop().toLowerCase();
-        let messageOptions = { caption: captionText, mentions: [m.sender] };
+        // 4. Envío del archivo: Determina si es imagen o video
+        const extension = imageUrl.split('.').pop().toLowerCase();
+        let messageOptions = { caption: captionText, mentions: [m.sender] };
 
-        const videoExtensions = ['mp4', 'webm', 'mov'];
+        const videoExtensions = ['mp4', 'webm', 'mov'];
 
-        if (videoExtensions.includes(extension)) {
-            // Es un video o GIF largo
-            messageOptions.video = { url: imageUrl };
-        } else {
-            // Es una imagen (incluye GIF corto, jpg, png, etc.)
-            messageOptions.image = { url: imageUrl };
-        }
-        
+        if (videoExtensions.includes(extension)) {
+            // Es un video o GIF largo
+            messageOptions.video = { url: imageUrl };
+        } else {
+            // Es una imagen (incluye GIF corto, jpg, png, etc.)
+            messageOptions.image = { url: imageUrl };
+        }
+        
         await conn.sendMessage(m.chat, messageOptions);
 
         await m.react(done);
@@ -103,10 +112,13 @@ const handler = async (m, { conn, args, usedPrefix }) => {
         // Este catch atrapa errores FATALES (red, archivo no descargable, envío fallido)
         await m.react(error);
         console.error('Error FATAL en la búsqueda/envío de multimedia:', e);
+
+        let errorDetail = e.message || 'Error desconocido del sistema.';
+        
         await conn.reply(
           m.chat,
-          // Ellen Joe: Error fatal
-          `${ellen}\n*Ugh*, me rompiste los dientes. Error: El archivo es muy grande o no es compatible. Mi comisión se acaba de reducir a cero. ¡Feliz Navidad! 💸`,
+          // Ellen Joe: Error fatal con detalle
+          `${ellen}\n*Ugh*, me rompiste los dientes. La misión falló. Detalle: *${errorDetail}*. Mi comisión se acaba de reducir a cero. ¡Feliz Navidad! 💸`,
           m
         );
     }
