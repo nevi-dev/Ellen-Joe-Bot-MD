@@ -23,7 +23,7 @@ let handler = async (m, { conn, args }) => {
     let coins = user.coin || 0;
     let bankCoins = user.bank || 0;
 
-    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => 'https://files.catbox.moe/xr2m6u.jpg');
+    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => icons);
 
     let profileText = `
 「✿」 *Perfil* ◢@${userId.split('@')[0]}◤
@@ -51,7 +51,7 @@ ${description}
                 title: '✧ Perfil de Usuario ✧',
                 body: dev,
                 thumbnailUrl: perfil,
-                mediaType: 1,
+                mediaType: 2,
                 showAdAttribution: true,
                 renderLargerThumbnail: true
             }

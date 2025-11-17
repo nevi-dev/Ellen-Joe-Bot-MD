@@ -3980,7 +3980,7 @@
       "id": "213",
       "name": "Ellen Joe",
       "gender": "Mujer",
-      "value": "1948",
+      "value": "3000",
       "source": "Zenless zone Zero",
       "img": [
          "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742232387204.jpeg",
@@ -6496,5 +6496,116 @@
       "user": null,
       "status": "Libre",
       "votes": 0
-  }
+  },
+{
+    "id": "356",
+    "name": "Navia Casper",
+    "gender": "Mujer",
+    "value": "2680",
+    "source": "Genshin Impact",
+    "img": [
+        "https://files.catbox.moe/1c54or.jpeg",
+        "https://files.catbox.moe/bj64w2.jpeg",
+        "https://files.catbox.moe/2adrd4.jpg",
+        "https://files.catbox.moe/trli4d.jpeg"
+    ],
+    "vid": [
+        "https://files.catbox.moe/sz26q3.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+},
+{
+    "id": "357",
+    "name": "Nazuna Nanakusa",
+    "gender": "Mujer",
+    "value": "2150",
+    "source": "Call of the Night",
+    "img": [
+        "https://files.catbox.moe/dujy6x.jpeg",
+        "https://files.catbox.moe/kwb8yo.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+},
+{
+    "id": "358",
+    "name": "Roronoa Zoro",
+    "gender": "Hombre",
+    "value": "2910",
+    "source": "One Piece",
+    "img": [
+        "https://files.catbox.moe/kn6qwk.jpeg",
+        "https://files.catbox.moe/u2ijol.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+},
+{
+    "id": "359",
+    "name": "Sanji",
+    "gender": "Hombre",
+    "value": "2850",
+    "source": "One Piece",
+    "img": [
+        "https://files.catbox.moe/6dti7w.jpeg",
+        "https://files.catbox.moe/k1g8c2.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+},
+{
+    "id": "360",
+    "name": "Nico Robin",
+    "gender": "Mujer",
+    "value": "2730",
+    "source": "One Piece",
+    "img": [
+        "https://files.catbox.moe/2ksupc.jpeg",
+        "https://files.catbox.moe/ez6kve.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+},
+{
+    "id": "361",
+    "name": "Nami",
+    "gender": "Mujer",
+    "value": "2490",
+    "source": "One Piece",
+    "img": [
+        "https://files.catbox.moe/q2g0cg.jpeg",
+        "https://files.catbox.moe/yp2z6y.jpeg"
+    ],
+    "vid": [],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+},
+{
+    "id": "362",
+    "name": "Alexandrina Sebastiane",
+    "gender": "Mujer",
+    "value": "2050",
+    "source": "Zenless Zone Zero",
+    "img": [
+        "https://files.catbox.moe/f9adc0.jpeg",
+        "https://files.catbox.moe/0id4y2.jpeg"
+    ],
+    "vid": [
+        "https://files.catbox.moe/z3w2ek.mp4"
+    ],
+    "user": null,
+    "status": "Libre",
+    "votes": 0
+}
 ]

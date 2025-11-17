@@ -18,10 +18,14 @@ global.botNumber = '' //Ejemplo: 573218138672
 global.owner = [
 // <-- Número @s.whatsapp.net -->
   ['18096758983', '⟆⃝༉⃟⸙ ᯽ N͙e͙v͙i͙-D͙e͙v͙ ⌗⚙️࿐', true],
-  ['8294868853', '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ🐇་༘', true],
+  ['18294868853', '⏤͟͞ू⃪ ፝͜⁞𝘿𝙞𝙤𝙣𝙚𝙞𝙗𝙞-ʳⁱᵖ ִֶ ࣪˖ ִֶָ🐇་༘', true],
+  ['5218134686189', 'ale', true],
+  ['5212214128464', 'yoshy', true],
 
 // <-- Número @lid -->
   ['260081845334105', 'nevi', true],
+  ['58373353541843', 'ale', true],
+  ['132568913551389', 'yoshy', true],
   ['200141197844495', 'Dioneibi', true]
 ];
 
@@ -66,7 +70,7 @@ global.APIKeys = {};
 global.packname = '🦈⟶꯭̽𝑬𝒍𝒍𝒆𝒏 ꯭𝑱𝒐𝒆͙𝆭͢͟⎯̽―̥ 𝑺𝒉𝒂𝒓𝒌 𝑸𝒖𝒆𝒆𝒏'
 global.botname = '⏤͟͟͞͞⸙ְ̻࠭🦈ᩙ 𝙀𝙡𝙡𝙚𝙣 𝙅𝙤𝙚 𝘽𝙤𝙩 𝙈𝘿 𑂘⃘۪〬🫐ᩙ⸙ְ̻࠭'
 global.wm = '🌹⟶꯭̽𝐄𝐥𝐥𝐞᪱͢𝐧 ͞ ̵𝆭⎯꯭̽𝐉𝐨࡙ͥ͞𝐞ͣ͟ 𝐁𝐨࡙ͫ𝐭꯭͠⎯̽―̥ 𝐌𝐃 🌹'
-global.author = '𐔌 𝗡𝗲𝘃𝗶-𝗗𝗲𝘃 ❝ 𝗠𝗮𝗱𝗲 𝗪𝗶𝘁𝗵 𝗟𝗼𝘃𝗲 ❞ 𓆩 ͡꒱'
+global.author = '𐔌 𝗡𝗲𝘃𝗶-𝗗𝗲𝘃 𓆩 ͡꒱'
 global.dev = '⚙️ ⌬ 𝙲𝚞𝚜𝚝𝚘𝚖 𝙼𝚘𝚍𝚜 𝙱𝚢 𐔌𝚗𝚎𝚟𝚒-𝚍𝚎𝚟 💻🛠️'
 global.textbot = '⏤͟͞ू⃪ 𝑬𝒍𝒍𝒆𝒏-𝑱𝒐𝒆-𝑩𝒐𝒕🌸⃝𖤐 • 𝗣𝗼𝘄𝗲𝗿𝗲𝗱 𝗕𝘆 ⁿᵉᵛⁱ⁻ᵈᵉᵛ'
 global.etiqueta = 'ˑ 𓈒 𐔌 n͙e͙v͙i͙-d͙e͙v͙ ͡꒱ ۫'
@@ -85,7 +89,7 @@ global.gp1 = 'https://chat.whatsapp.com/C5mcdeiWkO8DkcCAR7GZJM'
 global.comunidad1 = 'https://chat.whatsapp.com/K2CPrOTksiA36SW6k41yuR'
 global.channel = 'https://whatsapp.com/channel/0029VbAuMiNCBtxOKcBfw71x'
 global.channel2 = 'https://whatsapp.com/channel/0029VbAuMiNCBtxOKcBfw71x'
-global.md = 'https://github.com/Dioneibi-rip/Ruby-Hoshino-Bot'
+global.md = 'https://github.com/nevi-dev/Ellen-Joe-Bot-MD'
 global.correo = 'nevijose4@gmail.com'
 global.cn ='https://whatsapp.com/channel/0029VbAuMiNCBtxOKcBfw71x';
 

@@ -30,16 +30,50 @@ let crm3 = "SBpbmZvLWRvbmFyLmpz"
 let crm4 = "IF9hdXRvcmVzcG9uZGVyLmpzIGluZm8tYm90Lmpz"
 let drm1 = ""
 let drm2 = ""
-let rtx = "*\n\n✐ Cσɳҽxισɳ SυႦ-Bσƚ Mσԃҽ QR\n\n✰ Con otro celular o en la PC escanea este QR para convertirte en un *Sub-Bot* Temporal.\n\n\`1\` » Haga clic en los tres puntos en la esquina superior derecha\n\n\`2\` » Toque dispositivos vinculados\n\n\`3\` » Escanee este codigo QR para iniciar sesion con el bot\n\n✧ ¡Este código QR expira en 45 segundos!."
-let rtx2 = `✐ Cσɳҽxισɳ SυႦ-Bσƚ Mσԃҽ Cσԃҽ\n
-✰ Usa este Código para convertirte en un *Sub-Bot* Temporal.\n
-\`1\` » Haga clic en los tres puntos en la esquina superior derecha\n
-\`2\` » Toque dispositivos vinculados\n
-\`3\` » Selecciona Vincular con el número de teléfono\n
-\`4\` » Escriba el Código para iniciar sesion con el bot\n
-✧ No es recomendable usar tu cuenta principal.\n
-         [Ellen-Joe-bot]
-               [BY:nevi-dev]`
+let rtx = `
+*╭─────────────────────*
+*| 🦈 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 | ACCESO DE AGENTE 🎄*
+*|  ━━━━━━━━━━━━━━━━━━━━*
+*|   🎄 *CONEXIÓN EXCLUSIVA QR (SUB-BOT)* 🦈
+*|   
+*|   🎁 *Instrucción de Regalo:* Escanea este QR 
+*|   con otro dispositivo o PC para activar tu
+*|   *Sub-Bot* temporal. ¡Solo los más veloces
+*|   merecen el regalo de la eficiencia!
+*|   
+*|   *» PASOS DEL PROTOCOLO:*
+*|   
+*|   \`1\` » Toca los tres puntos (Esquina Superior Derecha).
+*|   \`2\` » Selecciona *Dispositivos Vinculados*.
+*|   \`3\` » Escanea el Código QR que verás a continuación.
+*|   
+*|   ⏱️ ¡ADVERTENCIA DE AGENTE! Este acceso es temporal. 
+*|   *El código expira en 45 segundos.*
+*|
+*╰─────────────────────*`
+
+// Texto para la Conexión por Código (rtx2)
+let rtx2 = `
+*╭─────────────────────*
+*| 🎄 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 | 𝗖Ó𝗗𝗜𝗚𝗢 𝗣𝗥𝗢𝗩𝗜𝗦𝗜𝗢𝗡𝗔𝗟 🎁*
+*|  ━━━━━━━━━━━━━━━━━━━━*
+*|   ❄️ *ENLACE DE EMERGENCIA (SUB-BOT CODE)* 🦈
+*|   
+*|   Este es tu código de Agente temporal. 
+*|   ¡Úsalo sabiamente, no compartas tu botín!
+*|   
+*|   *» PROCESO DE VINCULACIÓN:*
+*|   
+*|   \`1\` » Toca los tres puntos (Esquina Superior Derecha).
+*|   \`2\` » Selecciona *Dispositivos Vinculados*.
+*|   \`3\` » Elige *Vincular con el número de teléfono*.
+*|   \`4\` » Ingresa el Código que recibirás a continuación.
+*|   
+*|   ⚠️ *Recomendación de Agente:* No uses tu cuenta 
+*|   principal. Mantén tus activos seguros.
+*|
+*|   [ Ellen Joe Service - By Nevi-Dev ]
+*╰─────────────────────*`
                 
 
 const __filename = fileURLToPath(import.meta.url)

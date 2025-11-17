@@ -1,125 +1,150 @@
 import fetch from "node-fetch";
-import crypto from "crypto";
 import { FormData, Blob } from "formdata-node";
 import { fileTypeFromBuffer } from "file-type";
 
-// Emojis y texto de Ellen
+// --- CONSTANTES ---
 const rwait = "⏳";
 const done = "✅";
 const error = "❌";
 const emoji = "❕";
 const ellen = "🦈 Ellen Joe aquí... *ugh* que flojera~";
 
+// --- URLS DE LA API ---
+const VREDEN_API_URL = "https://api.vreden.my.id/api/v1/artificial/imglarger/upscale";
+const CATBOX_API_URL = "https://catbox.moe/user/api.php"; // Endpoint de subida de Catbox
+
 function formatBytes(bytes) {
-  if (bytes === 0) return "0 B";
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / 1024 ** i).toFixed(2)} ${sizes[i]}`;
+  if (bytes === 0) return "0 B";
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return `${(bytes / 1024 ** i).toFixed(2)} ${sizes[i]}`;
 }
 
-// Función para generar la API Key en SHA256
-function generateSha256(key) {
-  return crypto.createHash('sha256').update(key).digest('hex');
+// Función para subir imagen a Catbox para obtener URL pública
+async function uploadToCatbox(buffer, mimeType, ext) {
+    const blob = new Blob([buffer], { type: mimeType }); 
+    const formData = new FormData();
+    formData.append("reqtype", "fileupload");
+    formData.append("fileToUpload", blob, `image.${ext}`);
+
+    try {
+        const response = await fetch(CATBOX_API_URL, {
+            method: "POST",
+            body: formData,
+        });
+
+        const result = await response.text();
+        
+        if (result.startsWith("https://files.catbox.moe/")) {
+            return result;
+        }
+        // Error simple si Catbox no devuelve la URL esperada
+        throw new Error(`Catbox falló la subida. Contacta al admin.`); 
+        
+    } catch (e) {
+        throw new Error(`Fallo en la subida temporal: ${e.message}`);
+    }
 }
 
-const API_URL = "http://neviapi.ddns.net:8000";
-const API_KEY = "ellen";
-const HASHED_KEY = generateSha256(API_KEY);
 
 let handler = async (m, { conn }) => {
-  let q = m.quoted ? m.quoted : null;
-  if (!q)
-    return conn.reply(
-      m.chat,
-      `${ellen}\n${emoji} ¿Me haces trabajar sin darme una imagen? No, gracias… responde a una imagen primero.`,
-      m
-    );
-  let mime = (q.msg || q).mimetype || "";
-  if (!mime || !mime.startsWith("image/"))
-    return conn.reply(
-      m.chat,
-      `${ellen}\n${emoji} Eso no es una imagen… ¿acaso me quieres ver bostezar?`,
-      m
-    );
+  let q = m.quoted ? m.quoted : null;
+  if (!q)
+    return conn.reply(
+      m.chat,
+      `${ellen}\n${emoji} ¿Me haces trabajar sin darme una imagen? No, gracias… responde a una imagen primero.`,
+      m
+    );
+  let mime = (q.msg || q).mimetype || "";
+  if (!mime || !mime.startsWith("image/"))
+    return conn.reply(
+      m.chat,
+      `${ellen}\n${emoji} Eso no es una imagen… ¿acaso me quieres ver bostezar?`,
+      m
+    );
 
-  await m.react(rwait);
+  await m.react(rwait);
+  const scaleFactor = 4;
 
-  try {
-    let media = await q.download();
-    if (!media || media.length === 0)
-      throw new Error("Ni siquiera puedo descargar eso…");
+  try {
+    let media = await q.download();
+    if (!media || media.length === 0)
+      throw new Error("Ni siquiera puedo descargar eso…");
+    
+    const { ext, mime: fileMime } = (await fileTypeFromBuffer(media)) || {};
 
-    const { ext, mime: fileMime } = (await fileTypeFromBuffer(media)) || {};
-    const blob = new Blob([media.toArrayBuffer()], { type: fileMime });
-    const formData = new FormData();
-    formData.append("file", blob, `image.${ext}`);
+    // ----------------------------------------------------
+    // [PASO 1] SUBIR IMAGEN A CATBOX
+    // ----------------------------------------------------
+    const publicImageUrl = await uploadToCatbox(media, fileMime, ext);
+    
+    // ----------------------------------------------------
+    // [PASO 2] LLAMAR A LA API DE VREDEN (GET)
+    // ----------------------------------------------------
+    const vredenUrl = `${VREDEN_API_URL}?url=${encodeURIComponent(publicImageUrl)}&scale=${scaleFactor}`;
 
-    const upscaleResponse = await fetch(`${API_URL}/image/hd`, {
-      method: "POST",
-      body: formData,
-      headers: {
-        "X-Auth-Sha256": HASHED_KEY,
-      },
-    });
+    const upscaleResponse = await fetch(vredenUrl);
 
-    const upscaleData = await upscaleResponse.json();
+    // Verificar el estado HTTP y lanzar error simple
+    if (!upscaleResponse.ok) {
+        throw new Error(`VREDEN API devolvió un error HTTP ${upscaleResponse.status}.`);
+    }
 
-    if (!upscaleResponse.ok || !upscaleData.ok) {
-      throw new Error(`La API de HD se rindió, igual que yo después de 5 minutos de esfuerzo.
-Error: ${upscaleData.error || "Desconocido"}`);
-    }
-    
-    // Usar directamente la URL que la API devuelve, sin concatenar el dominio base.
-    const downloadUrl = upscaleData.download_url;
+    // Intentar parsear JSON
+    let upscaleData;
+    try {
+        upscaleData = await upscaleResponse.json();
+    } catch (e) {
+        // Si falla el parseo, el error original es suficiente
+        throw new Error(`VREDEN API devolvió una respuesta ilegible.`);
+    }
 
-    const downloadResponse = await fetch(downloadUrl, {
-      headers: {
-        "X-Auth-Sha256": HASHED_KEY,
-      },
-    });
+    // Verificar el status de la API dentro del JSON
+    if (upscaleData.status !== true || !upscaleData.result?.download) {
+        throw new Error(`VREDEN API rechazó el procesamiento. Mensaje: ${upscaleData.creator || "Error interno."}`);
+    }
+    
+    // ----------------------------------------------------
+    // [PASO 3] DESCARGAR IMAGEN ESCALADA
+    // ----------------------------------------------------
+    const downloadUrl = upscaleData.result.download;
 
-    if (!downloadResponse.ok) {
-      throw new Error("No pude descargar la imagen mejorada.");
-    }
+    const downloadResponse = await fetch(downloadUrl);
 
-    const bufferHD = Buffer.from(await downloadResponse.arrayBuffer());
+    if (!downloadResponse.ok) {
+        throw new Error(`Fallo al descargar el resultado final. HTTP ${downloadResponse.status}.`);
+    }
 
-    let textoEllen = `
-🦈 *Listo… aquí tienes tu imagen en HD...*
-> Aunque sinceramente, no sé por qué me haces gastar energía en esto…
+    const bufferHD = Buffer.from(await downloadResponse.arrayBuffer());
+
+    let textoEllen = `
+🦈 *Listo… aquí tienes tu imagen en HD (${scaleFactor}x de escala).*
+> *Tamaño final:* ${formatBytes(bufferHD.length)}
 > Supongo que ahora puedes ver cada pixel, feliz, ¿no?
 
 💤 *Ahora… ¿puedo volver a mi siesta?*
 `;
 
-    await conn.sendMessage(
-      m.chat,
-      {
-        image: bufferHD,
-        caption: textoEllen.trim(),
-      },
-      { quoted: m }
-    );
+    await conn.sendMessage(
+      m.chat,
+      {
+        image: bufferHD,
+        caption: textoEllen.trim(),
+      },
+      { quoted: m }
+    );
 
-    await m.react(done);
-
-    const fileId = upscaleData.download_url.split("/").pop();
-    await fetch(`${API_URL}/done/${fileId}`, {
-      method: "POST",
-      headers: {
-        "X-Auth-Sha256": HASHED_KEY,
-      },
-    });
-
-  } catch (e) {
-    console.error(e);
-    await m.react(error);
-    return conn.reply(
-      m.chat,
-      `${ellen}\n⚠️ Algo salió mal… y no, no fue mi culpa… probablemente.\n\n*Error:* ${e.message}`,
-      m
-    );
-  }
+    await m.react(done);
+    
+  } catch (e) {
+    // El bloque catch ahora solo usa el mensaje de error simplificado
+    await m.react(error);
+    return conn.reply(
+      m.chat,
+      `${ellen}\n⚠️ Algo salió mal… y no, no fue mi culpa… probablemente.\n\n*Error:* ${e.message}`,
+      m
+    );
+  }
 };
 
 handler.help = ["hd"];

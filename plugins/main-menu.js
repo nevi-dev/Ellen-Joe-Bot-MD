@@ -1,23 +1,59 @@
 import fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch'; // Keep this for now, but we'll use axios for JSON fetching
+import fetch from 'node-fetch';
+import axios from 'axios';
 import moment from 'moment-timezone';
-import PhoneNumber from 'awesome-phonenumber';
-import axios from 'axios'; // Import axios for fetching remote JSON
+import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
 
-const cooldowns = new Map();
-const ultimoMenuEnviado = new Map();
+// Se eliminan las siguientes líneas (según solicitud de quitar el cooldown):
+// const cooldowns = new Map();
+// const ultimoMenuEnviado = new Map();
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏᴇ\'s 𝐒ervice';
 const packname = '˚🄴🄻🄻🄴🄽-🄹🄾🄴-🄱🄾🅃';
+const redes = 'https://github.com/nevi-dev'; // Asegúrate de que 'redes' esté definida (la he añadido aquí para que funcione el contextInfo)
 
 // --- Global variable for repository info (customize this!) ---
 const GITHUB_REPO_OWNER = 'nevi-dev';
-const GITHUB_REPO_NAME = 'Ellen-Joe-Bot-MD';
+const GITHUB_REPO_NAME = 'Ellen-Joe-Bot-MD-V2';
 const GITHUB_BRANCH = 'main';
 
-let handler = async (m, { conn, usedPrefix }) => {
+/**
+ * Definición de las agrupaciones lógicas y sus emojis (FINAL).
+ * Cambios: EMOX ahora es una categoría separada.
+ */
+const CATEGORY_GROUPS = {
+  '👑 OWNER | PROPIETARIO': ['owner'],
+  '🔌 SERBOT | CONEXIÓN REMOTA': ['serbot'],
+  '🔞 NSFW | ADULTO': ['nsfw', '+18'], // EMOX ha sido removido
+  '💖 EMOX | INTERACCIÓN': ['emox'], // CATEGORÍA NUEVA Y SEPARADA
+  '⚔️ RPG | JUEGOS DE ROL': ['rpg'],
+  '📝 RG | REGISTRO': ['rg'],
+  '🎲 GACHA | WAIFUS': ['gacha', 'waifus'], 
+  '🦈 MAIN | PRINCIPAL': ['main'],
+  '⚙️ CONFIGURACIÓN': ['admin', 'mods'],
+  '🛠️ TOOLS | HERRAMIENTAS': ['tools', 'herramientas', 'transformador', 'info', 'economy', 'economia', 'premium', 'bot'],
+  '🧠 AI | INTELIGENCIA ARTIFICIAL': ['ai', 'search'],
+  '🕹️ FUN | DIVERSIÓN Y JUEGOS': ['fun', 'game', 'games'], 
+  '🖼️ PIC | IMÁGENES Y STICKERS': ['image', 'sticker'],
+  '⬇️ DL | DESCARGAS': ['downloads', 'dl', 'buscador', 'internet'],
+  '👥 GRUPO | CHATS': ['group'],
+  '✨ ANIME | MULTIMEDIA': ['anime', 'audio'],
+  '❓ OTROS | COMANDOS VARIOS': ['nable'], 
+};
+
+// Mapeo para asignar tags individuales a los grupos lógicos
+const TAG_TO_GROUP = {};
+for (const [groupName, tags] of Object.entries(CATEGORY_GROUPS)) {
+  for (const tag of tags) {
+    TAG_TO_GROUP[tag] = groupName;
+  }
+}
+
+
+// Función principal del handler
+let handler = async (m, { conn, usedPrefix, text }) => {
   // --- 1. Lectura de la base de datos de medios ---
   let enlacesMultimedia;
   try {
@@ -31,114 +67,98 @@ let handler = async (m, { conn, usedPrefix }) => {
 
   if (m.quoted?.id && m.quoted?.fromMe) return;
 
-  // --- 2. Sistema de Cooldown (Enfriamiento) ---
-  const idChat = m.chat;
-  const ahora = Date.now();
-  const tiempoEspera = 5 * 60 * 1000; // 5 minutos
-
-  const ultimoUso = cooldowns.get(idChat) || 0;
-
-  if (ahora - ultimoUso < tiempoEspera) {
-    const tiempoRestanteMs = tiempoEspera - (ahora - ultimoUso);
-    const minutos = Math.floor(tiempoRestanteMs / 60000);
-    const segundos = Math.floor((tiempoRestanteMs % 60000) / 1000);
-    const ultimo = ultimoMenuEnviado.get(idChat);
-    return await conn.reply(
-      idChat,
-      `@${m.sender.split('@')[0]} cálmate tiburón! 🦈 Debes esperar para volver a usar el menú.\nTiempo restante: *${minutos}m ${segundos}s*`,
-      ultimo?.message || m,
-      { mentions: [m.sender] }
-    );
-  }
-
-  // --- 3. Obtener nombre y hora del usuario (con depuración) ---
+  // --- 3. Obtener nombre del usuario ---
   let nombre;
   try {
     nombre = await conn.getName(m.sender);
   } catch {
     nombre = 'Usuario';
   }
+  const horaSantoDomingo = moment().tz("America/Santo_Domingo").format('h:mm A');
 
-  let horaUsuario = 'No disponible';
-  try {
-    const numeroParseado = new PhoneNumber(m.sender);
-    // console.log(`[DEBUG] Analizando JID: ${m.sender}`); // Keep or remove debug logs as needed
-    const esValido = numeroParseado.isValid();
-    // console.log(`[DEBUG] ¿Número válido?: ${esValido}`);
-
-    if (esValido) {
-      const zonasHorarias = numeroParseado.getTimezones();
-      // console.log(`[DEBUG] Zonas horarias encontradas: ${JSON.stringify(zonasHorarias)}`);
-      if (zonasHorarias && zonasHorarias.length > 0) {
-        const zonaHorariaUsuario = zonasHorarias[0];
-        // console.log(`[DEBUG] Usando zona horaria: ${zonaHorariaUsuario}`);
-        horaUsuario = moment().tz(zonaHorariaUsuario).format('h:mm A');
-      } else {
-        // console.log('[DEBUG] El número es válido pero no se encontraron zonas horarias.');
-      }
-    }
-  } catch (e) {
-    console.error("Error al procesar el número con awesome-phonenumber:", e.message);
-  }
-
-  // --- 4. Recopilar información y construir el menú ---
+  // --- 4. Recopilar información y construir el menú (Datos Estáticos) ---
   const esPrincipal = conn.user.jid === global.conn.user.jid;
-  const numeroBot = conn.user.jid.split('@')[0];
   const numeroPrincipal = global.conn?.user?.jid?.split('@')[0] || "Desconocido";
   const totalComandos = Object.keys(global.plugins || {}).length;
   const tiempoActividad = clockString(process.uptime() * 1000);
   const totalRegistros = Object.keys(global.db?.data?.users || {}).length;
-  const horaSantoDomingo = moment().tz("America/Santo_Domingo").format('h:mm A');
 
-  const videoGif = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
+  const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
   const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
 
-  const emojis = {
-    'main': '🦈', 'tools': '🛠️', 'audio': '🎧', 'group': '👥',
-    'owner': '👑', 'fun': '🎮', 'info': 'ℹ️', 'internet': '🌐',
-    'downloads': '⬇️', 'admin': '🧰', 'anime': '✨', 'nsfw': '🔞',
-    'search': '🔍', 'sticker': '🖼️', 'game': '🕹️', 'premium': '💎', 'bot': '🤖'
-  };
+  // --- 5. Lógica de Paginación y Agrupación ---
+  const CATEGORIES_PER_PAGE = 3;
 
-  let grupos = {};
+  // 5.1. Recopilar Comandos por Grupo Lógico
+  let comandosPorGrupo = {};
   for (let plugin of Object.values(global.plugins || {})) {
     if (!plugin.help || !plugin.tags) continue;
-    for (let tag of plugin.tags) {
-      if (!grupos[tag]) grupos[tag] = [];
-      for (let help of plugin.help) {
+    
+    const tagsArray = Array.isArray(plugin.tags) ? plugin.tags : [plugin.tags];
+
+    for (let tag of tagsArray) {
+      const groupName = TAG_TO_GROUP[tag] || '❓ OTROS | COMANDOS VARIOS';
+      if (!comandosPorGrupo[groupName]) comandosPorGrupo[groupName] = new Set();
+      
+      const helpArray = Array.isArray(plugin.help) ? plugin.help : [plugin.help];
+
+      for (let help of helpArray) {
         if (/^\$|^=>|^>/.test(help)) continue;
-        grupos[tag].push(`${usedPrefix}${help}`);
+        comandosPorGrupo[groupName].add(`${usedPrefix}${help}`);
       }
     }
   }
 
-  for (let tag in grupos) {
-    grupos[tag].sort((a, b) => a.localeCompare(b));
+  // Convertir Sets a Arrays y ordenar
+  for (let groupName in comandosPorGrupo) {
+    comandosPorGrupo[groupName] = Array.from(comandosPorGrupo[groupName]).sort((a, b) => a.localeCompare(b));
   }
 
-  const secciones = Object.entries(grupos).map(([tag, cmds]) => {
-    const emoji = emojis[tag] || '📁';
-    return `[${emoji} ${tag.toUpperCase()}]\n` + cmds.map(cmd => `> ${cmd}`).join('\n');
-  }).join('\n\n');
+  // 5.2. Crear el listado de todos los nombres de grupos ordenados
+  const allGroupNames = Object.keys(comandosPorGrupo).sort();
+  
+  const totalPaginas = Math.ceil(allGroupNames.length / CATEGORIES_PER_PAGE);
+  let paginaActual = 1;
+  
+  const match = text.match(/pagina (\d+)/i);
+  if (match) {
+    const requestedPage = parseInt(match[1]);
+    if (requestedPage >= 1 && requestedPage <= totalPaginas) {
+      paginaActual = requestedPage;
+    }
+  }
 
-  // --- Version Check Logic ---
+  const startIndex = (paginaActual - 1) * CATEGORIES_PER_PAGE;
+  const endIndex = startIndex + CATEGORIES_PER_PAGE;
+  const gruposPagina = allGroupNames.slice(startIndex, endIndex);
+
+  // 5.3. Construir la sección de comandos para la página actual con decoración NAVIDEÑA
+  const secciones = gruposPagina.map(groupName => {
+    const cmds = comandosPorGrupo[groupName];
+    
+    // Decoración para el título de la categoría (NAVIDEÑA)
+    const title = `\n🎁❄️  **${groupName}**  ❄️🎁\n`;
+    // Decoración para la lista de comandos (NAVIDEÑA)
+    const commandList = cmds.map(cmd => `🎄 ${cmd}`).join('\n');
+    
+    return title + commandList;
+  }).join('\n');
+
+  // --- 6. Version Check Logic (Mantener) ---
   let localVersion = 'N/A';
   let serverVersion = 'N/A';
   let updateStatus = 'Desconocido';
 
   try {
-    // Get local version from package.json
     const packageJsonPath = path.join(process.cwd(), 'package.json');
     const packageJsonRaw = fs.readFileSync(packageJsonPath, 'utf8');
     const packageJson = JSON.parse(packageJsonRaw);
     localVersion = packageJson.version || 'N/A';
   } catch (error) {
-    console.error("Error al leer la versión local de package.json:", error.message);
     localVersion = 'Error';
   }
 
   try {
-    // Get server version from GitHub
     const githubPackageJsonUrl = `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/${GITHUB_BRANCH}/package.json`;
     const response = await axios.get(githubPackageJsonUrl);
     const githubPackageJson = response.data;
@@ -152,33 +172,65 @@ let handler = async (m, { conn, usedPrefix }) => {
       }
     }
   } catch (error) {
-    console.error("Error al obtener la versión del servidor de GitHub:", error.message);
     serverVersion = 'Error';
     updateStatus = '❌ No se pudo verificar la actualización';
   }
   // --- End Version Check Logic ---
 
-
+  // --- 7. Construir Encabezado y Texto Final con decoración NAVIDEÑA ---
+  // Nuevo separador Navideño
+  const separadorNavidad = '🌟                               🌟';
+  
   const encabezado = `
-🦈 |--- *Ellen-Joe-Bot | MODO TIBURÓN* ---| 🦈
-| 👤 *Usuario:* ${nombre}
-| 🌎 *Hora Santo Domingo:* ${horaSantoDomingo}
-| 🕒 *Tu Hora (Estimada):* ${horaUsuario}
-|-------------------------------------------|
-| 🚀 *VERSION DEL BOT*
-| ➡️ *Local:* ${localVersion}
-| ➡️ *Servidor:* ${serverVersion}
-| 📊 *Estado:* ${updateStatus}
-|-------------------------------------------|
-| 🤖 *Bot:* ${esPrincipal ? 'Principal' : `Sub-Bot | Principal: wa.me/${numeroPrincipal}`}
-| 📦 *Comandos:* ${totalComandos}
-| ⏱️ *Tiempo Activo:* ${tiempoActividad}
-| 👥 *Usuarios Reg:* ${totalRegistros}
-|-------------------------------------------|`.trim();
+🎅  *«  N A V I D A D    E L L E N - J O E  »*   🎄
+${separadorNavidad}
+| 🧑‍🎄  *Usuario:*           ${nombre}
+| 🎁  *Hora (R.D.):*       ${horaSantoDomingo}
+${separadorNavidad}
+| ❄️  *VERSION DEL BOT*
+|      *Local:*             ${localVersion}
+|      *Servidor:*          ${serverVersion}
+| 🔔  *Estado:*            ${updateStatus}
+${separadorNavidad}
+| 🦌  *Bot:*               ${esPrincipal ? 'Principal' : `Sub-Bot | Principal: wa.me/${numeroPrincipal}`}
+| ☃️  *Comandos Totales:*   ${totalComandos}
+| 🕯️  *Tiempo Activo:*      ${tiempoActividad}
+| 🏡  *Usuarios Reg:*      ${totalRegistros}
+${separadorNavidad}
+📜  *PÁGINA ${paginaActual} / ${totalPaginas}*   📜
+${separadorNavidad}`.trim();
 
-  const textoFinal = `${encabezado}\n\n${secciones}\n\n*${packname}*`;
+  const textoFinal = `${encabezado}\n${secciones}\n\n*${packname}*`;
 
-  // --- 5. Enviar el mensaje ---
+  // --- 8. Preparar Botones de Paginación ---
+  let botones = [];
+  if (paginaActual > 1) {
+    botones.push({
+      buttonId: `${usedPrefix}prueba pagina ${paginaActual - 1}`,
+      buttonText: { displayText: '« PÁGINA ANTERIOR ⬅️' }, // Botón Navideño
+      type: 1
+    });
+  }
+  if (paginaActual < totalPaginas) {
+    botones.push({
+      buttonId: `${usedPrefix}prueba pagina ${paginaActual + 1}`,
+      buttonText: { displayText: 'PÁGINA SIGUIENTE ➡️' }, // Botón Navideño
+      type: 1
+    });
+  }
+
+  // --- 9. Enviar el mensaje con botones ---
+
+  // 9.1. Descargar y preparar el video/gif como Buffer
+  let videoBuffer;
+  try {
+    const response = await fetch(videoGifURL);
+    videoBuffer = await response.buffer();
+  } catch (e) {
+    console.error("Error al descargar el video/gif:", e);
+    // Si falla, se envía como solo texto.
+  }
+  
   const contextInfo = {
     mentionedJid: [m.sender],
     isForwarded: true,
@@ -190,33 +242,50 @@ let handler = async (m, { conn, usedPrefix }) => {
     },
     externalAdReply: {
       title: packname,
-      body: '🦈 Menú de Comandos | Ellen-Joe-Bot 🦈',
+      body: `Página ${paginaActual} de ${totalPaginas} | ☃️ Menú Navideño`,
       thumbnailUrl: miniaturaRandom,
-      sourceUrl: redes, // Make sure 'redes' is defined elsewhere in your global scope or file
+      sourceUrl: redes,
       mediaType: 1,
       renderLargerThumbnail: false
     }
   };
 
   let msgEnviado;
-  try {
-    msgEnviado = await conn.sendMessage(idChat, {
-      video: { url: videoGif },
+  
+  if (videoBuffer && botones.length > 0) {
+    try {
+      // Usar sendMessage con botones
+      msgEnviado = await conn.sendMessage(m.chat, { // Usar m.chat para el ID del chat
+        video: videoBuffer,
+        gifPlayback: true,
+        caption: textoFinal,
+        buttons: botones,
+        headerType: 5,
+        contextInfo
+      }, { quoted: m });
+    } catch (e) {
+      console.error("Error al enviar el menú con video y botones:", e);
+      // Fallback a solo texto/video sin botones si falla el envío del mensaje con botones
+      msgEnviado = await conn.sendMessage(m.chat, {
+        video: videoBuffer,
+        gifPlayback: true,
+        caption: textoFinal,
+        contextInfo
+      }, { quoted: m });
+    }
+  } else if (videoBuffer) {
+    // Fallback a solo video (si no hay botones - solo 1 página)
+    msgEnviado = await conn.sendMessage(m.chat, {
+      video: videoBuffer,
       gifPlayback: true,
       caption: textoFinal,
       contextInfo
     }, { quoted: m });
-  } catch (e) {
-    console.error("Error al enviar el menú con video:", e);
-    msgEnviado = await conn.reply(idChat, textoFinal, m, { contextInfo });
+  } else {
+    // Último fallback a solo texto
+    msgEnviado = await conn.reply(m.chat, textoFinal, m, { contextInfo });
   }
 
-  // --- 6. Actualizar el estado del cooldown ---
-  cooldowns.set(idChat, ahora);
-  ultimoMenuEnviado.set(idChat, {
-    timestamp: ahora,
-    message: msgEnviado
-  });
 };
 
 handler.help = ['menu'];

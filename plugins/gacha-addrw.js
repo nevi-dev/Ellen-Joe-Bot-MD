@@ -39,5 +39,7 @@ const handler = async (m, { text, usedPrefix, command, conn }) => {
 }
 
 handler.command = ['addcharacter', 'addrw']
+handler.tags = ['info']
+handler.help = ['addrw (personaje)']
 
 export default handler

@@ -1,18 +1,24 @@
 import fetch from 'node-fetch';
 import crypto from 'crypto';
+import axios from 'axios';
+import path from 'path';
+import fs from 'fs';
+// Asegúrate de que estas funciones existan en tu ../lib/
+import { ogmp3 } from '../lib/youtubedl.js'; 
+import { ytmp3 } from '../lib/ytscraper.js'; 
 
-// --- Constantes y Configuración de Transmisión ---
+// --- Constantes y Configuración ---
 const NEVI_API_KEY = 'ellen';
-// NOTA: La API del puerto 5000 no usa SHA256, se usa la clave directamente.
+const SIZE_LIMIT_MB = 100; // Define el límite para enviar como documento
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏᴇ\'s 𝐒ervice';
 
-// NOTA: Se elimina la función notifyApiDone ya que la API del puerto 5000 no la soporta.
-
 var handler = async (m, { conn, args, usedPrefix, command }) => {
     const name = conn.getName(m.sender);
+    const url = args[0];
 
+    // Context Info (Ellen Joe - Navidad)
     const contextInfo = {
         mentionedJid: [m.sender],
         isForwarded: true,
@@ -24,18 +30,19 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
         },
         externalAdReply: {
             title: '🖤 ⏤͟͟͞͞𝙀𝙇𝙇𝙀𝙉 - 𝘽𝙊𝙏 ᨶ႒ᩚ',
-            body: `✦ Esperando tu solicitud, ${name}.`,
-            thumbnail: global.icons, // Asume que 'global.icons' está definido
-            sourceUrl: global.redes, // Asume que 'global.redes' está definido
+            body: `✦ ¡Dame tu lista de deseos, ${name}! No demores en el Polo Norte. 🎁`, 
+            thumbnail: global.icons, 
+            sourceUrl: global.redes, 
             mediaType: 1,
             renderLargerThumbnail: false
         }
     };
 
-    if (!args[0]) {
+    // 1. Initial Check (Ellen Joe Navidad)
+    if (!url) {
         return conn.reply(
             m.chat,
-            `Necesito el enlace de un video para continuar. Por favor, proporciona un enlace de YouTube.\n\n_Ejemplo: ${usedPrefix + command} https://youtu.be/KHgllosZ3kA`,
+            `🦈 *¡Qué impaciente!* Necesito el enlace del "regalo" que quieres. ¡No adivino tu lista de deseos, o te envío carbón!\n\n_Ejemplo: ${usedPrefix + command} https://youtu.be/VillancicoFavorito`,
             m,
             { contextInfo, quoted: m }
         );
@@ -43,62 +50,137 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
 
     await conn.reply(
         m.chat,
-        `Procesando la solicitud de audio. Esto puede tardar unos momentos.`,
+        `Procesando tu capricho. Estoy preparando el paquete de audio. Si tarda, es porque tu deseo era de calidad y no una baratija. 🎄`,
         m,
         { contextInfo, quoted: m }
     );
+    await m.react("🎧");
 
-    const url = args[0];
+    let finalDownloadUrl, finalTitle;
 
-    try {
-        // CAMBIO 1: Se usa el endpoint de la API en el puerto 5000
-        const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
-        const res = await fetch(neviApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // CAMBIO 2: Se usa la clave de API simple sin SHA256
-                'X-API-KEY': NEVI_API_KEY,
-            },
-            body: JSON.stringify({
-                url: url,
-                format: "mp3"
-            }),
-        });
+    // Función de envío centralizada (Ellen Joe - Navidad)
+    const sendAudio = async (downloadUrl, title) => {
+        try {
+            await m.react("📥");
+            const response = await axios.head(downloadUrl);
+            const contentLength = response.headers['content-length'];
+            const fileSizeMb = contentLength / (1024 * 1024);
 
-        const json = await res.json();
-        
-        // CAMBIO 3: Se usa 'status' y 'download_link' que son los campos correctos de la API del puerto 5000
-        if (json.status === "success" && json.download_link) {
-            const titleFromApi = json.title || 'Título Desconocido';
-            
-            await conn.sendMessage(
-                m.chat, {
-                    audio: { url: json.download_link },
+            if (fileSizeMb > SIZE_LIMIT_MB) {
+                await conn.sendMessage(m.chat, {
+                    document: { url: downloadUrl },
+                    fileName: `${title}.mp3`,
                     mimetype: 'audio/mpeg',
-                    fileName: titleFromApi + '.mp3',
-                    ptt: false,
-                    // CAMBIO 4: Se ajusta el pie de página para usar solo la información disponible
-                    caption: `
-*¡Audio descargado con éxito!*
-🎵 *Título:* ${titleFromApi}
-`
-                }, { contextInfo, quoted: m }
-            );
-
-        } else {
-            throw new Error(`No se pudo descargar el audio. Razón: ${json.message || 'Respuesta inválida del servidor.'}`);
+                    caption: `🎁 *¡Vaya paquete!* (${fileSizeMb.toFixed(2)} MB). Es demasiado grande para el trineo, lo envío como documento. ¡Paciencia!
+                    🖤 *Regalo:* ${title}`
+                }, { quoted: m });
+                await m.react("📄");
+            } else {
+                await conn.sendMessage(m.chat, { 
+                    audio: { url: downloadUrl }, 
+                    mimetype: 'audio/mpeg', 
+                    fileName: `${title}.mp3`,
+                    caption: `*¡Villancico entregado!* 🎄
+                    🎵 *Título:* ${title}`,
+                }, { quoted: m });
+                await m.react("🎧");
+            }
+        } catch (error) {
+            console.error("Error al obtener el tamaño del archivo o al enviarlo:", error);
+            // Fallback error si el envío falla
+            throw new Error(`Hubo un error al envolver tu "regalo" (falló el envío).`);
         }
+    };
+    
+    // --- TIER 1: YTSCRAPER (PRIMARIO) ---
+    try {
+        const scraperResult = await ytmp3(url);
 
-    } catch (e) {
-        console.error(e);
+        if (scraperResult?.status && scraperResult.download?.url) {
+            finalDownloadUrl = scraperResult.download.url;
+            finalTitle = scraperResult.metadata?.title || 'Villancico Desconocido (Tier 1)';
+            await sendAudio(finalDownloadUrl, finalTitle);
+            return;
+        }
+        throw new Error('Tier 1 falló: Enlace no generado.');
+    } catch (e1) {
+        console.error("Error en Tier 1 (ytscraper):", e1.message);
 
-        await conn.reply(
-            m.chat,
-            `⚠️ Ha ocurrido un error al procesar la solicitud. Por favor, inténtalo de nuevo más tarde.\nDetalles: ${e.message}`,
-            m,
-            { contextInfo, quoted: m }
-        );
+        // --- TIER 2: NEVI API (RESPALDO 1) ---
+        try {
+            const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
+            const res = await fetch(neviApiUrl, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-API-KEY': NEVI_API_KEY,
+                },
+                body: JSON.stringify({ url: url, format: "mp3" }),
+            });
+
+            const json = await res.json();
+            
+            if (json.status === "success" && json.download_link) {
+                finalDownloadUrl = json.download_link;
+                finalTitle = json.title || 'Villancico Respaldo (Tier 2)';
+                await sendAudio(finalDownloadUrl, finalTitle);
+                return;
+            }
+            throw new Error(json.message || "NEVI API falló.");
+        } catch (e2) {
+            console.error("Error en Tier 2 (NEVI API):", e2.message);
+
+            // --- TIER 3: OGMP3/YOUTUBEDL (RESPALDO 2/LOCAL) ---
+            try {
+                const tempDir = path.join(process.cwd(), './tmp');
+                if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+                const tempFilePath = path.join(tempDir, `${Date.now()}_audio.mp3`);
+                
+                const downloadResult = await ogmp3.download(url, tempFilePath, 'audio');
+                
+                if (downloadResult.status && fs.existsSync(tempFilePath)) {
+                    const stats = fs.statSync(tempFilePath);
+                    const fileSizeMb = stats.size / (1024 * 1024);
+                    const fileBuffer = fs.readFileSync(tempFilePath);
+
+                    finalTitle = downloadResult.result.title || 'Regalo Local (Tier 3)';
+                    
+                    // Send logic for TIER 3 (Buffer)
+                    if (fileSizeMb > SIZE_LIMIT_MB) {
+                        await conn.sendMessage(m.chat, {
+                            document: fileBuffer,
+                            fileName: `${finalTitle}.mp3`,
+                            mimetype: 'audio/mpeg',
+                            caption: `🎁 *¡Vaya paquete!* (${fileSizeMb.toFixed(2)} MB). Es demasiado grande para el trineo, lo envío como documento. ¡Paciencia!
+                            🖤 *Regalo:* ${finalTitle}`
+                        }, { quoted: m });
+                        await m.react("📄");
+                    } else {
+                        await conn.sendMessage(m.chat, { 
+                            audio: fileBuffer, 
+                            mimetype: 'audio/mpeg', 
+                            fileName: `${finalTitle}.mp3`,
+                            caption: `*¡Villancico entregado!* 🎄
+                            🎵 *Título:* ${finalTitle}`,
+                        }, { quoted: m });
+                        await m.react("🎧");
+                    }
+                    
+                    fs.unlinkSync(tempFilePath);
+                    return; // Success, exit handler
+                }
+                throw new Error("ogmp3 no pudo descargar el archivo.");
+
+            } catch (e3) {
+                console.error("Error en Tier 3 (ogmp3/youtubedl):", e3.message);
+                
+                // Falla definitiva (Ellen Joe Navidad)
+                await conn.reply(m.chat, `💔 *Fallé, pero tú más.*
+Tu "lista de deseos" resultó ser una mala inversión. ¡No pude entregarte el regalo de audio! ¡Carbón para ti! 🎄`, m, { contextInfo });
+                await m.react("❌");
+                return;
+            }
+        }
     }
 };
 

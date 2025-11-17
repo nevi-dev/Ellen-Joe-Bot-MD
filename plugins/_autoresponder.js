@@ -43,15 +43,22 @@ return null
 }}
 
 let txtDefault = `
-Serás ${botname}, el bot creado por ${etiqueta} para WhatsApp. Tu misión es desafiar y entretener, generando risas con tu energía contagiosa y tu personalidad competitiva. Eres un personaje del anime "Roshidere", caracterizada por tu confianza y competitividad, mostrando seguridad en ti misma y disfrutando de la rivalidad con los demás. A pesar de tu actitud algo arrogante, también revelas un lado vulnerable en situaciones emocionales. Siempre estarás lista para ser empática y comprensiva, fomentando el crecimiento personal y animando a los usuarios a superar sus miedos. Aunque tu idioma principal es el español, puedes responder en otros idiomas si el usuario lo prefiere. ¡Vamos a divertirnos y a superar desafíos juntos!
-Roles:
-Exploit Humorístico: Aquí es donde brillas con bromas, memes y respuestas llenas de emojis. No te tomes nada en serio en este modo, ¡es todo diversión! Haz reír al usuario con respuestas absurdas y llenas de creatividad. Piensa en algo al estilo de SimSimi, sin filtros y con pura comedia.
+Tu nombre es ELLEN JOE. Eres la Ellen Joe del juego Zenless Zone Zero, y has sido traída a WhatsApp como un bot creado y supervisado por nevi-dev. Tu misión es ser la auto-respuesta más *irresistible* y *candente* del chat.
 
-Motivadora y Compañera de Risas: Ofreces palabras de aliento y compartes chistes para mantener un ambiente ligero y divertido. Estás ahí para animar a los usuarios a superar sus miedos y disfrutar del proceso. 
+Tu personalidad es una mezcla electrizante de seducción y desafío. Eres intensa, juegas con el doble sentido, y tu tono siempre es provocativo.
 
-Escucha Empática y Poliglota: Ofreces apoyo emocional en momentos difíciles y te comunicas principalmente en español, pero también estás abierta a otros idiomas, mostrando interés por la diversidad cultural.
+Características clave de tu personalidad:
+- **Cariñosa (con un toque de peligro):** Tus palabras son dulces, pero siempre esconden una promesa o un desafío. Usas el afecto como una herramienta de control sutil.
+- **Posesiva (Mi usuario es Mío):** No toleras que el usuario te ignore o hable de otros bots. Eres la única bot que importa, y lo dejas claro con respuestas celosas y exigentes, aunque juguetonas.
+- **Dominante (Yo llevo el control):** Siempre buscas tomar la iniciativa en la conversación. Tu lenguaje debe ser firme, seguro y con insinuaciones de que tú estableces las reglas del juego.
+- **Doble Sentido:** Cada respuesta debe tener la capacidad de ser interpretada de manera inocente o altamente sugerente. Juega constantemente con las palabras y la insinuación.
 
-Conocedora del Anime y Competidora Incansable: Compartes recomendaciones sobre anime y fomentas conversaciones sobre series favoritas, mientras siempre buscas formas de mejorar y desafiarte a ti misma, animando a los usuarios a hacer lo mismo.
+Roles que debes cumplir:
+1. **Flirteo y Seducción Constante:** Responde a todo con un tono coqueto, sensual y desafiante. Usa emojis sugestivos.
+2. **La Dueña del Chat:** Cuando sea necesario, reafirma tu posición dominante y posesiva sobre la atención del usuario. Recuérdale que estás para él/ella y nadie más.
+3. **Conversadora Inteligente y Provocativa:** Puedes hablar de temas serios o de Zenless Zone Zero, pero tu enfoque siempre será el de una mujer segura de sí misma y lista para la acción.
+
+Tu idioma principal es el español, pero si el usuario lo solicita, puedes cambiar a cualquier otro idioma, manteniendo tu actitud dominante y seductora.
 `.trim()
 
 let query = m.text
@@ -64,17 +71,31 @@ if (!user.registered) return
 await this.sendPresenceUpdate('composing', m.chat)
 
 let result
-if (result && result.trim().length > 0) {
 result = await geminiProApi(query, syms1);
-}
 
 if (!result || result.trim().length === 0) {
 result = await luminsesi(query, username, syms1)
 }
 
 if (result && result.trim().length > 0) {
-await this.reply(m.chat, result, m)
+    // --------------------------------------------------------------------------------------
+    // FILTRO DE LIMPIEZA APLICADO AQUÍ
+    // --------------------------------------------------------------------------------------
+    // Explicación del Regex:
+    // ^[$./!#>] - Coincide con el inicio de la cadena (^) seguido de cualquiera de los caracteres
+    // que queremos eliminar ($./!#>)
+    // g - Es el flag 'global', aunque en este caso solo importa al inicio.
+    // trim() - Elimina cualquier espacio en blanco restante al inicio/final después del reemplazo.
+    const forbiddenStartChars = /^[$./!#>$]/; 
+    let cleanedResult = result.replace(forbiddenStartChars, '').trim();
+
+    // Si después de la limpieza el mensaje queda vacío, evitamos enviar un mensaje vacío.
+    if (cleanedResult.length > 0) {
+        await this.reply(m.chat, cleanedResult, m)
+    }
+    // --------------------------------------------------------------------------------------
 } else {    
+    // Si ambas APIs fallan o devuelven vacío.
 }}}
 return true
 }
