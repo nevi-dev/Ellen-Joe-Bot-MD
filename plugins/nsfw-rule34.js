@@ -1,160 +1,111 @@
-// Necesitas instalar cheerio: npm install cheerio
-// Necesitas instalar node-fetch, formdata-node, y file-type
+// Necesitas instalar node-fetch
 import fetch from 'node-fetch';
-import * as cheerio from 'cheerio'; // Importar cheerio
-import { FormData, Blob } from "formdata-node";
-import { fileTypeFromBuffer } from "file-type";
+// **IMPORTANTE:** Eliminamos 'formdata-node' y 'file-type' ya que no se necesita Catbox/HD.
 
-// --- CONSTANTES DE HD ---
+// --- CREDENCIALES RULE34 ---
+const R34_USER_ID = "5592834";
+const R34_API_KEY = "8ba37eaec9cf4a215f62ebc95d122b1649f1037c70e0a962ad73c22afdbe32fec66e4991dc5d0c628850df990b81eb14f422a6d92c4275e1ab3a9e5beba9f857";
+// --------------------------
+
+// --- CONSTANTES Y URLS ---
 const rwait = "⏳";
 const done = "✅";
 const error = "❌";
 const emoji = "❕";
 const emoji2 = "🚫";
 const ellen = "🦈 Ellen Joe aquí... *ugh* que flojera~";
-const VREDEN_API_URL = "https://api.vreden.my.id/api/v1/artificial/imglarger/upscale";
-const CATBOX_API_URL = "https://catbox.moe/user/api.php";
+const R34_API_URL = "https://rule34.xxx/index.php?page=dapi&s=post&q=index"; // Endpoint base
 
-function formatBytes(bytes) {
-  if (bytes === 0) return "0 B";
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / 1024 ** i).toFixed(2)} ${sizes[i]}`;
-}
-
-async function uploadToCatbox(buffer, mimeType, ext) {
-    const blob = new Blob([buffer], { type: mimeType }); 
-    const formData = new FormData();
-    formData.append("reqtype", "fileupload");
-    formData.append("fileToUpload", blob, `image.${ext}`);
-
-    const response = await fetch(CATBOX_API_URL, {
-        method: "POST",
-        body: formData,
-    });
-
-    const result = await response.text();
-    if (result.startsWith("https://files.catbox.moe/")) {
-        return result;
-    }
-    throw new Error(`Catbox falló la subida.`); 
-}
+// **Funciones de HD eliminadas (formatBytes, uploadToCatbox)**
 // -------------------------------------------------------------
 
 const handler = async (m, { conn, args, usedPrefix }) => {
-    // ... (Tu código de verificación de permisos, que no se ha modificado) ...
+    // Tu código de verificación de permisos
+    // Asumimos que db.data.chats[m.chat].nsfw existe
     if (!db.data.chats[m.chat].nsfw && m.isGroup) {
         return m.reply(`*nsfw🔞️* está desactivada en este grupo.\n> Un administrador puede activarla con el comando » *#nsfw on*`);
     }
 
-    if (!args[0]) {
-        await conn.reply(m.chat, `${emoji} Por favor, ingresa un tag para realizar la búsqueda.`, m);
+    if (!args || args.length === 0) {
+        await conn.reply(m.chat, `${emoji} Por favor, ingresa uno o más tags para realizar la búsqueda.`, m);
         return;
     }
 
-    const tag = args[0];
-    const baseUrl = 'https://rule34.xxx/';
-    const searchUrl = `${baseUrl}index.php?page=post&s=list&tags=${tag}`;
-    const scaleFactor = 4;
+    const tags = args.join('+');
+    const displayTags = args.join(', ');
     
+    // Construcción de la URL de la API con tags y autenticación
+    const apiUrl = `${R34_API_URL}&tags=${tags}&json=1&user_id=${R34_USER_ID}&api_key=${R34_API_KEY}`;
+    
     // Declarar variables que se usarán en el scope final
-    let finalImageBuffer = null;
-    let originalMediaBuffer = null;
-    let captionText = `${emoji} Resultados para » *${tag}*`;
+    let captionText = `${emoji} Resultados para » *${displayTags}*`;
 
     try {
         await m.react(rwait);
         
-        // 1. Búsqueda y obtención de la URL de la imagen de tamaño completo (Scrapping)
-        const response = await fetch(searchUrl);
-        const html = await response.text(); 
-        const $ = cheerio.load(html);
-        const postLinks = $('a[id^="p"]');
-        
-        if (postLinks.length === 0) {
+        // 1. BÚSQUEDA USANDO LA API
+        const response = await fetch(apiUrl);
+        const textResponse = await response.text();
+
+        // Verificar errores de API (ej. error de autenticación)
+        if (textResponse.includes("<error>")) {
             await m.react(error);
-            await conn.reply(m.chat, `${emoji2} No se encontraron resultados de imágenes para *${tag}*`, m);
+            console.error('Error de API Rule34 (XML Response):', textResponse);
+            await conn.reply(m.chat, `${emoji2} Error en la API de Rule34. El sitio web devolvió un error.`, m);
             return;
         }
 
-        const randomIndex = Math.floor(Math.random() * postLinks.length);
-        const postPath = $(postLinks[randomIndex]).attr('href');
-        const postUrl = `${baseUrl}${postPath}`;
+        let posts;
+        try {
+            posts = JSON.parse(textResponse);
+        } catch (e) {
+            console.error('Fallo al parsear JSON:', e);
+            await m.react(error);
+            await conn.reply(m.chat, `${emoji2} La respuesta de la API no fue un JSON válido.`, m);
+            return;
+        }
+        
+        if (!posts || posts.length === 0) {
+            await m.react(error);
+            await conn.reply(m.chat, `${emoji2} No se encontraron resultados de imágenes para *${displayTags}*`, m);
+            return;
+        }
 
-        const postResponse = await fetch(postUrl);
-        const $post = cheerio.load(await postResponse.text());
-        const imageUrl = $post('#image').attr('src'); 
+        // 2. Seleccionar post aleatorio y obtener URL directa
+        const randomIndex = Math.floor(Math.random() * posts.length);
+        const randomPost = posts[randomIndex];
+        const imageUrl = randomPost.file_url; // URL directa de la imagen/video
 
         if (!imageUrl) {
             await m.react(error);
-            await conn.reply(m.chat, `${emoji2} No se pudo obtener la URL de la imagen.`, m);
+            await conn.reply(m.chat, `${emoji2} El post seleccionado no tenía una URL de archivo válida.`, m);
             return;
         }
         
-        // --- 2. DESCARGA DE LA IMAGEN ORIGINAL Y GUARDA EN BUFFER ---
-        const imageResponse = await fetch(imageUrl);
-        if (!imageResponse.ok) {
-            throw new Error(`Fallo al descargar la imagen original. HTTP ${imageResponse.status}.`);
-        }
-        originalMediaBuffer = Buffer.from(await imageResponse.arrayBuffer());
-        
-        // Por defecto, la imagen final es la original.
-        finalImageBuffer = originalMediaBuffer;
-
-        // -------------------------------------------------------------
-        // ## INTENTO DE ESCALADO HD (BLOQUE SILENCIOSO)
-        // -------------------------------------------------------------
-        try {
-            const { ext, mime: fileMime } = (await fileTypeFromBuffer(originalMediaBuffer)) || {};
-
-            // Paso 3: Subir a Catbox
-            const publicImageUrl = await uploadToCatbox(originalMediaBuffer, fileMime, ext);
-            
-            // Paso 4: Llamar a la API de Vreden
-            const vredenUrl = `${VREDEN_API_URL}?url=${encodeURIComponent(publicImageUrl)}&scale=${scaleFactor}`;
-            const upscaleResponse = await fetch(vredenUrl);
-
-            if (!upscaleResponse.ok) {
-                throw new Error(`Error en Vreden API: ${upscaleResponse.status}.`);
-            }
-
-            const upscaleData = await upscaleResponse.json();
-            if (upscaleData.status !== true || !upscaleData.result?.download) {
-                throw new Error(`Vreden API rechazó el procesamiento.`);
-            }
-            
-            // Paso 5: Descargar la imagen escalada
-            const downloadUrl = upscaleData.result.download;
-            const downloadResponse = await fetch(downloadUrl);
-            
-            if (!downloadResponse.ok) {
-                throw new Error(`Fallo al descargar el resultado HD: ${downloadResponse.status}.`);
-            }
-
-            // Si todo funciona, actualizamos el buffer final
-            finalImageBuffer = Buffer.from(await downloadResponse.arrayBuffer());
-            
-
-        } catch (hdError) {
-            // El HD falló, logueamos el error y continuamos enviando la imagen original (finalImageBuffer ya tiene el buffer original).
-            console.error('El proceso de HD falló silenciosamente:', hdError.message);
-            // *** CORRECCIÓN: Evitamos reactivar rwait aquí. ***
-        }
-        // -------------------------------------------------------------
-        
-        // 6. Envío Final (Usando finalImageBuffer)
-        await conn.sendMessage(m.chat, { 
-            image: finalImageBuffer,  
-            caption: captionText, 
-            mentions: [m.sender] 
-        });
+        // 3. Envío del archivo por URL (¡Sin descarga previa a Buffer!)
+        
+        // Verificación de si es una imagen (Rule34 puede dar videos)
+        const isImage = imageUrl.match(/\.(jpe?g|png|webp)$/i);
+        
+        if (isImage) {
+            await conn.sendMessage(m.chat, { 
+                image: { url: imageUrl },   // Envío por URL directa
+                caption: captionText, 
+                mentions: [m.sender] 
+            });
+        } else {
+             // Si no es un formato de imagen común, asumimos que es un video o GIF
+             await conn.reply(m.chat, `${emoji2} Archivo encontrado no es una imagen estática. URL del archivo: ${imageUrl}`, m);
+             await m.react(error); // Si no podemos enviarlo como imagen, lo marcamos como error.
+             return;
+        }
 
         await m.react(done);
     } catch (e) {
-        // Este catch atrapa errores FATALES (Fallo en Scrapping o descarga de la imagen original)
+        // Este catch atrapa errores FATALES 
         await m.react(error);
         console.error('Error FATAL en la búsqueda de imágenes:', e);
-        await m.reply(
+        await conn.reply(
           m.chat,
           `${ellen}\n⚠️ Algo salió mal durante la búsqueda. ${e.message ? `\n\n*Detalles:* ${e.message}` : ''}`,
           m
@@ -162,7 +113,7 @@ const handler = async (m, { conn, args, usedPrefix }) => {
     }
 };
 
-handler.help = ['rule34 <tag>'];
+handler.help = ['rule34 <tag1> <tag2>'];
 handler.command = ['rule34', 'r34'];
 handler.tags = ['nsfw'];
 
