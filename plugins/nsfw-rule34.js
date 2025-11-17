@@ -1,33 +1,30 @@
 // Necesitas instalar node-fetch
 import fetch from 'node-fetch';
-// **IMPORTANTE:** Eliminamos 'formdata-node' y 'file-type' ya que no se necesita Catbox/HD.
 
 // --- CREDENCIALES RULE34 ---
 const R34_USER_ID = "5592834";
 const R34_API_KEY = "8ba37eaec9cf4a215f62ebc95d122b1649f1037c70e0a962ad73c22afdbe32fec66e4991dc5d0c628850df990b81eb14f422a6d92c4275e1ab3a9e5beba9f857";
 // --------------------------
 
-// --- CONSTANTES Y URLS ---
+// --- CONSTANTES Y URLS (PERSONALIDAD ELLEN JOE - NAVIDAD) ---
 const rwait = "⏳";
 const done = "✅";
 const error = "❌";
-const emoji = "❕";
-const emoji2 = "🚫";
-const ellen = "🦈 Ellen Joe aquí... *ugh* que flojera~";
+const successEmoji = "💰"; // Emoji para la "comisión" de Ellen Joe
+const ellen = "❄️ *Ellen Joe*, la tiburón mercenaria. Ugh, ¿tenemos que trabajar en Navidad?";
 const R34_API_URL = "https://rule34.xxx/index.php?page=dapi&s=post&q=index"; // Endpoint base
 
-// **Funciones de HD eliminadas (formatBytes, uploadToCatbox)**
 // -------------------------------------------------------------
 
 const handler = async (m, { conn, args, usedPrefix }) => {
     // Tu código de verificación de permisos
-    // Asumimos que db.data.chats[m.chat].nsfw existe
     if (!db.data.chats[m.chat].nsfw && m.isGroup) {
         return m.reply(`*nsfw🔞️* está desactivada en este grupo.\n> Un administrador puede activarla con el comando » *#nsfw on*`);
     }
 
     if (!args || args.length === 0) {
-        await conn.reply(m.chat, `${emoji} Por favor, ingresa uno o más tags para realizar la búsqueda.`, m);
+        // Error de no argumentos
+        await conn.reply(m.chat, `*Ugh*, no voy a buscar etiquetas al azar. Pon algo, ¡rápido! Me congelo. 🥶`, m);
         return;
     }
 
@@ -37,8 +34,8 @@ const handler = async (m, { conn, args, usedPrefix }) => {
     // Construcción de la URL de la API con tags y autenticación
     const apiUrl = `${R34_API_URL}&tags=${tags}&json=1&user_id=${R34_USER_ID}&api_key=${R34_API_KEY}`;
     
-    // Declarar variables que se usarán en el scope final
-    let captionText = `${emoji} Resultados para » *${displayTags}*`;
+    // Caption de éxito (con tema navideño y de dinero)
+    let captionText = `${successEmoji} Regalo de *Ellen Joe* por tus *${displayTags}*... ¡y me deben una compensación navideña! 🎁`;
 
     try {
         await m.react(rwait);
@@ -47,11 +44,12 @@ const handler = async (m, { conn, args, usedPrefix }) => {
         const response = await fetch(apiUrl);
         const textResponse = await response.text();
 
-        // Verificar errores de API (ej. error de autenticación)
+        // Verificar errores de API
         if (textResponse.includes("<error>")) {
             await m.react(error);
             console.error('Error de API Rule34 (XML Response):', textResponse);
-            await conn.reply(m.chat, `${emoji2} Error en la API de Rule34. El sitio web devolvió un error.`, m);
+            // Ellen Joe: Fallo de servicio
+            await conn.reply(m.chat, `Qué fastidio. La API de Rule34 se rompió. ¿De verdad? En plenas fiestas... *UGH*. 💔`, m);
             return;
         }
 
@@ -59,55 +57,56 @@ const handler = async (m, { conn, args, usedPrefix }) => {
         try {
             posts = JSON.parse(textResponse);
         } catch (e) {
-            console.error('Fallo al parsear JSON:', e);
             await m.react(error);
-            await conn.reply(m.chat, `${emoji2} La respuesta de la API no fue un JSON válido.`, m);
+            // Ellen Joe: Mala calidad de datos
+            await conn.reply(m.chat, `La base de datos vomitó algo. Si no es dinero, no lo quiero. Inténtalo de nuevo. 🤢`, m);
             return;
         }
         
         if (!posts || posts.length === 0) {
             await m.react(error);
-            await conn.reply(m.chat, `${emoji2} No se encontraron resultados de imágenes para *${displayTags}*`, m);
+            // Ellen Joe: No hay resultados
+            await conn.reply(m.chat, `¿Ni siquiera para eso tienes suerte? Vaya. No encontré nada para *${displayTags}*. ¡Feliz fracaso navideño! 🎄`, m);
             return;
         }
 
         // 2. Seleccionar post aleatorio y obtener URL directa
         const randomIndex = Math.floor(Math.random() * posts.length);
         const randomPost = posts[randomIndex];
-        const imageUrl = randomPost.file_url; // URL directa de la imagen/video
+        const imageUrl = randomPost.file_url; // URL directa del archivo
 
         if (!imageUrl) {
             await m.react(error);
-            await conn.reply(m.chat, `${emoji2} El post seleccionado no tenía una URL de archivo válida.`, m);
+            // Ellen Joe: Archivo roto
+            await conn.reply(m.chat, `Me robaste tiempo por un archivo roto. Si esto fuera un contrato, te cobraría extra. 😡`, m);
             return;
         }
         
-        // 3. Envío del archivo por URL (¡Sin descarga previa a Buffer!)
-        
-        // Verificación de si es una imagen (Rule34 puede dar videos)
-        const isImage = imageUrl.match(/\.(jpe?g|png|webp)$/i);
-        
-        if (isImage) {
-            await conn.sendMessage(m.chat, { 
-                image: { url: imageUrl },   // Envío por URL directa
-                caption: captionText, 
-                mentions: [m.sender] 
-            });
+        // 3. Envío del archivo: Determina si es imagen o video
+        const extension = imageUrl.split('.').pop().toLowerCase();
+        let messageOptions = { caption: captionText, mentions: [m.sender] };
+
+        const videoExtensions = ['mp4', 'webm', 'mov'];
+
+        if (videoExtensions.includes(extension)) {
+            // Es un video o GIF largo
+            messageOptions.video = { url: imageUrl };
         } else {
-             // Si no es un formato de imagen común, asumimos que es un video o GIF
-             await conn.reply(m.chat, `${emoji2} Archivo encontrado no es una imagen estática. URL del archivo: ${imageUrl}`, m);
-             await m.react(error); // Si no podemos enviarlo como imagen, lo marcamos como error.
-             return;
+            // Es una imagen (incluye GIF corto, jpg, png, etc.)
+            messageOptions.image = { url: imageUrl };
         }
+        
+        await conn.sendMessage(m.chat, messageOptions);
 
         await m.react(done);
     } catch (e) {
-        // Este catch atrapa errores FATALES 
+        // Este catch atrapa errores FATALES (red, archivo no descargable, envío fallido)
         await m.react(error);
-        console.error('Error FATAL en la búsqueda de imágenes:', e);
+        console.error('Error FATAL en la búsqueda/envío de multimedia:', e);
         await conn.reply(
           m.chat,
-          `${ellen}\n⚠️ Algo salió mal durante la búsqueda. ${e.message ? `\n\n*Detalles:* ${e.message}` : ''}`,
+          // Ellen Joe: Error fatal
+          `${ellen}\n*Ugh*, me rompiste los dientes. Error: El archivo es muy grande o no es compatible. Mi comisión se acaba de reducir a cero. ¡Feliz Navidad! 💸`,
           m
         );
     }
