@@ -206,14 +206,14 @@ ${separadorNavidad}`.trim();
   let botones = [];
   if (paginaActual > 1) {
     botones.push({
-      buttonId: `${usedPrefix}prueba pagina ${paginaActual - 1}`,
+      buttonId: `${usedPrefix}menu pagina ${paginaActual - 1}`,
       buttonText: { displayText: '« PÁGINA ANTERIOR ⬅️' }, // Botón Navideño
       type: 1
     });
   }
   if (paginaActual < totalPaginas) {
     botones.push({
-      buttonId: `${usedPrefix}prueba pagina ${paginaActual + 1}`,
+      buttonId: `${usedPrefix}menu pagina ${paginaActual + 1}`,
       buttonText: { displayText: 'PÁGINA SIGUIENTE ➡️' }, // Botón Navideño
       type: 1
     });
