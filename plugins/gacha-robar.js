@@ -4,13 +4,15 @@ import { promises as fs } from 'fs'
 const charactersFilePath = './src/database/characters.json'
 const usersFilePath = './src/database/database.json' 
 
-// --- CONSTANTES ---
-const stealCooldowns = {} // Cooldown para #robarwaifu
-const STEAL_COOLDOWN_TIME = 12 * 60 * 60 * 1000 // 12 horas de cooldown
-const STEAL_COST = 1000 // Costo por intento de robo (1,000 monedas)
+// --- CONFIGURACIÓN DEL SISTEMA ---
+const stealCooldowns = {} 
+const STEAL_COOLDOWN_TIME = 8 * 60 * 60 * 1000 // 8 horas de espera
+const HEALTH_REQUIRED = 40 // Mínimo de salud para intentar el robo
+const HEALTH_LOSS_ON_FAIL = 20 // Salud que pierdes si fallas el robo
+const XP_LOSS_PERCENT = 0.03 // Pierdes 3% de tu XP si fallas
 
 // ==========================================================
-//                   FUNCIONES INTERNAS DE DB
+//                   FUNCIONES DE BASE DE DATOS
 // ==========================================================
 
 async function loadCharacters() {
@@ -18,7 +20,7 @@ async function loadCharacters() {
         const data = await fs.readFile(charactersFilePath, 'utf-8')
         return JSON.parse(data)
     } catch (error) {
-        throw new Error('❀ No se pudo cargar el archivo characters.json.')
+        throw new Error('❀ Error al cargar characters.json.')
     }
 }
 
@@ -26,43 +28,27 @@ async function saveCharacters(characters) {
     try {
         await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
     } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo characters.json.')
+        throw new Error('❀ Error al guardar characters.json.')
     }
 }
 
 async function loadUsersData() {
     try {
         const data = await fs.readFile(usersFilePath, 'utf-8')
-        return JSON.parse(data).users || {} 
+        const parsed = JSON.parse(data)
+        return parsed.users || {} 
     } catch (error) {
-        console.error('Error al cargar database.json:', error);
         return {}
     }
 }
 
 async function saveUsersData(users) {
     try {
-        const dataToSave = { users: users }; 
+        const dataToSave = { users: users }
         await fs.writeFile(usersFilePath, JSON.stringify(dataToSave, null, 2), 'utf-8')
     } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo database.json.')
+        throw new Error('❀ Error al guardar database.json.')
     }
-}
-
-async function getUserCoin(userId) {
-    const users = await loadUsersData()
-    return users[userId]?.coin || 0 
-}
-
-async function updateUserCoin(userId, amount) {
-    const users = await loadUsersData()
-    if (!users[userId]) users[userId] = {}
-    
-    const currentCoin = users[userId].coin || 0
-    users[userId].coin = currentCoin + amount 
-    
-    await saveUsersData(users)
-    return users[userId].coin
 }
 
 // ==========================================================
@@ -78,84 +64,86 @@ let handler = async (m, { conn, args }) => {
         const remainingTime = Math.ceil((stealCooldowns[thiefId] - now) / 1000)
         const hours = Math.floor(remainingTime / 3600)
         const minutes = Math.floor((remainingTime % 3600) / 60)
-        const seconds = remainingTime % 60
-        return await conn.reply(m.chat, `( ⸝⸝･̆⤚･̆⸝⸝) ¡𝗗𝗲𝗯𝗲𝘀 𝗲𝘀𝗽𝗲𝗿𝗮𝗿 *${hours} horas, ${minutes} minutos y ${seconds} segundos* 𝗽𝗮𝗿𝗮 𝘃𝗼𝗹𝘃𝗲𝗿 𝗮 𝗿𝗼𝗯𝗮𝗿!`, m)
+        return await conn.reply(m.chat, `🩹 Estás herido y cansado. Debes descansar **${hours}h y ${minutes}m** más antes de otro asalto.`, m)
     }
 
-    if (args.length === 0) {
-        return await conn.reply(m.chat, `《✧》Debes proporcionar el ID o el nombre de la waifu que quieres robar. Ejemplo: *#robarwaifu 113*`, m)
+    if (!args[0]) {
+        return await conn.reply(m.chat, `《✧》Debes poner el ID o nombre. Ejemplo: *#robarwaifu 113*`, m)
     }
 
     const input = args.join(' ').toLowerCase().trim()
-    
+
     try {
         const characters = await loadCharacters()
-        const targetCharacter = characters.find(c => c.id == input || c.name.toLowerCase() === input)
+        const users = await loadUsersData()
+
         const targetIndex = characters.findIndex(c => c.id == input || c.name.toLowerCase() === input)
+        const waifu = characters[targetIndex]
 
-        if (!targetCharacter) {
-            return await conn.reply(m.chat, `《✧》No se encontró a la waifu *${input}*.`, m)
+        if (!waifu) {
+            return await conn.reply(m.chat, `《✧》No encontré a la waifu *${input}*.`, m)
         }
 
-        // CORRECCIÓN: Usar #rw en lugar de #claim
-        if (!targetCharacter.user) {
-            return await conn.reply(m.chat, `《✧》*${targetCharacter.name}* está libre. ¡Usa *#rw* para intentar conseguirla con suerte!`, m)
+        if (!waifu.user) {
+            return await conn.reply(m.chat, `《✧》*${waifu.name}* no tiene dueño. ¡Usa *#rw* para intentar capturarla!`, m)
         }
-        
-        const ownerId = targetCharacter.user
+
+        const ownerId = waifu.user
         if (thiefId === ownerId) {
-            return await conn.reply(m.chat, `¡No puedes robarte a tu propia waifu! 🤪`, m)
-        }
-        
-        const thiefCoin = await getUserCoin(thiefId)
-        const ownerCoin = await getUserCoin(ownerId)
-        
-        // 1. Verificar Costo (1,000 monedas)
-        if (thiefCoin < STEAL_COST) {
-            return await conn.reply(m.chat, `¡Robar cuesta *${STEAL_COST.toLocaleString()}* 💰! No tienes suficiente dinero.`, m)
+            return await conn.reply(m.chat, `¡Esa waifu ya es tuya! No tiene sentido robártela a ti mismo.`, m)
         }
 
-        // 2. Verificar Token de Protección
-        if (targetCharacter.protectionUntil && targetCharacter.protectionUntil > now) {
-            const remainingDays = Math.ceil((targetCharacter.protectionUntil - now) / (1000 * 60 * 60 * 24))
-            
-            stealCooldowns[thiefId] = now + STEAL_COOLDOWN_TIME
-            
-            return await conn.reply(m.chat, `🛡️ ¡Fallo el robo! **${targetCharacter.name}** está protegida por un **Token de Protección** comprado por su amo (@${ownerId.split('@')[0]}). ¡Vuelve en ${remainingDays} días!`, m, { mentions: [ownerId] })
+        // Obtener datos de los usuarios involucrados
+        const uThief = users[thiefId] || { level: 1, exp: 0, health: 100 }
+        const uOwner = users[ownerId] || { level: 1, exp: 0 }
+
+        // 2. Verificar Salud del Ladrón
+        const currentHealth = uThief.health ?? 100
+        if (currentHealth < HEALTH_REQUIRED) {
+            return await conn.reply(m.chat, `🏥 **Salud insuficiente.** Tienes **${currentHealth} HP** y necesitas al menos **${HEALTH_REQUIRED} HP** para pelear contra el dueño actual.`, m)
         }
+
+        // 3. Lógica de Probabilidad (Basada en Niveles)
+        let successChance = 35 // Probabilidad base
+        const levelDiff = (uThief.level || 1) - (uOwner.level || 1)
         
-        // 3. Calcular Probabilidad de Robo
-        const normalizedThiefCoin = Math.min(thiefCoin, 10000000)
-        const normalizedOwnerCoin = Math.min(ownerCoin, 10000000)
-        
-        let successChance = 50 + (normalizedThiefCoin - normalizedOwnerCoin) / 1000000 * 10 
-        successChance = Math.max(10, Math.min(90, successChance)) 
-        
+        // Cada nivel de diferencia a favor da +5%, en contra quita -5%
+        successChance += (levelDiff * 5)
+        successChance = Math.max(5, Math.min(85, successChance)) // Límite entre 5% y 85%
+
         const isSuccessful = Math.random() * 100 < successChance
-        
-        // 4. Deducción del costo de robo y Aplicar Cooldown
-        await updateUserCoin(thiefId, -STEAL_COST)
+
+        // Aplicar Cooldown obligatorio tras el intento
         stealCooldowns[thiefId] = now + STEAL_COOLDOWN_TIME
-        
-        // 5. Resultado del Robo
+
         if (isSuccessful) {
-            // ÉXITO
+            // --- CASO DE ÉXITO ---
             characters[targetIndex].user = thiefId
             delete characters[targetIndex].protectionUntil 
-            
+
             await saveCharacters(characters)
             
-            const successMessage = `💸 ¡ROBO EXITOSO! 💸\n\n**${targetCharacter.name}** ha abandonado a @${ownerId.split('@')[0]} y se ha unido a tu harem: (Probabilidad: ${successChance.toFixed(2)}%)\n\n_Costo del intento: ${STEAL_COST.toLocaleString()} 💰._`
-            await conn.reply(m.chat, successMessage, m, { mentions: [ownerId, thiefId] })
-            
+            const successMsg = `🥷 **¡ASALTO EXITOSO!** 🥷\n\nHas vencido a @${ownerId.split('@')[0]} en un duelo de habilidades y te has llevado a **${waifu.name}**.\n\n📊 **Probabilidad:** ${successChance.toFixed(1)}%\n❤️ **Tu Salud:** ${currentHealth} HP`
+            await conn.reply(m.chat, successMsg, m, { mentions: [ownerId, thiefId] })
+
         } else {
-            // FRACASO
-            const failureMessage = `( ⸝⸝･̆⤚･̆⸝⸝) ¡ROBO FALLIDO! 😥\n\n**${targetCharacter.name}** te rechazó y dijo que eres un vagabundo comparado con su amo (@${ownerId.split('@')[0]}). ¡Gana más dinero e inténtalo de nuevo! (Probabilidad: ${successChance.toFixed(2)}%)\n\n_Costo del intento: ${STEAL_COST.toLocaleString()} 💰._`
-            await conn.reply(m.chat, failureMessage, m, { mentions: [ownerId] })
+            // --- CASO DE FRACASO ---
+            // Restar Salud
+            users[thiefId].health = Math.max(0, currentHealth - HEALTH_LOSS_ON_FAIL)
+            
+            // Restar un poco de EXP por la derrota
+            const xpLost = Math.floor((uThief.exp || 0) * XP_LOSS_PERCENT)
+            users[thiefId].exp = Math.max(0, (uThief.exp || 0) - xpLost)
+
+            await saveUsersData(users)
+
+            const failMsg = `🚑 **¡DERROTADO!** 🚑\n\nIntentaste robar a **${waifu.name}**, pero @${ownerId.split('@')[0]} se defendió ferozmente.\n\n🔻 **Salud:** -${HEALTH_LOSS_ON_FAIL} HP (Te queda: ${users[thiefId].health})\n🔻 **Experiencia:** -${xpLost}\n\n_¡Mejora tu nivel para tener más oportunidad!_`
+            await conn.reply(m.chat, failMsg, m, { mentions: [ownerId] })
         }
 
     } catch (error) {
-        await conn.reply(m.chat, `✘ Error al intentar robar: ${error.message}`, m)
+        console.error(error)
+        await conn.reply(m.chat, `✘ Error en el sistema de robo: ${error.message}`, m)
     }
 }
 
