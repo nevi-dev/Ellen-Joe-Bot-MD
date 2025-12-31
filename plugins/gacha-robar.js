@@ -93,6 +93,20 @@ let handler = async (m, { conn, args }) => {
             return await conn.reply(m.chat, `¡Esa waifu ya es tuya! No tiene sentido robártela a ti mismo.`, m)
         }
 
+        // --- NUEVA VALIDACIÓN: TOKEN DE PROTECCIÓN ---
+        if (waifu.protectionUntil && waifu.protectionUntil > now) {
+            const expirationDate = new Date(waifu.protectionUntil).toLocaleString('es-ES', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+            
+            return await conn.reply(m.chat, `🛡️ **¡ATAQUE BLOQUEADO!**\n\n**${waifu.name}** está protegida por un escudo divino activo.\nSu dueño ha comprado protección contra robos.\n\n📅 **Expira el:** ${expirationDate}\n_¡Inténtalo de nuevo cuando se le acabe el token!_`, m)
+        }
+        // ----------------------------------------------
+
         // Obtener datos de los usuarios involucrados
         const uThief = users[thiefId] || { level: 1, exp: 0, health: 100 }
         const uOwner = users[ownerId] || { level: 1, exp: 0 }
@@ -106,7 +120,7 @@ let handler = async (m, { conn, args }) => {
         // 3. Lógica de Probabilidad (Basada en Niveles)
         let successChance = 35 // Probabilidad base
         const levelDiff = (uThief.level || 1) - (uOwner.level || 1)
-        
+
         // Cada nivel de diferencia a favor da +5%, en contra quita -5%
         successChance += (levelDiff * 5)
         successChance = Math.max(5, Math.min(85, successChance)) // Límite entre 5% y 85%
@@ -119,10 +133,10 @@ let handler = async (m, { conn, args }) => {
         if (isSuccessful) {
             // --- CASO DE ÉXITO ---
             characters[targetIndex].user = thiefId
-            delete characters[targetIndex].protectionUntil 
+            delete characters[targetIndex].protectionUntil // Se borra la protección vieja si existía (aunque ya expiró para llegar aquí)
 
             await saveCharacters(characters)
-            
+
             const successMsg = `🥷 **¡ASALTO EXITOSO!** 🥷\n\nHas vencido a @${ownerId.split('@')[0]} en un duelo de habilidades y te has llevado a **${waifu.name}**.\n\n📊 **Probabilidad:** ${successChance.toFixed(1)}%\n❤️ **Tu Salud:** ${currentHealth} HP`
             await conn.reply(m.chat, successMsg, m, { mentions: [ownerId, thiefId] })
 
@@ -130,7 +144,7 @@ let handler = async (m, { conn, args }) => {
             // --- CASO DE FRACASO ---
             // Restar Salud
             users[thiefId].health = Math.max(0, currentHealth - HEALTH_LOSS_ON_FAIL)
-            
+
             // Restar un poco de EXP por la derrota
             const xpLost = Math.floor((uThief.exp || 0) * XP_LOSS_PERCENT)
             users[thiefId].exp = Math.max(0, (uThief.exp || 0) - xpLost)
