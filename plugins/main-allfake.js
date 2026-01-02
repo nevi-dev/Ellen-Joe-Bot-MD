@@ -30,7 +30,7 @@ handler.all = async function (m) {
   }
 
   // Cargar base de datos
-  const db = '../src/database/db.json'
+  const db = './src/database/db.json'
   const db_ = JSON.parse(fs.readFileSync(db))
 
   // Función para elegir aleatorio
