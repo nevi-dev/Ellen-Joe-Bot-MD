@@ -1,20 +1,19 @@
 {
   "links": {
     "video": [
-      "https://causas-files.duckdns.org/d/6b5e7578-d821-4c2f-a68c-1dd19c37f8f8.mp4",
-      "https://causas-files.duckdns.org/d/e5a5c5c0-afb8-458b-948d-9554d6cb8292.mp4",
-      "https://causas-files.duckdns.org/d/5bd8d0b2-f81a-49eb-bb72-9642ba77053e.mp4",
-      "https://causas-files.duckdns.org/d/023f3426-884e-487c-8d64-6d5f6fc324c6.mp4"
+      "https://github.com/nevi-dev/nevi-dev/raw/refs/heads/main/src/6b5e7578-d821-4c2f-a68c-1dd19c37f8f8.mp4",
+      "https://github.com/nevi-dev/nevi-dev/raw/refs/heads/main/src/e5a5c5c0-afb8-458b-948d-9554d6cb8292.mp4",
+      "https://github.com/nevi-dev/nevi-dev/raw/refs/heads/main/src/5bd8d0b2-f81a-49eb-bb72-9642ba77053e.mp4"
     ],
     "imagen": [
-      "https://causas-files.duckdns.org/d/086ec8e8-c373-45b6-ad51-3cdaef9cd3e6.jpg",
-      "https://causas-files.duckdns.org/d/c99835de-0c28-4e27-93a0-422df6cca849.jpg",
-      "https://causas-files.duckdns.org/d/6eee1198-1b0f-4cfe-b6c0-2fb82dc0bdc5.jpg",
-      "https://causas-files.duckdns.org/d/18b2ad5d-a091-4267-8903-bb895dbefe6c.jpg",
-      "https://causas-files.duckdns.org/d/23912e87-2b42-468c-bfd4-a4df62951c10.jpg",
-      "https://causas-files.duckdns.org/d/7d874ab7-8a4c-4d76-b7dc-dfbcb589bd9b.jpg",
-      "https://causas-files.duckdns.org/d/42f1cc96-bcd5-4c43-ac58-96883dba3047.jpg",
-      "https://causas-files.duckdns.org/d/407e16b8-89d4-4d09-bd2f-a606ccc0e53c.jpg"
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/086ec8e8-c373-45b6-ad51-3cdaef9cd3e6.jpg?raw=true",
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/c99835de-0c28-4e27-93a0-422df6cca849.jpg?raw=true",
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/6eee1198-1b0f-4cfe-b6c0-2fb82dc0bdc5.jpg?raw=true",
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/18b2ad5d-a091-4267-8903-bb895dbefe6c.jpg?raw=true",
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/23912e87-2b42-468c-bfd4-a4df62951c10.jpg?raw=true",
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/7d874ab7-8a4c-4d76-b7dc-dfbcb589bd9b.jpg?raw=true",
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/42f1cc96-bcd5-4c43-ac58-96883dba3047.jpg?raw=true",
+      "https://github.com/nevi-dev/nevi-dev/blob/main/src/407e16b8-89d4-4d09-bd2f-a606ccc0e53c.jpg?raw=true"
     ]
   }
 }
