@@ -1,131 +1,81 @@
-// Necesitas instalar node-fetch
 import fetch from 'node-fetch';
 
-// --- CREDENCIALES RULE34 ---
-const R34_USER_ID = "5592834";
-const R34_API_KEY = "8ba37eaec9cf4a215f62ebc95d122b1649f1037c70e0a962ad73c22afdbe32fec66e4991dc5d0c628850df990b81eb14f422a6d92c4275e1ab3a9e5beba9f857";
-// --------------------------
+// --- CONFIGURACIÓN DE LA API ---
+const API_BASE_URL = "https://api-causas.duckdns.org/api/v1/nsfw/descargas/rule34";
+const API_KEY = "causa-ca764667eaad6318";
 
-// --- CONSTANTES Y URLS (PERSONALIDAD ELLEN JOE - NAVIDAD) ---
-const rwait = "⏳";
-const done = "✅";
-const error = "❌";
-const successEmoji = "💰"; // Emoji para la "comisión" de Ellen Joe
-const ellen = "❄️ *Ellen Joe*, la tiburón mercenaria. Ugh, ¿tenemos que trabajar en Navidad?";
-const R34_API_URL = "https://rule34.xxx/index.php?page=dapi&s=post&q=index"; // Endpoint base
+const handler = async (m, { conn, args, usedPrefix, command }) => {
+    // 1. Verificación de NSFW
+    const chat = global.db.data.chats[m.chat];
+    if (m.isGroup && !chat?.nsfw) {
+        return m.reply(`*Ugh, qué molesto.* 🔞\nEste lugar es demasiado "limpio". Si quieres que trabaje, activa el modo NSFW: *${usedPrefix}nsfw on*`);
+    }
 
-// -------------------------------------------------------------
+    // 2. Validación de Argumentos
+    if (!args[0]) {
+        return m.reply(`*¿En serio?* 🙄\nDame etiquetas o déjame en paz. No busco cosas a ciegas.\n\nEjemplo: *${usedPrefix + command} vienna*`);
+    }
 
-const handler = async (m, { conn, args, usedPrefix }) => {
-    // Tu código de verificación de permisos
-    if (!db.data.chats[m.chat].nsfw && m.isGroup) {
-        return m.reply(`*nsfw🔞️* está desactivada en este grupo.\n> Un administrador puede activarla con el comando » *#nsfw on*`);
-    }
+    const tags = args.join(', ');
+    const queryUrl = `${API_BASE_URL}?tags=${encodeURIComponent(tags)}&apikey=${API_KEY}`;
 
-    if (!args || args.length === 0) {
-        // Error de no argumentos
-        await conn.reply(m.chat, `*Ugh*, no voy a buscar etiquetas al azar. Pon algo, ¡rápido! Me congelo. 🥶`, m);
-        return;
-    }
+    try {
+        await m.react('⏳');
 
-    const tags = args.join('+');
-    const displayTags = args.join(', ');
-    
-    // Construcción de la URL de la API con tags y autenticación
-    const apiUrl = `${R34_API_URL}&tags=${tags}&json=1&user_id=${R34_USER_ID}&api_key=${R34_API_KEY}`;
-    
-    // Caption de éxito (con tema navideño y de dinero)
-    let captionText = `${successEmoji} Regalo de *Ellen Joe* por tus *${displayTags}*... ¡y me deben una compensación navideña! 🎁`;
+        const response = await fetch(queryUrl);
+        const json = await response.json();
 
-    try {
-        await m.react(rwait);
-        
-        // 1. BÚSQUEDA USANDO LA API
-        const response = await fetch(apiUrl);
-        const textResponse = await response.text();
-
-        // 2. Verificar errores de API (XML/Autenticación)
-        if (textResponse.includes("<error>")) {
-            await m.react(error);
-            console.error('Error de API Rule34 (XML Response):', textResponse);
-            // Ellen Joe: Fallo de servicio
-            await conn.reply(m.chat, `Qué fastidio. La API de Rule34 se rompió. ¿De verdad? En plenas fiestas... *UGH*. 💔`, m);
-            return;
-        }
-
-        // <<<< SOLUCIÓN ROBUSTA: CHEQUEO DE RESPUESTA VACÍA >>>>
-        if (textResponse.trim() === "") {
-             await m.react(error);
-             await conn.reply(m.chat, `¿Ni siquiera para eso tienes suerte? Vaya. No encontré nada para *${displayTags}*. ¡Feliz fracaso navideño! 🎄`, m);
-             return;
+        // 3. Manejo de errores
+        if (!json.status || !json.data.results || json.data.results.length === 0) {
+            await m.react('❌');
+            return m.reply(`*Cero unidades encontradas.* 🦈\nNo hay nada de "${tags}" aquí. Qué pérdida de tiempo.`);
         }
-        // <<<< FIN SOLUCIÓN ROBUSTA >>>>
 
+        const results = json.data.results;
 
-        let posts;
-        try {
-            posts = JSON.parse(textResponse);
-        } catch (e) {
-            await m.react(error);
-            // Ellen Joe: Mala calidad de datos
-            await conn.reply(m.chat, `La base de datos vomitó algo. Si no es dinero, no lo quiero. Inténtalo de nuevo. 🤢`, m);
-            return;
-        }
-        
-        if (!posts || posts.length === 0) {
-            await m.react(error);
-            // Ellen Joe: No hay resultados
-            await conn.reply(m.chat, `¿Ni siquiera para eso tienes suerte? Vaya. No encontré nada para *${displayTags}*. ¡Feliz fracaso navideño! 🎄`, m);
-            return;
-        }
+        // 4. Enviar los 3 resultados (soporta Imagen y Video)
+        for (let i = 0; i < Math.min(results.length, 3); i++) {
+            const post = results[i];
+            const fileUrl = post.file_url;
+            
+            // Detectamos el tipo según la extensión o el campo 'type' de la API
+            const type = post.type ? post.type.toLowerCase() : fileUrl.split('.').pop().toLowerCase();
+            
+            // Lista extendida de formatos de video
+            const isVideo = ['mp4', 'webm', 'mov', 'gif'].includes(type);
 
-        // 3. Seleccionar post aleatorio y obtener URL directa
-        const randomIndex = Math.floor(Math.random() * posts.length);
-        const randomPost = posts[randomIndex];
-        const imageUrl = randomPost.file_url; // URL directa del archivo
+            let captionText = i === 0 
+                ? `*Misión: ${tags}* 🪚\nAquí tienes lo que encontré. No te acostumbres a tanta generosidad.` 
+                : `*Archivo #${i + 1}* — [${type.toUpperCase()}]`;
 
-        if (!imageUrl) {
-            await m.react(error);
-            // Ellen Joe: Archivo roto
-            await conn.reply(m.chat, `Me robaste tiempo por un archivo roto. Si esto fuera un contrato, te cobraría extra. 😡`, m);
-            return;
-        }
-        
-        // 4. Envío del archivo: Determina si es imagen o video
-        const extension = imageUrl.split('.').pop().toLowerCase();
-        let messageOptions = { caption: captionText, mentions: [m.sender] };
+            // Configuración del mensaje dinámico
+            const messageConfig = {
+                caption: captionText,
+                mimetype: isVideo ? 'video/mp4' : 'image/jpeg'
+            };
 
-        const videoExtensions = ['mp4', 'webm', 'mov'];
+            if (isVideo) {
+                messageConfig.video = { url: fileUrl };
+                // Si es un GIF, lo mandamos como video con reproducción automática (gifPlayback)
+                if (type === 'gif') messageConfig.gifPlayback = true;
+            } else {
+                messageConfig.image = { url: fileUrl };
+            }
 
-        if (videoExtensions.includes(extension)) {
-            // Es un video o GIF largo
-            messageOptions.video = { url: imageUrl };
-        } else {
-            // Es una imagen (incluye GIF corto, jpg, png, etc.)
-            messageOptions.image = { url: imageUrl };
-        }
-        
-        await conn.sendMessage(m.chat, messageOptions);
+            await conn.sendMessage(m.chat, messageConfig, { quoted: m });
+        }
 
-        await m.react(done);
-    } catch (e) {
-        // Este catch atrapa errores FATALES (red, archivo no descargable, envío fallido)
-        await m.react(error);
-        console.error('Error FATAL en la búsqueda/envío de multimedia:', e);
+        await m.react('✅');
 
-        let errorDetail = e.message || 'Error desconocido del sistema.';
-        
-        await conn.reply(
-          m.chat,
-          // Ellen Joe: Error fatal con detalle
-          `${ellen}\n*Ugh*, me rompiste los dientes. La misión falló. Detalle: *${errorDetail}*. Mi comisión se acaba de reducir a cero. ¡Feliz Navidad! 💸`,
-          m
-        );
-    }
+    } catch (e) {
+        console.error('Error:', e);
+        await m.react('❌');
+        await m.reply(`*Ugh, algo salió mal.* 🛠️\nLa base de datos no responde. Me voy a mi descanso, arréglatelas solo.`);
+    }
 };
 
-handler.help = ['rule34 <tag1> <tag2>'];
-handler.command = ['rule34', 'r34'];
+handler.help = ['rule34 <tags>'];
 handler.tags = ['nsfw'];
+handler.command = ['r34', 'rule34'];
 
 export default handler;
