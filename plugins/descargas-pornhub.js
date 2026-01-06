@@ -1,7 +1,7 @@
 import cheerio from 'cheerio';
 import axios from 'axios';
 
-let handler = async (m, { conn, args, command, usedPrefix }) => {
+let handler = async (m, { conn, args, command }) => {
   // Verificación de NSFW
   if (!db.data.chats[m.chat].nsfw && m.isGroup) {
     return conn.reply(m.chat, `❌ El contenido *NSFW* está desactivado en este grupo.`, m);
@@ -12,61 +12,56 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
 
   // Determinar si es una URL o una búsqueda
   const isUrl = text.match(/phncdn\.com|pornhub\.com/i);
+  let targetUrl = text;
 
   try {
-    if (isUrl) {
-      // --- LÓGICA DE DESCARGA ---
-      await m.react('⏳');
-      const apiUrl = `https://api-causas.duckdns.org/api/v1/nsfw/descargas/pornhub?url=${encodeURIComponent(text)}&apikey=causa-ca764667eaad6318`;
-      
-      const { data } = await axios.get(apiUrl);
+    await m.react('⏳');
 
-      if (data.status && data.data) {
-        const { title, thumbnail, duration, download_url } = data.data;
-        
-        let caption = `✨ *D E S C A R G A*\n\n`;
-        caption += `🎞️ *Título:* ${title}\n`;
-        caption += `🕒 *Duración:* ${duration}\n`;
-        caption += `📦 *Enviando video...*`;
-
-        // Enviamos el video con la miniatura y el título
-        await conn.sendMessage(m.chat, { 
-          video: { url: download_url }, 
-          caption: caption,
-          mimetype: 'video/mp4',
-          thumbnail: await (await axios.get(thumbnail, { responseType: 'arraybuffer' })).data
-        }, { quoted: m });
-        
-        await m.react('✅');
-      } else {
-        throw new Error("No se pudo obtener el enlace de descarga.");
-      }
-
-    } else {
-      // --- LÓGICA DE BÚSQUEDA ---
-      await m.react('🔍');
+    // --- SI ES BÚSQUEDA, OBTENER UN LINK ALEATORIO ---
+    if (!isUrl) {
       let searchResults = await searchPornhub(text);
-      
       if (searchResults.result.length === 0) {
+        await m.react('❌');
         return conn.reply(m.chat, `❌ No se encontraron resultados para: ${text}`, m);
       }
+      // Seleccionar un video aleatorio de la lista
+      const randomVideo = searchResults.result[Math.floor(Math.random() * searchResults.result.length)];
+      targetUrl = randomVideo.url;
+      
+      // Avisar que se encontró algo y se está procesando
+      await conn.reply(m.chat, `🔍 Encontré: *${randomVideo.title}*\n📦 Descargando video...`, m);
+    } else {
+      await conn.reply(m.chat, `📦 Procesando enlace, por favor espera...`, m);
+    }
 
-      let teks = `🔎 *R E S U L T A D O S*\n\n`;
-      searchResults.result.forEach((v, i) => {
-        teks += `*${i + 1}.* ${v.title}\n`;
-        teks += `🕒 *Duración:* ${v.duration} | 👀 *Vistas:* ${v.views}\n`;
-        teks += `🔗 *Link:* ${v.url}\n`;
-        teks += `-----------------------------------\n`;
-      });
+    // --- LÓGICA DE DESCARGA (API CAUSAS) ---
+    const apiUrl = `https://api-causas.duckdns.org/api/v1/nsfw/descargas/pornhub?url=${encodeURIComponent(targetUrl)}&apikey=causa-ca764667eaad6318`;
+    const { data } = await axios.get(apiUrl);
 
-      teks += `\n> Responde con el link para descargar el video.`;
-      conn.reply(m.chat, teks, m);
+    if (data.status && data.data) {
+      const { title, thumbnail, duration, download_url } = data.data;
+
+      let caption = `✨ *P O R N H U B*\n\n`;
+      caption += `🎞️ *Título:* ${title}\n`;
+      caption += `🕒 *Duración:* ${duration}\n`;
+
+      // Enviamos el video con la miniatura y el título
+      await conn.sendMessage(m.chat, { 
+        video: { url: download_url }, 
+        caption: caption,
+        mimetype: 'video/mp4',
+        thumbnail: await (await axios.get(thumbnail, { responseType: 'arraybuffer' })).data
+      }, { quoted: m });
+
+      await m.react('✅');
+    } else {
+      throw new Error("La API no devolvió un archivo válido.");
     }
 
   } catch (e) {
     console.error(e);
     await m.react('❌');
-    conn.reply(m.chat, `⚠️ Ocurrió un error: ${e.message}`, m);
+    conn.reply(m.chat, `⚠️ Ocurrió un error al procesar la solicitud.`, m);
   }
 };
 
@@ -76,7 +71,7 @@ handler.command = ['phdl', 'pornhubdl'];
 
 export default handler;
 
-// Función auxiliar para búsqueda (Scraping)
+// Función de Scraping para obtener resultados de búsqueda
 async function searchPornhub(search) {
   try {
     const response = await axios.get(`https://www.pornhub.com/video/search?search=${encodeURIComponent(search)}`);
@@ -85,11 +80,12 @@ async function searchPornhub(search) {
 
     $('ul#videoSearchResult > li.pcVideoListItem').each(function() {
       const _title = $(this).find('a').attr('title');
-      if (_title) { // Evitar elementos vacíos o anuncios
-        const _duration = $(this).find('var.duration').text().trim();
-        const _views = $(this).find('var.views').text().trim();
-        const _url = 'https://www.pornhub.com' + $(this).find('a').attr('href');
-        result.push({ title: _title, duration: _duration, views: _views, url: _url });
+      const _url = $(this).find('a').attr('href');
+      if (_title && _url && !_url.includes('javascript:void(0)')) {
+        result.push({ 
+          title: _title, 
+          url: 'https://www.pornhub.com' + _url 
+        });
       }
     });
 
