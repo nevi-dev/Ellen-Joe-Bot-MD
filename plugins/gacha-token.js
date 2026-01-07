@@ -4,7 +4,7 @@ const charactersFilePath = './src/database/characters.json'
 const usersFilePath = './src/database/database.json' 
 
 const PROTECTION_TOKEN_COST = 5000 
-const TOKEN_DURATION = 5 * 60 * 60 * 1000 
+const TOKEN_DURATION = 7 * 24 * 60 * 60 * 1000
 
 async function loadCharacters() {
     const data = await fs.readFile(charactersFilePath, 'utf-8')
