@@ -1,78 +1,109 @@
+import fetch from 'node-fetch';
+
 let cooldowns = {};
 
+// Configuración del Newsletter/Canal
+const newsletterJid = '120363418071540900@newsletter';
+const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
+
 let handler = async (m, { conn, usedPrefix, command }) => {
-  let users = global.db.data.users;
-  let senderId = m.sender;
+    let user = global.db.data.users[m.sender];
+    let senderId = m.sender;
+    let name = conn.getName(senderId);
 
-  let tiempoEspera = 8 * 60;
+    // ContextInfo estético
+    const contextInfo = {
+        mentionedJid: [m.sender],
+        isForwarded: true,
+        forwardingScore: 999,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid,
+            newsletterName,
+            serverMessageId: -1
+        },
+        externalAdReply: {
+            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+            body: `— Limpieza de Cavidades para ${name}`,
+            thumbnail: icons, 
+            sourceUrl: redes,
+            mediaType: 1,
+            renderLargerThumbnail: false
+        }
+    };
 
-  if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {
-    let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempoEspera * 1000 - Date.now()) / 1000));
-    return conn.reply(m.chat, `⏱️ Ya exploraste la mazmora recientemente. Espera ⏳ *${tiempoRestante}* antes de aventurarte de nuevo.`, m);
-  }
+    let tiempoEspera = 8 * 60; // 8 minutos
 
-  cooldowns[m.sender] = Date.now();
+    if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {
+        let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempoEspera * 1000 - Date.now()) / 1000));
+        return conn.reply(m.chat, `*— (Bostezo)*... Qué insistente eres. Todavía no me recupero de la última incursión. Espera **${tiempoRestante}** o ve tú solo.`, m, { contextInfo });
+    }
 
-  if (!users[senderId]) {
-    users[senderId] = { health: 100, coin: 0, exp: 0 };
-  }
+    if (!user) {
+        return conn.reply(m.chat, `*— ¿Eh?* No te conozco. Regístrate primero o déjame dormir.`, m);
+    }
 
-  const eventos = [
-    { nombre: 'Mazmorras de los Caídos', tipo: 'victoria', coin: randomNumber(150, 300), exp: randomNumber(50, 100), health: 0, mensaje: `🏆 ¡Has derrotado al guardián! Al abrir su cofre, encontraste un montón de ${moneda}.` },
-    { nombre: 'Cámara de los Espectros', tipo: 'derrota', coin: randomNumber(-70, -40), exp: randomNumber(10, 20), health: randomNumber(-15, -5), mensaje: `⚠️ Un espectro te ha atrapado en su red de sombras. Perdiste algunas ${moneda} mientras logras escaparte.` },
-    { nombre: 'Cripta del Olvido', tipo: 'victoria', coin: randomNumber(250, 400), exp: randomNumber(100, 150), health: 0, mensaje: `💎 Te adentras y descubres un tesoro antiguo lleno de gemas y ${moneda}.` },
-    { nombre: 'Trampa del Laberinto', tipo: 'trampa', coin: 0, exp: randomNumber(5, 10), health: 0, mensaje: `🚧 Activaste una trampa oculta. Afortunadamente, logras salir ileso, pero no ganaste nada.` },
-    { nombre: 'Cámara de los Demonios', tipo: 'derrota', coin: randomNumber(-150, -80), exp: randomNumber(20, 40), health: randomNumber(-30, -20), mensaje: `🐉 Un feroz demonio te embosca en la oscuridad. Logras escapar, pero no sin perder algunas ${moneda} y salud.` },
-    { nombre: 'Santuario de la Luz', tipo: 'victoria', coin: randomNumber(100, 200), exp: randomNumber(30, 60), health: 0, mensaje: `🎆 Encuentras un cofre repleto de riquezas que brillan intensamente.` },
-    { nombre: 'Laberinto de los Perdidos', tipo: 'trampa', coin: 0, exp: randomNumber(5, 15), health: 0, mensaje: `🌀 Te adentras en un laberinto confuso. Logras salir, pero no obtienes recompensas.` },
-    { nombre: 'Ruinas de los Caídos', tipo: 'victoria', coin: randomNumber(150, 300), exp: randomNumber(70, 120), health: 0, mensaje: `🏺 Descubres artefactos antiguos que brillan con un encanto misterioso y te recompensan.` },
-    { nombre: 'Guarida del Dragón', tipo: 'derrota', coin: randomNumber(-200, -100), exp: randomNumber(20, 40), health: randomNumber(-30, -20), mensaje: `🔥 Un dragón lanza una llamarada hacia ti. Logras escapar, pero pierdes algunas riquezas y salud.` },
-    { nombre: 'Sabio de la Mazmora', tipo: 'victoria', coin: randomNumber(50, 100), exp: randomNumber(30, 50), health: 0, mensaje: `👴 Te encuentras con un sabio que comparte historias y te recompensa por tu atención.` },
-  ];
+    // Eventos temáticos de Zenless Zone Zero
+    const eventos = [
+        { nombre: 'Nido de Etéreos', tipo: 'victoria', coin: randomNumber(150, 300), exp: randomNumber(50, 100), health: 0, mensaje: `🏆 Encontré un suministro abandonado tras limpiar un nido. Aquí tienes tus Dennies.` },
+        { nombre: 'Falla de Datos en el HDD', tipo: 'derrota', coin: randomNumber(-70, -40), exp: randomNumber(10, 20), health: randomNumber(-15, -5), mensaje: `⚠️ El sistema HDD falló y nos perdimos. Tuve que gastar recursos para sacarnos de ahí.` },
+        { nombre: 'Suministros de la Guadaña', tipo: 'victoria', coin: randomNumber(250, 400), exp: randomNumber(100, 150), health: 0, mensaje: `💎 Encontramos una caja de suministros de alta prioridad. No está mal para un día de pereza.` },
+        { nombre: 'Interferencia Etérea', tipo: 'trampa', coin: 0, exp: randomNumber(5, 10), health: 0, mensaje: `🚧 Una fuerte distorsión nos obligó a dar vueltas. No ganamos nada, qué pérdida de tiempo.` },
+        { nombre: 'Emboscada de Thiren Salvaje', tipo: 'derrota', coin: randomNumber(-150, -80), exp: randomNumber(20, 40), health: randomNumber(-30, -20), mensaje: `🐉 Nos emboscaron. Tuve que pelear en serio y eso me dio hambre. Perdimos equipo en la huida.` },
+        { nombre: 'Almacén de New Eridu', tipo: 'victoria', coin: randomNumber(100, 200), exp: randomNumber(30, 60), health: 0, mensaje: `🎆 Un almacén sin vigilancia. Tomé lo que pude antes de que llegara la Seguridad Pública.` },
+        { nombre: 'Rastro de Éter Falso', tipo: 'trampa', coin: 0, exp: randomNumber(5, 15), health: 0, mensaje: `🌀 Seguimos una señal que resultó ser falsa. Solo perdimos tiempo de mi descanso.` },
+        { nombre: 'Punto de Extracción Seguro', tipo: 'victoria', coin: randomNumber(50, 100), exp: randomNumber(30, 50), health: 5, mensaje: `👴 Encontramos un refugio con suministros médicos. Aproveché para comer algo dulce.` },
+    ];
 
-  let evento = eventos[Math.floor(Math.random() * eventos.length)];
+    let evento = eventos[Math.floor(Math.random() * eventos.length)];
 
-  if (evento.tipo === 'victoria') {
-    users[senderId].coin += evento.coin;
-    users[senderId].exp += evento.exp;
-    users[senderId].health += evento.health;
-  } else if (evento.tipo === 'derrota') {
-    users[senderId].coin += evento.coin;
-    users[senderId].exp += evento.exp;
-    users[senderId].health += evento.health;
-  } else if (evento.tipo === 'trampa') {
-    users[senderId].exp += evento.exp;
-  }
+    // Aplicar cambios al usuario
+    user.coin += evento.coin;
+    user.exp += evento.exp;
+    user.health += evento.health;
+    
+    // Asegurar que los valores no sean negativos o excedan el límite
+    if (user.coin < 0) user.coin = 0;
+    if (user.health > 100) user.health = 100;
+    if (user.health < 0) user.health = 0;
 
-  let img = 'https://qu.ax/jbnNz.jpg';
-  let info = `╭━〔 Mazmoras Antiguas 〕\n` +
-             `┃Misión: *${evento.nombre}*\n` +
-             `┃Evento: ${evento.mensaje}\n` +
-             `┃Recompensa: ${evento.coin > 0 ? '+' : '-'}${Math.abs(evento.coin)} *${moneda}* y +${evento.exp} *XP*.\n` +
-             `┃Tu salud ${evento.health < 0 ? 'bajó en: ' + Math.abs(evento.health) : 'se mantuvo igual.'}\n` +
-             `╰━━━━━━━━━━━━⬣`;
+    cooldowns[m.sender] = Date.now();
 
- await conn.sendFile(m.chat, 'https://files.catbox.moe/wtyj6h.jpg', 'mazmorras.jpg', info, m);
+    let info = `🦈 **𝐑𝐄𝐏𝐎𝐑𝐓𝐄 𝐃𝐄 𝐌𝐈𝐒𝐈𝐎́𝐍: 𝐇𝐎𝐋𝐋𝐎𝐖**
 
+📍 **Zona:** ${evento.nombre}
+💬 **Notas:** ${evento.mensaje}
 
+💰 **Ganancia:** ${evento.coin >= 0 ? '+' : ''}${evento.coin} ${moneda}
+✨ **Experiencia:** +${evento.exp} XP
+❤️ **Estado Vital:** ${user.health} HP 
+${evento.health < 0 ? '*(Recibiste daños en la Cavidad)*' : '*(Sin daños críticos)*'}
 
-  global.db.write();
+*— Ugh, terminé. No me pidas nada más por un buen rato, voy a mi hora del té.*`;
+
+    // Envío con imagen grande de Ellen Joe
+    await conn.sendMessage(m.chat, { 
+        image: { url: icons }, 
+        caption: info,
+        contextInfo
+    }, { quoted: m });
+
+    global.db.write();
 };
 
 handler.tags = ['rpg'];
-handler.help = ['explorar'];
-handler.command = ['dungeon', 'mazmorra', 'cueva'];
+handler.help = ['mazmorra'];
+handler.command = ['dungeon', 'mazmorra', 'cueva', 'explorar'];
 handler.register = true;
 handler.group = true;
 
 export default handler;
 
 function randomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function segundosAHMS(segundos) {
-  let minutos = Math.floor(segundos / 60);
-  let segundosRestantes = segundos % 60;
-  return `${minutos} minutos y ${segundosRestantes} segundos`;
+    let minutos = Math.floor(segundos / 60);
+    let segundosRestantes = segundos % 60;
+    return `${minutos}m y ${segundosRestantes}s`;
 }
