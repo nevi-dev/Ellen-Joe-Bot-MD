@@ -1,10 +1,8 @@
 import { promises as fs } from 'fs'
 
 const charactersFilePath = './src/database/characters.json'
-const usersFilePath = './src/database/database.json' 
-
 const PROTECTION_TOKEN_COST = 5000 
-const TOKEN_DURATION = 7 * 24 * 60 * 60 * 1000
+const TOKEN_DURATION = 7 * 24 * 60 * 60 * 1000 
 
 async function loadCharacters() {
     const data = await fs.readFile(charactersFilePath, 'utf-8')
@@ -19,7 +17,7 @@ let handler = async (m, { conn, args }) => {
     const userId = m.sender
     const now = Date.now()
 
-    if (args.length === 0) return await conn.reply(m.chat, `《✧》Debes proporcionar el ID o el nombre de la waifu.\nEjemplo: *#comprartoken 113*`, m)
+    if (args.length === 0) return await conn.reply(m.chat, `*— (Bostezo)*... Si quieres que trabaje extra, al menos dime el ID o el nombre de la waifu. No soy adivina.`, m)
 
     const input = args.join(' ').toLowerCase().trim()
 
@@ -28,33 +26,34 @@ let handler = async (m, { conn, args }) => {
         const targetIndex = characters.findIndex(c => c.id == input || c.name.toLowerCase() === input)
         const targetCharacter = characters[targetIndex]
 
-        if (!targetCharacter) return await conn.reply(m.chat, `《✧》No se encontró a la waifu *${input}*.`, m)
+        if (!targetCharacter) return await conn.reply(m.chat, `*— ¿Eh?* Esa waifu no existe en mis registros. No me hagas perder el tiempo.`, m)
+        if (targetCharacter.user !== userId) return await conn.reply(m.chat, `*— Escucha...* Esa waifu no es tuya. No puedo ponerle un escudo a algo que no te pertenece. Qué molestia.`, m)
 
-        // 1. Verificar Posesión
-        if (targetCharacter.user !== userId) return await conn.reply(m.chat, `《✧》Solo puedes proteger waifus que te pertenezcan.`, m)
-
-        // --- CORRECCIÓN: BLOQUEAR SI YA TIENE TOKEN ---
+        // BLOQUEO SI YA TIENE TOKEN ACTIVO
         if (targetCharacter.protectionUntil && targetCharacter.protectionUntil > now) {
-            return await conn.reply(m.chat, `🛡️ **${targetCharacter.name}** ya tiene un escudo activo. No puedes acumular más protección hasta que este expire.`, m)
+            return await conn.reply(m.chat, `*— Suspiro...* **${targetCharacter.name}** ya tiene un escudo puesto. No voy a gastar más energía en algo que ya está protegido. Vuelve cuando se rompa.`, m)
         }
 
-        // 2. Verificar Dinero (Usando global.db para consistencia)
+        // COBRO DE MONEDAS
         let user = global.db.data.users[userId]
         if (!user || (user.coin || 0) < PROTECTION_TOKEN_COST) {
-            return await conn.reply(m.chat, `❌ **Saldo insuficiente.** Necesitas **${PROTECTION_TOKEN_COST}** 💰.`, m)
+            return await conn.reply(m.chat, `*— Tsk.* No tienes suficientes créditos. El servicio de Victoria Housekeeping cuesta **${PROTECTION_TOKEN_COST}** 💰. Vuelve cuando seas rico.`, m)
         }
 
-        // 3. Aplicar Protección y Cobrar
+        // PROCESO
         characters[targetIndex].protectionUntil = now + TOKEN_DURATION
         user.coin -= PROTECTION_TOKEN_COST 
         
         await saveCharacters(characters)
 
-        const expirationDate = new Date(characters[targetIndex].protectionUntil).toLocaleString('es-ES')
-        await conn.reply(m.chat, `🛡️ **¡PROTECCIÓN ADQUIRIDA!**\n\nHas protegido a **${targetCharacter.name}**.\n📅 **Expira:** ${expirationDate}\n💰 **Costo:** ${PROTECTION_TOKEN_COST}`, m)
+        const expirationDate = new Date(characters[targetIndex].protectionUntil).toLocaleString('es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        })
+
+        await conn.reply(m.chat, `🦈 **Servicio de Protección: Ellen Joe**\n\n*— Bien, ya está.* He puesto a **${targetCharacter.name}** bajo mi guardia. Nadie la tocará mientras esté de turno... supongo.\n\n📅 **Termino mi turno el:** ${expirationDate}\n💰 **Tarifa cobrada:** ${PROTECTION_TOKEN_COST.toLocaleString()}\n\n*— Me voy a mi descanso, no me molestes.*`, m)
 
     } catch (error) {
-        await conn.reply(m.chat, `✘ Error: ${error.message}`, m)
+        await conn.reply(m.chat, `*— Tsk, algo salió mal:* ${error.message}. Qué problemático...`, m)
     }
 }
 
