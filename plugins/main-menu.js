@@ -3,80 +3,55 @@ import path from 'path';
 import fetch from 'node-fetch';
 import axios from 'axios';
 import moment from 'moment-timezone';
-import { generateWAMessageFromContent } from '@whiskeysockets/baileys';
-
-// Se eliminan las siguientes líneas (según solicitud de quitar el cooldown):
-// const cooldowns = new Map();
-// const ultimoMenuEnviado = new Map();
 
 const newsletterJid = '120363418071540900@newsletter';
-const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏᴇ\'s 𝐒ervice';
-const packname = '˚🄴🄻🄻🄴🄽-🄹🄾🄴-🄱🄾🅃';
-const redes = 'https://github.com/nevi-dev'; // Asegúrate de que 'redes' esté definida (la he añadido aquí para que funcione el contextInfo)
+const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
+const packname = '˚🄴🄻🄼🄴🄽-🄹🄾🄴-🄱🄾🅃';
+const redes = 'https://github.com/nevi-dev';
 
-// --- Global variable for repository info (customize this!) ---
+// --- Global variable for repository info ---
 const GITHUB_REPO_OWNER = 'nevi-dev';
-const GITHUB_REPO_NAME = 'Ellen-Joe-Bot-MD-V2';
+const GITHUB_REPO_NAME = 'Ellen-Joe-Bot-MD';
 const GITHUB_BRANCH = 'main';
 
-/**
- * Definición de las agrupaciones lógicas y sus emojis (FINAL).
- * Cambios: EMOX ahora es una categoría separada.
- */
 const CATEGORY_GROUPS = {
-  '👑 OWNER | PROPIETARIO': ['owner'],
-  '🔌 SERBOT | CONEXIÓN REMOTA': ['serbot'],
-  '🔞 NSFW | ADULTO': ['nsfw', '+18'], // EMOX ha sido removido
-  '💖 EMOX | INTERACCIÓN': ['emox'], // CATEGORÍA NUEVA Y SEPARADA
-  '⚔️ RPG | JUEGOS DE ROL': ['rpg'],
-  '📝 RG | REGISTRO': ['rg'],
-  '🎲 GACHA | WAIFUS': ['gacha', 'waifus'], 
-  '🦈 MAIN | PRINCIPAL': ['main'],
-  '⚙️ CONFIGURACIÓN': ['admin', 'mods'],
-  '🛠️ TOOLS | HERRAMIENTAS': ['tools', 'herramientas', 'transformador', 'info', 'economy', 'economia', 'premium', 'bot'],
-  '🧠 AI | INTELIGENCIA ARTIFICIAL': ['ai', 'search'],
-  '🕹️ FUN | DIVERSIÓN Y JUEGOS': ['fun', 'game', 'games'], 
-  '🖼️ PIC | IMÁGENES Y STICKERS': ['image', 'sticker'],
-  '⬇️ DL | DESCARGAS': ['downloads', 'dl', 'buscador', 'internet'],
-  '👥 GRUPO | CHATS': ['group'],
-  '✨ ANIME | MULTIMEDIA': ['anime', 'audio'],
-  '❓ OTROS | COMANDOS VARIOS': ['nable'], 
+  '🦈 VICTORIA HOUSEKEEPING | OWNER': ['owner'],
+  '🔌 CONEXIÓN DE RED | SERBOT': ['serbot'],
+  '🔞 ZONA RESTRINGIDA | NSFW': ['nsfw', '+18'],
+  '💖 INTERACCIÓN EMOX': ['emox'],
+  '⚔️ INCURSIÓN EN CAVIDAD | RPG': ['rpg'],
+  '📝 REGISTRO DE CIUDADANO': ['rg'],
+  '🎲 SINTONIZACIÓN | GACHA': ['gacha', 'waifus'], 
+  '🏙️ NEW ERIDU | PRINCIPAL': ['main'],
+  '⚙️ PROTOCOLO DE ADMIN': ['admin', 'mods'],
+  '🛠️ SOPORTE TÉCNICO | TOOLS': ['tools', 'herramientas', 'transformador', 'info', 'economy', 'economia', 'premium', 'bot'],
+  '🧠 INTELIGENCIA ARTIFICIAL': ['ai', 'search'],
+  '🕹️ ENTRETENIMIENTO | FUN': ['fun', 'game', 'games'], 
+  '🖼️ CONTENIDO VISUAL | PIC': ['image', 'sticker'],
+  '⬇️ DESCARGAS | DOWNLOADS': ['downloads', 'dl', 'buscador', 'internet'],
+  '👥 GESTIÓN DE FACCIÓN | GRUPOS': ['group'],
+  '✨ ARCHIVOS MULTIMEDIA': ['anime', 'audio'],
+  '❓ OTROS SECTORES': ['nable'], 
 };
 
-// Mapeo para asignar tags individuales a los grupos lógicos
 const TAG_TO_GROUP = {};
 for (const [groupName, tags] of Object.entries(CATEGORY_GROUPS)) {
-  for (const tag of tags) {
-    TAG_TO_GROUP[tag] = groupName;
-  }
+  for (const tag of tags) { TAG_TO_GROUP[tag] = groupName; }
 }
 
-
-// Función principal del handler
 let handler = async (m, { conn, usedPrefix, text }) => {
-  // --- 1. Lectura de la base de datos de medios ---
   let enlacesMultimedia;
   try {
     const dbPath = path.join(process.cwd(), 'src', 'database', 'db.json');
-    const dbRaw = fs.readFileSync(dbPath);
-    enlacesMultimedia = JSON.parse(dbRaw).links;
+    enlacesMultimedia = JSON.parse(fs.readFileSync(dbPath)).links;
   } catch (e) {
-    console.error("Error al leer o parsear src/database/db.json:", e);
-    return conn.reply(m.chat, 'Error al leer la base de datos de medios.', m);
+    return conn.reply(m.chat, 'Error al leer la base de datos.', m);
   }
 
-  if (m.quoted?.id && m.quoted?.fromMe) return;
-
-  // --- 3. Obtener nombre del usuario ---
-  let nombre;
-  try {
-    nombre = await conn.getName(m.sender);
-  } catch {
-    nombre = 'Usuario';
-  }
+  let nombre = await conn.getName(m.sender);
   const horaSantoDomingo = moment().tz("America/Santo_Domingo").format('h:mm A');
 
-  // --- 4. Recopilar información y construir el menú (Datos Estáticos) ---
+  // Datos del Bot
   const esPrincipal = conn.user.jid === global.conn.user.jid;
   const numeroPrincipal = global.conn?.user?.jid?.split('@')[0] || "Desconocido";
   const totalComandos = Object.keys(global.plugins || {}).length;
@@ -86,22 +61,16 @@ let handler = async (m, { conn, usedPrefix, text }) => {
   const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
   const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
 
-  // --- 5. Lógica de Paginación y Agrupación ---
+  // Paginación
   const CATEGORIES_PER_PAGE = 3;
-
-  // 5.1. Recopilar Comandos por Grupo Lógico
   let comandosPorGrupo = {};
   for (let plugin of Object.values(global.plugins || {})) {
     if (!plugin.help || !plugin.tags) continue;
-    
     const tagsArray = Array.isArray(plugin.tags) ? plugin.tags : [plugin.tags];
-
     for (let tag of tagsArray) {
-      const groupName = TAG_TO_GROUP[tag] || '❓ OTROS | COMANDOS VARIOS';
+      const groupName = TAG_TO_GROUP[tag] || '❓ OTROS SECTORES';
       if (!comandosPorGrupo[groupName]) comandosPorGrupo[groupName] = new Set();
-      
       const helpArray = Array.isArray(plugin.help) ? plugin.help : [plugin.help];
-
       for (let help of helpArray) {
         if (/^\$|^=>|^>/.test(help)) continue;
         comandosPorGrupo[groupName].add(`${usedPrefix}${help}`);
@@ -109,140 +78,85 @@ let handler = async (m, { conn, usedPrefix, text }) => {
     }
   }
 
-  // Convertir Sets a Arrays y ordenar
   for (let groupName in comandosPorGrupo) {
-    comandosPorGrupo[groupName] = Array.from(comandosPorGrupo[groupName]).sort((a, b) => a.localeCompare(b));
+    comandosPorGrupo[groupName] = Array.from(comandosPorGrupo[groupName]).sort();
   }
 
-  // 5.2. Crear el listado de todos los nombres de grupos ordenados
   const allGroupNames = Object.keys(comandosPorGrupo).sort();
-  
   const totalPaginas = Math.ceil(allGroupNames.length / CATEGORIES_PER_PAGE);
   let paginaActual = 1;
-  
   const match = text.match(/pagina (\d+)/i);
   if (match) {
     const requestedPage = parseInt(match[1]);
-    if (requestedPage >= 1 && requestedPage <= totalPaginas) {
-      paginaActual = requestedPage;
-    }
+    if (requestedPage >= 1 && requestedPage <= totalPaginas) paginaActual = requestedPage;
   }
 
   const startIndex = (paginaActual - 1) * CATEGORIES_PER_PAGE;
-  const endIndex = startIndex + CATEGORIES_PER_PAGE;
-  const gruposPagina = allGroupNames.slice(startIndex, endIndex);
+  const gruposPagina = allGroupNames.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
 
-  // 5.3. Construir la sección de comandos para la página actual con decoración NAVIDEÑA
   const secciones = gruposPagina.map(groupName => {
-    const cmds = comandosPorGrupo[groupName];
-    
-    // Decoración para el título de la categoría (NAVIDEÑA)
-    const title = `\n🎁❄️  **${groupName}**  ❄️🎁\n`;
-    // Decoración para la lista de comandos (NAVIDEÑA)
-    const commandList = cmds.map(cmd => `🎄 ${cmd}`).join('\n');
-    
+    const title = `\n🔷 **${groupName}**\n`;
+    const commandList = comandosPorGrupo[groupName].map(cmd => `  ○ ${cmd}`).join('\n');
     return title + commandList;
   }).join('\n');
 
-  // --- 6. Version Check Logic (Mantener) ---
-  let localVersion = 'N/A';
-  let serverVersion = 'N/A';
-  let updateStatus = 'Desconocido';
-
+  // Versión Check
+  let localVersion = '1.0.0'; 
+  let serverVersion = '1.0.0';
+  let updateStatus = 'Sincronizado';
   try {
-    const packageJsonPath = path.join(process.cwd(), 'package.json');
-    const packageJsonRaw = fs.readFileSync(packageJsonPath, 'utf8');
-    const packageJson = JSON.parse(packageJsonRaw);
-    localVersion = packageJson.version || 'N/A';
-  } catch (error) {
-    localVersion = 'Error';
-  }
+    const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
+    localVersion = pkg.version;
+    const res = await axios.get(`https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/${GITHUB_BRANCH}/package.json`);
+    serverVersion = res.data.version;
+    updateStatus = localVersion === serverVersion ? '✅ Operativo' : '⚠️ Actualización disponible';
+  } catch (e) {}
 
-  try {
-    const githubPackageJsonUrl = `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/${GITHUB_BRANCH}/package.json`;
-    const response = await axios.get(githubPackageJsonUrl);
-    const githubPackageJson = response.data;
-    serverVersion = githubPackageJson.version || 'N/A';
-
-    if (localVersion !== 'N/A' && serverVersion !== 'N/A') {
-      if (localVersion === serverVersion) {
-        updateStatus = '✅ En última versión';
-      } else {
-        updateStatus = `⚠️ Actualización disponible. Actualiza con *${usedPrefix}update*`;
-      }
-    }
-  } catch (error) {
-    serverVersion = 'Error';
-    updateStatus = '❌ No se pudo verificar la actualización';
-  }
-  // --- End Version Check Logic ---
-
-  // --- 7. Construir Encabezado y Texto Final con decoración NAVIDEÑA ---
-  // Nuevo separador Navideño
-  const separadorNavidad = '🌟                               🌟';
+  const sep = '——————————————————';
   
   const encabezado = `
-🎅  *«  N A V I D A D    E L L E N - J O E  »*   🎄
-${separadorNavidad}
-| 🧑‍🎄  *Usuario:*           ${nombre}
-| 🎁  *Hora (R.D.):*       ${horaSantoDomingo}
-${separadorNavidad}
-| ❄️  *VERSION DEL BOT*
-|      *Local:*             ${localVersion}
-|      *Servidor:*          ${serverVersion}
-| 🔔  *Estado:*            ${updateStatus}
-${separadorNavidad}
-| 🦌  *Bot:*               ${esPrincipal ? 'Principal' : `Sub-Bot | Principal: wa.me/${numeroPrincipal}`}
-| ☃️  *Comandos Totales:*   ${totalComandos}
-| 🕯️  *Tiempo Activo:*      ${tiempoActividad}
-| 🏡  *Usuarios Reg:*      ${totalRegistros}
-${separadorNavidad}
-📜  *PÁGINA ${paginaActual} / ${totalPaginas}*   📜
-${separadorNavidad}`.trim();
+🦈 **𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄 | 𝐒𝐄𝐑𝐕𝐈𝐂𝐄 𝐌𝐄𝐍𝐔**
+${sep}
+*— (Bostezo)... Bienvenid@ a New Eridu.*
+*Dime qué quieres rápido, mi turno termina pronto.*
 
-  const textoFinal = `${encabezado}\n${secciones}\n\n*${packname}*`;
+👤 **Proxy:** ${nombre}
+⌚ **Hora:** ${horaSantoDomingo} (RD)
+${sep}
+⚙️ **𝐒𝐘𝐒𝐓𝐄𝐌 𝐈𝐍𝐅𝐎**
+| 🛠️ **Build:** v${localVersion}
+| 🔔 **Status:** ${updateStatus}
+| ⏳ **Uptime:** ${tiempoActividad}
+| 🏙️ **Usuarios:** ${totalRegistros}
+| 📑 **Comandos:** ${totalComandos}
+${sep}
+📑 **𝐒𝐄𝐂𝐓𝐎𝐑:** ${paginaActual} / ${totalPaginas}
+${sep}`.trim();
 
-  // --- 8. Preparar Botones de Paginación ---
+  const textoFinal = `${encabezado}\n${secciones}\n\n*— No me pidas nada más fuera de mi horario.*\n*${packname}*`;
+
   let botones = [];
   if (paginaActual > 1) {
-    botones.push({
-      buttonId: `${usedPrefix}menu pagina ${paginaActual - 1}`,
-      buttonText: { displayText: '« PÁGINA ANTERIOR ⬅️' }, // Botón Navideño
-      type: 1
-    });
+    botones.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual - 1}`, buttonText: { displayText: '⬅️ ANTERIOR' }, type: 1 });
   }
   if (paginaActual < totalPaginas) {
-    botones.push({
-      buttonId: `${usedPrefix}menu pagina ${paginaActual + 1}`,
-      buttonText: { displayText: 'PÁGINA SIGUIENTE ➡️' }, // Botón Navideño
-      type: 1
-    });
+    botones.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual + 1}`, buttonText: { displayText: 'SIGUIENTE ➡️' }, type: 1 });
   }
 
-  // --- 9. Enviar el mensaje con botones ---
-
-  // 9.1. Descargar y preparar el video/gif como Buffer
   let videoBuffer;
   try {
     const response = await fetch(videoGifURL);
     videoBuffer = await response.buffer();
-  } catch (e) {
-    console.error("Error al descargar el video/gif:", e);
-    // Si falla, se envía como solo texto.
-  }
-  
+  } catch (e) {}
+
   const contextInfo = {
     mentionedJid: [m.sender],
     isForwarded: true,
     forwardingScore: 999,
-    forwardedNewsletterMessageInfo: {
-      newsletterJid,
-      newsletterName,
-      serverMessageId: -1
-    },
+    forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
     externalAdReply: {
-      title: packname,
-      body: `Página ${paginaActual} de ${totalPaginas} | ☃️ Menú Navideño`,
+      title: '𝐕𝐈𝐂𝐓𝐎𝐑𝐈𝐀 𝐇𝐎𝐔𝐒𝐄𝐊𝐄𝐄𝐏𝐈𝐍𝐆 𝐂𝐎.',
+      body: `Página ${paginaActual} de ${totalPaginas} | Shark Service`,
       thumbnailUrl: miniaturaRandom,
       sourceUrl: redes,
       mediaType: 1,
@@ -250,42 +164,18 @@ ${separadorNavidad}`.trim();
     }
   };
 
-  let msgEnviado;
-  
-  if (videoBuffer && botones.length > 0) {
-    try {
-      // Usar sendMessage con botones
-      msgEnviado = await conn.sendMessage(m.chat, { // Usar m.chat para el ID del chat
-        video: videoBuffer,
-        gifPlayback: true,
-        caption: textoFinal,
-        buttons: botones,
-        headerType: 5,
-        contextInfo
-      }, { quoted: m });
-    } catch (e) {
-      console.error("Error al enviar el menú con video y botones:", e);
-      // Fallback a solo texto/video sin botones si falla el envío del mensaje con botones
-      msgEnviado = await conn.sendMessage(m.chat, {
-        video: videoBuffer,
-        gifPlayback: true,
-        caption: textoFinal,
-        contextInfo
-      }, { quoted: m });
-    }
-  } else if (videoBuffer) {
-    // Fallback a solo video (si no hay botones - solo 1 página)
-    msgEnviado = await conn.sendMessage(m.chat, {
+  if (videoBuffer) {
+    await conn.sendMessage(m.chat, {
       video: videoBuffer,
       gifPlayback: true,
       caption: textoFinal,
+      buttons: botones.length > 0 ? botones : undefined,
+      headerType: 5,
       contextInfo
     }, { quoted: m });
   } else {
-    // Último fallback a solo texto
-    msgEnviado = await conn.reply(m.chat, textoFinal, m, { contextInfo });
+    await conn.reply(m.chat, textoFinal, m, { contextInfo });
   }
-
 };
 
 handler.help = ['menu'];
