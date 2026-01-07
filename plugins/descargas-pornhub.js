@@ -28,7 +28,7 @@ let handler = async (m, { conn, args }) => {
     }
 
     // --- OBTENEMOS EL LINK DE DESCARGA DE LA API ---
-    const apiUrl = `https://api-causas.duckdns.org/api/v1/nsfw/descargas/pornhub?url=${encodeURIComponent(targetUrl)}&apikey=causa-ca764667eaad6318`;
+    const apiUrl = `https://api-causas.duckdns.org/api/v1/nsfw/descargas/pornhub?url=${encodeURIComponent(targetUrl)}&apikey=causa-7c134894eacc45d7`;
     const { data } = await axios.get(apiUrl);
 
     if (data.status && data.data) {
