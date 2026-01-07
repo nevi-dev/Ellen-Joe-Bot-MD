@@ -9,8 +9,8 @@ let staff = `ᥫ᭡ *EQUIPO DE AYUDANTES* ❀
 await conn.sendFile(m.chat, icons, 'Ellen.jpg', staff.trim(), fkontak)
 }
   
-handler.help = ['prueba']
-handler.command = ['prueba']
+handler.help = ['staff']
+handler.command = ['staff']
 handler.register = true
 handler.tags = ['main']
 
