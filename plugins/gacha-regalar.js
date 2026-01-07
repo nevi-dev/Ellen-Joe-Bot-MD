@@ -39,32 +39,41 @@ async function saveHarem(harem) {
 
 let handler = async (m, { conn, args }) => {
     const userId = m.sender
-
-    if (args.length < 2) {
-        await conn.reply(m.chat, '《✧》Debes especificar el nombre del personaje y mencionar a quien quieras regalarlo.', m)
-        return
-    }
-
-    const characterName = args.slice(0, -1).join(' ').toLowerCase().trim()
-    let who = m.mentionedJid[0]
+    
+    // CAMBIO: Ahora detecta si se está respondiendo a un mensaje
+    let who = m.quoted ? m.quoted.sender : (m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : null)
 
     if (!who) {
-        await conn.reply(m.chat, '《✧》Debes mencionar a un usuario válido.', m)
-        return
+        return await conn.reply(m.chat, `*— (Bostezo)*... Responde al mensaje de alguien para regalarle algo. No voy a andar buscando a quién te refieres.`, m)
     }
+
+    if (!args[0]) {
+        return await conn.reply(m.chat, `*— Oye...* Dime el nombre de la waifu que quieres regalar. No puedo leer tu mente, qué pereza.`, m)
+    }
+
+    const characterName = args.join(' ').toLowerCase().trim()
 
     try {
         const characters = await loadCharacters()
-        const character = characters.find(c => c.name.toLowerCase() === characterName && c.user === userId)
+        const targetIndex = characters.findIndex(c => c.name.toLowerCase() === characterName && c.user === userId)
+        const character = characters[targetIndex]
 
         if (!character) {
-            await conn.reply(m.chat, `《✧》*${characterName}* no está reclamado por ti.`, m)
-            return
+            return await conn.reply(m.chat, `*— ¿Eh?* Esa waifu no es tuya o ni siquiera existe. No intentes regalar cosas que no posees, es vergonzoso.`, m)
         }
 
-        character.user = who
+        if (who === userId) {
+            return await conn.reply(m.chat, `*— ¿Auto-regalo?* Qué pérdida de tiempo... Quédate con ella y déjame descansar.`, m)
+        }
+
+        // Transferencia de dueño
+        characters[targetIndex].user = who
+        // Limpiar protección si tenía (nuevo dueño, nuevas reglas)
+        delete characters[targetIndex].protectionUntil 
+        
         await saveCharacters(characters)
 
+        // Actualizar Harem
         const harem = await loadHarem()
         const userEntryIndex = harem.findIndex(entry => entry.userId === who)
 
@@ -72,24 +81,24 @@ let handler = async (m, { conn, args }) => {
             harem[userEntryIndex].characterId = character.id
             harem[userEntryIndex].lastClaimTime = Date.now()
         } else {
-            const userEntry = {
+            harem.push({
                 userId: who,
                 characterId: character.id,
                 lastClaimTime: Date.now()
-            }
-            harem.push(userEntry)
+            })
         }
 
         await saveHarem(harem)
 
-        await conn.reply(m.chat, `✰ *${character.name}* ha sido regalado a @${who.split('@')[0]}!`, m, { mentions: [who] })
+        await conn.reply(m.chat, `🦈 **Transferencia Completada**\n\n*— Bien, trato hecho.* He enviado a **${character.name}** con @${who.split('@')[0]}. Espero que la cuides mejor que este tipo... o no, me da igual.\n\n*— Mi trabajo aquí terminó. Me voy a comer algo dulce.*`, m, { mentions: [who] })
+
     } catch (error) {
-        await conn.reply(m.chat, `✘ Error al regalar el personaje: ${error.message}`, m)
+        await conn.reply(m.chat, `*— Tsk, algo se rompió:* ${error.message}. Qué molesto es esto.`, m)
     }
 }
 
-handler.help = ['regalar <nombre del personaje> @usuario']
-handler.tags = ['anime']
+handler.help = ['regalar <nombre> (responder mensaje)']
+handler.tags = ['gacha']
 handler.command = ['regalar', 'givewaifu', 'givechar']
 handler.group = true
 
