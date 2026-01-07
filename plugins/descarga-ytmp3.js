@@ -9,16 +9,16 @@ import { ytmp3 } from '../lib/ytscraper.js';
 
 // --- Constantes y Configuración ---
 const NEVI_API_KEY = 'ellen';
-const SIZE_LIMIT_MB = 100; // Define el límite para enviar como documento
+const SIZE_LIMIT_MB = 100; 
 
 const newsletterJid = '120363418071540900@newsletter';
-const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏᴇ\'s 𝐒ervice';
+const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 
 var handler = async (m, { conn, args, usedPrefix, command }) => {
     const name = conn.getName(m.sender);
     const url = args[0];
 
-    // Context Info (Ellen Joe - Navidad)
+    // Context Info (Ellen Joe - Victoria Housekeeping)
     const contextInfo = {
         mentionedJid: [m.sender],
         isForwarded: true,
@@ -29,8 +29,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
             serverMessageId: -1
         },
         externalAdReply: {
-            title: '🖤 ⏤͟͟͞͞𝙀𝙇𝙇𝙀𝙉 - 𝘽𝙊𝙏 ᨶ႒ᩚ',
-            body: `✦ ¡Dame tu lista de deseos, ${name}! No demores en el Polo Norte. 🎁`, 
+            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+            body: `✦ ¿Otra vez tú, ${name}? Ya estoy trabajando...`, 
             thumbnail: global.icons, 
             sourceUrl: global.redes, 
             mediaType: 1,
@@ -38,11 +38,11 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
         }
     };
 
-    // 1. Initial Check (Ellen Joe Navidad)
+    // 1. Initial Check (Ellen Joe Style)
     if (!url) {
         return conn.reply(
             m.chat,
-            `🦈 *¡Qué impaciente!* Necesito el enlace del "regalo" que quieres. ¡No adivino tu lista de deseos, o te envío carbón!\n\n_Ejemplo: ${usedPrefix + command} https://youtu.be/VillancicoFavorito`,
+            `🦈 *— (Bostezo)*... ¿Me despiertas para nada? Dame un enlace de YouTube o vuelve a dormir.\n\n_Uso: ${usedPrefix + command} https://youtu.be/video_`,
             m,
             { contextInfo, quoted: m }
         );
@@ -50,7 +50,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
 
     await conn.reply(
         m.chat,
-        `Procesando tu capricho. Estoy preparando el paquete de audio. Si tarda, es porque tu deseo era de calidad y no una baratija. 🎄`,
+        `✦ *Procesando...* Estoy extrayendo el audio. Si tardo un poco es porque mi turno está por terminar. No me presiones.`,
         m,
         { contextInfo, quoted: m }
     );
@@ -58,7 +58,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
 
     let finalDownloadUrl, finalTitle;
 
-    // Función de envío centralizada (Ellen Joe - Navidad)
+    // Función de envío centralizada
     const sendAudio = async (downloadUrl, title) => {
         try {
             await m.react("📥");
@@ -71,8 +71,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     document: { url: downloadUrl },
                     fileName: `${title}.mp3`,
                     mimetype: 'audio/mpeg',
-                    caption: `🎁 *¡Vaya paquete!* (${fileSizeMb.toFixed(2)} MB). Es demasiado grande para el trineo, lo envío como documento. ¡Paciencia!
-                    🖤 *Regalo:* ${title}`
+                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nEl archivo excede el límite de carga directa, así que lo envío como documento. Ten más cuidado la próxima vez.\n\n🎵 *Archivo:* ${title}`
                 }, { quoted: m });
                 await m.react("📄");
             } else {
@@ -80,33 +79,30 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     audio: { url: downloadUrl }, 
                     mimetype: 'audio/mpeg', 
                     fileName: `${title}.mp3`,
-                    caption: `*¡Villancico entregado!* 🎄
-                    🎵 *Título:* ${title}`,
+                    caption: `🦈 *Aquí tienes tu pedido.* 🎧\n\n🎵 *Título:* ${title}\n✦ *Servicio:* Victoria Housekeeping`,
                 }, { quoted: m });
-                await m.react("🎧");
+                await m.react("✅");
             }
         } catch (error) {
-            console.error("Error al obtener el tamaño del archivo o al enviarlo:", error);
-            // Fallback error si el envío falla
-            throw new Error(`Hubo un error al envolver tu "regalo" (falló el envío).`);
+            console.error("Error al enviar audio:", error);
+            throw new Error(`Hubo un fallo en la entrega. Mi guadaña no pudo cortar este enlace.`);
         }
     };
     
-    // --- TIER 1: YTSCRAPER (PRIMARIO) ---
+    // --- TIER 1: YTSCRAPER ---
     try {
         const scraperResult = await ytmp3(url);
-
         if (scraperResult?.status && scraperResult.download?.url) {
             finalDownloadUrl = scraperResult.download.url;
-            finalTitle = scraperResult.metadata?.title || 'Villancico Desconocido (Tier 1)';
+            finalTitle = scraperResult.metadata?.title || 'Audio Extrayendo...';
             await sendAudio(finalDownloadUrl, finalTitle);
             return;
         }
-        throw new Error('Tier 1 falló: Enlace no generado.');
+        throw new Error('Tier 1 falló');
     } catch (e1) {
-        console.error("Error en Tier 1 (ytscraper):", e1.message);
+        console.error("Error en Tier 1:", e1.message);
 
-        // --- TIER 2: NEVI API (RESPALDO 1) ---
+        // --- TIER 2: NEVI API ---
         try {
             const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
             const res = await fetch(neviApiUrl, {
@@ -119,18 +115,17 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
             });
 
             const json = await res.json();
-            
             if (json.status === "success" && json.download_link) {
                 finalDownloadUrl = json.download_link;
-                finalTitle = json.title || 'Villancico Respaldo (Tier 2)';
+                finalTitle = json.title || 'Audio Pedido';
                 await sendAudio(finalDownloadUrl, finalTitle);
                 return;
             }
-            throw new Error(json.message || "NEVI API falló.");
+            throw new Error(json.message || "NEVI API falló");
         } catch (e2) {
-            console.error("Error en Tier 2 (NEVI API):", e2.message);
+            console.error("Error en Tier 2:", e2.message);
 
-            // --- TIER 3: OGMP3/YOUTUBEDL (RESPALDO 2/LOCAL) ---
+            // --- TIER 3: OGMP3/LOCAL ---
             try {
                 const tempDir = path.join(process.cwd(), './tmp');
                 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -142,43 +137,33 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     const stats = fs.statSync(tempFilePath);
                     const fileSizeMb = stats.size / (1024 * 1024);
                     const fileBuffer = fs.readFileSync(tempFilePath);
-
-                    finalTitle = downloadResult.result.title || 'Regalo Local (Tier 3)';
+                    finalTitle = downloadResult.result.title || 'Audio de Cavidad';
                     
-                    // Send logic for TIER 3 (Buffer)
                     if (fileSizeMb > SIZE_LIMIT_MB) {
                         await conn.sendMessage(m.chat, {
                             document: fileBuffer,
                             fileName: `${finalTitle}.mp3`,
                             mimetype: 'audio/mpeg',
-                            caption: `🎁 *¡Vaya paquete!* (${fileSizeMb.toFixed(2)} MB). Es demasiado grande para el trineo, lo envío como documento. ¡Paciencia!
-                            🖤 *Regalo:* ${finalTitle}`
+                            caption: `🦈 *Pesado...* (${fileSizeMb.toFixed(2)} MB). Va como documento.\n\n🎵 *Archivo:* ${finalTitle}`
                         }, { quoted: m });
-                        await m.react("📄");
                     } else {
                         await conn.sendMessage(m.chat, { 
                             audio: fileBuffer, 
                             mimetype: 'audio/mpeg', 
-                            fileName: `${finalTitle}.mp3`,
-                            caption: `*¡Villancico entregado!* 🎄
-                            🎵 *Título:* ${finalTitle}`,
+                            fileName: `${finalTitle}.mp3`
                         }, { quoted: m });
-                        await m.react("🎧");
                     }
                     
                     fs.unlinkSync(tempFilePath);
-                    return; // Success, exit handler
+                    await m.react("✅");
+                    return;
                 }
-                throw new Error("ogmp3 no pudo descargar el archivo.");
+                throw new Error("Tier 3 falló.");
 
             } catch (e3) {
-                console.error("Error en Tier 3 (ogmp3/youtubedl):", e3.message);
-                
-                // Falla definitiva (Ellen Joe Navidad)
-                await conn.reply(m.chat, `💔 *Fallé, pero tú más.*
-Tu "lista de deseos" resultó ser una mala inversión. ¡No pude entregarte el regalo de audio! ¡Carbón para ti! 🎄`, m, { contextInfo });
+                console.error("Error en Tier 3:", e3.message);
+                await conn.reply(m.chat, `🦈 *Tsk...* El sistema de extracción falló. El enlace es defectuoso o los Etéreos han interferido en la red. Inténtalo más tarde.`, m, { contextInfo });
                 await m.react("❌");
-                return;
             }
         }
     }
