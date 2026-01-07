@@ -1,187 +1,116 @@
 import fetch from 'node-fetch';
-import { Buffer } from 'buffer';
-import fs from 'fs/promises';
-import path from 'path';
 
-// --- CONFIGURACIÓN Y CONSTANTES ---
-const moneda = global.moneda || 'Deniques'; // Moneda local
-const emoji = '✅';
-const emoji2 = '❌';
-const emojiWait = '⏳'; // Usado para transferencias pendientes
-
-// =========================================================================
-// === FUNCIONES DE SOPORTE BÁSICAS ===
-// =========================================================================
-
-function isNumber(x) {
-    return !isNaN(x);
-}
-
-// =========================================================================
-// === FUNCIONES DE ENVÍO DE MENSAJES ===
-// =========================================================================
-
-/** Envía el mensaje de ayuda (mejor estética). */
-function sendHelpMessage(conn, m, usedPrefix, command) {
-    const helpMessage = `
-${emoji} *— Billetera y Transferencias —*
-
-*Uso:* ${usedPrefix}${command} <cantidad> @mencion
-
-> Ejemplo: ${usedPrefix}${command} 500 @user
-
-*Nota:* Las transferencias se realizan de tu *Banco* al *Banco* del destinatario.
-`.trim();
-    return conn.sendMessage(m.chat, { text: helpMessage, mentions: [m.sender] }, { quoted: m });
-}
-
-/** Envía el mensaje de confirmación de transferencia. */
-function sendTransferConfirmationMessage(conn, m, amount, newSenderBankBalance, who) {
-    const mentionText = `@${who.split('@')[0]}`;
-    const message = `
-${emoji} *¡Transferencia Exitosa!*
- 
-*Monto Transferido:* *${amount} ${moneda}*
-*Destinatario:* ${mentionText} (Recibido en su Banco)
- 
-${emoji} *Tu Nuevo Balance en Banco:* ${newSenderBankBalance} ${moneda}
-`.trim();
-    return conn.sendMessage(m.chat, { text: message, mentions: [who] }, { quoted: m });
-}
-
-
-// =========================================================================
-// === FUNCIÓN PRINCIPAL DEL HANDLER ===
-// =========================================================================
+// Configuración del Newsletter/Canal
+const newsletterJid = '120363418071540900@newsletter';
+const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
 async function handler(m, { conn, args, usedPrefix, command }) {
-    if (!m || !m.sender) {
-        return;
-    }
+    const user = global.db.data.users[m.sender];
+    const name = conn.getName(m.sender);
+    const bankType = 'bank'; 
+    const txState = 'pendingLocalTx'; 
 
-    const user = global.db.data.users[m.sender];
-    const bankType = 'bank'; // Balance de origen y destino
-    const txState = 'pendingLocalTx'; // Clave para guardar la transacción pendiente
-    
-    let amount, recipientJid, isConfirmation = false;
-    
-    // --- 1. PROCESAR ARGUMENTOS (Comando Inicial o Confirmación) ---
+    // ContextInfo estético
+    const contextInfo = {
+        mentionedJid: [m.sender],
+        isForwarded: true,
+        forwardingScore: 999,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid,
+            newsletterName,
+            serverMessageId: -1
+        },
+        externalAdReply: {
+            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+            body: `— Gestión de Fondos para ${name}`,
+            thumbnail: icons, 
+            sourceUrl: redes,
+            mediaType: 1,
+            renderLargerThumbnail: false
+        }
+    };
 
-    if (args.length === 3 && (args[0] === 'CONFIRM' || args[0] === 'CANCEL') && isNumber(args[1])) {
-        // Formato: .transferir CONFIRM <amount> <recipientJid>
-        isConfirmation = true;
-        const action = args[0]; // CONFIRM o CANCEL
-        amount = parseInt(args[1]);
-        recipientJid = args[2].trim();
-        
-        // Verifica que la transacción pendiente guardada coincida
-        const pendingTx = user[txState];
-        if (!pendingTx || pendingTx.amount !== amount || pendingTx.recipient !== recipientJid) {
-            user[txState] = null; // Limpia el estado
-            return m.reply(`${emoji2} La confirmación no coincide con la última transferencia pendiente. Intenta de nuevo.`);
-        }
+    // --- 1. DETECTAR DESTINATARIO Y MONTO ---
+    let who = m.quoted ? m.quoted.sender : (m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : null);
+    let amount;
 
-        // Si es CANCEL, borra y notifica
-        if (action === 'CANCEL') {
-            user[txState] = null; // Elimina el estado pendiente
-            return m.reply(`${emoji2} Transferencia a @${recipientJid.split('@')[0]} por ${amount} ${moneda} *cancelada*.`, null, { mentions: [recipientJid] });
-        }
-        // Si es CONFIRM, continúa la ejecución.
-    }
-    // Comando inicial de transferencia
-    else if (args.length >= 2) {
-        amount = isNumber(args[0]) ? parseInt(args[0]) : 0;
-        
-        // Obtener el JID del destinatario (mención o argumento)
-        recipientJid = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : (args[1].replace(/[@ .+-]/g, '') + '@s.whatsapp.net');
-    } else {
-        // Uso incorrecto - Muestra ayuda
-        return sendHelpMessage(conn, m, usedPrefix, command);
-    }
+    // Lógica para procesar CONFIRM/CANCEL de los botones
+    let isConfirmation = false;
+    if (args[0] === 'CONFIRM' || args[0] === 'CANCEL') {
+        isConfirmation = true;
+        const action = args[0];
+        amount = parseInt(args[1]);
+        who = args[2];
 
-    // --- 2. VALIDACIONES GLOBALES ---
-    
-    amount = Math.min(Number.MAX_SAFE_INTEGER, Math.max(100, amount)) * 1;
+        const pendingTx = user[txState];
+        if (!pendingTx || pendingTx.amount !== amount || pendingTx.recipient !== who) {
+            user[txState] = null;
+            return conn.reply(m.chat, `*— Tsk.* Esa transferencia ya no es válida o expiró. Inténtalo de nuevo.`, m, { contextInfo });
+        }
 
-    if (amount <= 0 || !isNumber(amount)) {
-        return m.reply(`${emoji2} La cantidad a transferir debe ser un número positivo (mínimo 100 ${moneda}).`);
-    }
-    
-    // A. Balance
-    if (user[bankType] * 1 < amount) {
-        return conn.sendMessage(m.chat, {text: `${emoji2} Solo tienes *${user[bankType]} ${moneda}* en el banco para transferir.`, mentions: [m.sender]}, {quoted: m});
-    }
+        if (action === 'CANCEL') {
+            user[txState] = null;
+            return conn.reply(m.chat, `*— Bien.* He cancelado el envío de **${amount} ${moneda}**. Me vuelvo a mi descanso.`, m, { contextInfo });
+        }
+    } else {
+        // Comando normal: .transferir <monto> (respondiendo o mencionando)
+        amount = parseInt(args[0]);
+    }
 
-    // B. Existencia del Destinatario
-    if (!recipientJid || !(recipientJid in global.db.data.users)) {
-        const recipientDisplay = recipientJid ? recipientJid.split('@')[0] : 'mencionado';
-        return conn.sendMessage(m.chat, {text: `${emoji2} El usuario *${recipientDisplay}* no está en la base de datos. Pídele que se registre.`, mentions: [m.sender]}, {quoted: m});
-    }
+    if (!who) return conn.reply(m.chat, `*— (Bostezo)*... Responde a alguien o menciónalo para enviarle dinero. No voy a adivinar a quién.`, m, { contextInfo });
+    if (!amount || isNaN(amount) || amount < 100) return conn.reply(m.chat, `*— Oye...* Dime una cantidad válida (mínimo 100 ${moneda}). No me hagas trabajar por nada.`, m, { contextInfo });
 
-    // C. Evitar autotransferencias
-    if (recipientJid === m.sender) {
-        return m.reply(`${emoji2} ¿Intentas enviarte dinero a ti mismo? ¡Hazlo por la cartera!`);
-    }
-    
-    // D. Bloqueo por Pendiente (si ya hay una tx pendiente y no es confirmación)
-    if (user[txState] && !isConfirmation) {
-         return m.reply(`${emojiWait} Ya tienes una transferencia pendiente de confirmación a @${user[txState].recipient.split('@')[0]} por *${user[txState].amount} ${moneda}*. Responde al mensaje anterior o usa ${usedPrefix + command} CANCEL.`, null, { mentions: [user[txState].recipient] });
-    }
+    // --- 2. VALIDACIONES ---
+    if (user[bankType] < amount) {
+        return conn.reply(m.chat, `*— Tsk.* No tienes suficiente en el banco. Tu saldo es de **${user[bankType]} ${moneda}**. Vuelve cuando seas rico.`, m, { contextInfo });
+    }
 
+    if (who === m.sender) {
+        return conn.reply(m.chat, `*— ¿En serio?* No puedes enviarte dinero a ti mismo. Qué pérdida de tiempo.`, m, { contextInfo });
+    }
 
-    // --- 3. LÓGICA DE CONFIRMACIÓN O EJECUCIÓN ---
+    if (!(who in global.db.data.users)) {
+        return conn.reply(m.chat, `*— ¿Eh?* Ese usuario no está en mis registros. Qué problemático.`, m, { contextInfo });
+    }
 
-    if (!isConfirmation) {
-        // Pide Confirmación (Guarda el estado y envía botones)
+    // --- 3. PROCESO DE CONFIRMACIÓN ---
+    if (!isConfirmation) {
+        user[txState] = { amount, recipient: who };
 
-        // Guarda el estado de la transacción pendiente
-        user[txState] = { amount, recipient: recipientJid, type: 'local' };
+        const confirmationText = `⚠️ **¿𝐂𝐎𝐍𝐅𝐈𝐑𝐌𝐀𝐒 𝐋𝐀 𝐓𝐑𝐀𝐍𝐒𝐅𝐄𝐑𝐄𝐍𝐂𝐈𝐀?** ⚠️\n\n*— Escucha...* ¿Seguro que quieres enviar **${amount} ${moneda}** a @${who.split('@')[0]}?\n\n*El dinero se descontará de tu banco inmediatamente.*`;
 
-        const buttons = [
-            // Los botones envían el comando completo de confirmación (CONFIRM/CANCEL <amount> <recipientJid>)
-            {buttonId: `${usedPrefix + command} CONFIRM ${amount} ${recipientJid}`, buttonText: {displayText: '✅ SÍ, CONFIRMO'}, type: 1},
-            {buttonId: `${usedPrefix + command} CANCEL ${amount} ${recipientJid}`, buttonText: {displayText: '❌ NO, CANCELAR'}, type: 1}
-        ];
+        // Botones (usando comandos ocultos)
+        const buttons = [
+            { buttonId: `${usedPrefix + command} CONFIRM ${amount} ${who}`, buttonText: { displayText: '✅ SÍ, ENVIAR' }, type: 1 },
+            { buttonId: `${usedPrefix + command} CANCEL ${amount} ${who}`, buttonText: { displayText: '❌ NO, CANCELAR' }, type: 1 }
+        ];
 
-        const recipientDisplay = `@${recipientJid.split('@')[0]}`;
+        contextInfo.mentionedJid.push(who);
+        return conn.sendMessage(m.chat, { 
+            text: confirmationText, 
+            footer: 'Victoria Housekeeping - Servicio de Fondos',
+            buttons, 
+            headerType: 1,
+            contextInfo 
+        }, { quoted: m });
+    }
 
-        const confirmationMessage = {
-            text: `⚠️ *¿CONFIRMAS ESTA TRANSFERENCIA?* ⚠️\n\n` + 
-                  `*Monto:* *${amount} ${moneda}*\n` +
-                  `*Destino:* ${recipientDisplay} (Su Banco)\n\n` +
-                  `*¡El dinero será restado de tu banco inmediatamente al confirmar!*`,
-            footer: 'Pulsa SÍ para continuar. Pulsa NO para cancelar.',
-            buttons: buttons,
-            headerType: 1
-        };
+    // --- 4. EJECUCIÓN FINAL ---
+    if (isConfirmation) {
+        user[txState] = null;
+        const recipientData = global.db.data.users[who];
 
-        return conn.sendMessage(m.chat, confirmationMessage, { quoted: m, mentions: [m.sender, recipientJid] });
-    }
+        user[bankType] -= amount;
+        recipientData[bankType] = (recipientData[bankType] || 0) + amount;
 
-    // --- 4. EJECUCIÓN FINAL (Si isConfirmation es true) ---
-    if (isConfirmation) {
-            
-        // Limpia el estado pendiente
-        user[txState] = null;
-        
-        // DEDUCCIÓN Y TRANSFERENCIA
-        const recipientData = global.db.data.users[recipientJid];
+        const successMsg = `🦈 **¡𝐓𝐑𝐀𝐍𝐒𝐅𝐄𝐑𝐄𝐍𝐂𝐈𝐀 𝐄𝐗𝐈𝐓𝐎𝐒𝐀!**\n\n*— Trato hecho.* He movido los fondos. @${who.split('@')[0]} ha recibido **${amount} ${moneda}** en su banco.\n\n💰 **Tu saldo actual:** ${user[bankType]} ${moneda}\n\n*— Mi trabajo terminó. No me molestes.*`;
 
-        // Deduce del emisor (Banco)
-        user[bankType] -= amount * 1;
-        
-        // Suma al receptor (Banco)
-        recipientData[bankType] = (recipientData[bankType] || 0) + amount * 1;
-        
-        const newSenderBankBalance = user[bankType];
-        
-        // Envía la confirmación final de éxito
-        return sendTransferConfirmationMessage(conn, m, amount, newSenderBankBalance, recipientJid);
-    }
+        contextInfo.mentionedJid.push(who);
+        return conn.reply(m.chat, successMsg, m, { contextInfo });
+    }
 }
 
-
-handler.help = ['pay', 'transfer'];
+handler.help = ['pay <monto>', 'transferir <monto>'];
 handler.tags = ['rpg'];
 handler.command = ['pay', 'transfer', 'transferir'];
 handler.group = true;
