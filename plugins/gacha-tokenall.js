@@ -9,24 +9,24 @@ let handler = async (m, { conn }) => {
     const now = Date.now()
 
     try {
-        let characters = await JSON.parse(await fs.readFile(charactersFilePath, 'utf-8'))
+        let characters = JSON.parse(await fs.readFile(charactersFilePath, 'utf-8'))
         
-        // 1. Filtrar solo waifus del usuario que NO tengan protección activa
+        // FILTRAR SOLO WAIFUS SIN PROTECCIÓN ACTIVA
         const toProtect = characters.filter(c => c.user === userId && (!c.protectionUntil || c.protectionUntil < now))
         const charCount = toProtect.length
 
         if (charCount === 0) {
-            return await conn.reply(m.chat, `《✧》No tienes waifus desprotegidas en tu colección.`, m)
+            return await conn.reply(m.chat, `*— (Masticando caramelos)*... Ya todas tus waifus tienen escudo. No me pidas que trabaje si no hay nada que hacer.`, m)
         }
 
         const totalCost = PROTECTION_TOKEN_COST * charCount
         let user = global.db.data.users[userId]
         
         if (!user || (user.coin || 0) < totalCost) {
-            return await conn.reply(m.chat, `❌ **Saldo insuficiente.**\nPara proteger **${charCount}** waifus necesitas **${totalCost.toLocaleString()}** 💰.`, m)
+            return await conn.reply(m.chat, `*— Tsk.* Qué problemático... Quieres proteger a **${charCount}** waifus pero no tienes los **${totalCost.toLocaleString()}** 💰 necesarios. Consigue el dinero y luego hablamos.`, m)
         }
 
-        // 2. Aplicar protección y cobrar
+        // APLICAR PROTECCIÓN Y COBRAR
         characters = characters.map(char => {
             if (char.user === userId && (!char.protectionUntil || char.protectionUntil < now)) {
                 return { ...char, protectionUntil: now + TOKEN_DURATION }
@@ -37,10 +37,10 @@ let handler = async (m, { conn }) => {
         user.coin -= totalCost
         await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2))
 
-        await conn.reply(m.chat, `🛡️ **PROTECCIÓN MASIVA ACTIVADA**\n\nHas protegido **${charCount}** waifus.\n💰 **Total cobrado:** ${totalCost.toLocaleString()} 💰`, m)
+        await conn.reply(m.chat, `🦈 **Servicio Masivo: Victoria Housekeeping**\n\n*— Ugh, qué cansancio...* He terminado de ponerles el escudo a tus **${charCount}** waifus. Espero que esto sea suficiente para que me dejes descansar un rato.\n\n💰 **Tarifa total:** ${totalCost.toLocaleString()} 💰\n📅 **Estado:** Escudos activados por 1 semana.\n\n*— Mi turno terminó. Si necesitas algo más, que sea rápido.*`, m)
 
     } catch (error) {
-        await conn.reply(m.chat, `✘ Error: ${error.message}`, m)
+        await conn.reply(m.chat, `*— Suspiro...* Hubo un error técnico: ${error.message}. Esto arruina mi hora del té.`, m)
     }
 }
 
