@@ -1,80 +1,25 @@
 import { promises as fs } from 'fs'
 
-// --- RUTAS DE ARCHIVOS ---
 const charactersFilePath = './src/database/characters.json'
 const usersFilePath = './src/database/database.json' 
 
-// --- CONSTANTES ACTUALIZADAS ---
-const PROTECTION_TOKEN_COST = 5000 // Costo más caro (5K de coin)
-const TOKEN_DURATION = 7 * 24 * 60 * 60 * 1000 // Duración: Exactamente 1 semana
-
-// ==========================================================
-//                   FUNCIONES INTERNAS DE DB
-// ==========================================================
+const PROTECTION_TOKEN_COST = 5000 
+const TOKEN_DURATION = 5 * 60 * 60 * 1000 
 
 async function loadCharacters() {
-    try {
-        const data = await fs.readFile(charactersFilePath, 'utf-8')
-        return JSON.parse(data)
-    } catch (error) {
-        throw new Error('❀ No se pudo cargar el archivo characters.json.')
-    }
+    const data = await fs.readFile(charactersFilePath, 'utf-8')
+    return JSON.parse(data)
 }
 
 async function saveCharacters(characters) {
-    try {
-        await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
-    } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo characters.json.')
-    }
+    await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
 }
-
-async function loadUsersData() {
-    try {
-        const data = await fs.readFile(usersFilePath, 'utf-8')
-        return JSON.parse(data).users || {} 
-    } catch (error) {
-        console.error('Error al cargar database.json:', error);
-        return {}
-    }
-}
-
-async function saveUsersData(users) {
-    try {
-        const dataToSave = { users: users }; 
-        await fs.writeFile(usersFilePath, JSON.stringify(dataToSave, null, 2), 'utf-8')
-    } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo database.json.')
-    }
-}
-
-async function getUserCoin(userId) {
-    const users = await loadUsersData()
-    return users[userId]?.coin || 0 
-}
-
-async function updateUserCoin(userId, amount) {
-    const users = await loadUsersData()
-    if (!users[userId]) users[userId] = {}
-
-    const currentCoin = users[userId].coin || 0
-    users[userId].coin = currentCoin + amount 
-
-    await saveUsersData(users)
-    return users[userId].coin
-}
-
-// ==========================================================
-//                 HANDLER #COMPRARTOKEN
-// ==========================================================
 
 let handler = async (m, { conn, args }) => {
     const userId = m.sender
     const now = Date.now()
 
-    if (args.length === 0) {
-        return await conn.reply(m.chat, `《✧》Debes proporcionar el ID o el nombre de la waifu que quieres proteger.\nEjemplo: *#comprartoken 113*`, m)
-    }
+    if (args.length === 0) return await conn.reply(m.chat, `《✧》Debes proporcionar el ID o el nombre de la waifu.\nEjemplo: *#comprartoken 113*`, m)
 
     const input = args.join(' ').toLowerCase().trim()
 
@@ -83,44 +28,33 @@ let handler = async (m, { conn, args }) => {
         const targetIndex = characters.findIndex(c => c.id == input || c.name.toLowerCase() === input)
         const targetCharacter = characters[targetIndex]
 
-        if (!targetCharacter) {
-            return await conn.reply(m.chat, `《✧》No se encontró a la waifu *${input}*.`, m)
-        }
+        if (!targetCharacter) return await conn.reply(m.chat, `《✧》No se encontró a la waifu *${input}*.`, m)
 
         // 1. Verificar Posesión
-        if (targetCharacter.user !== userId) {
-            const ownerTag = targetCharacter.user ? `@${targetCharacter.user.split('@')[0]}` : 'nadie'
-            return await conn.reply(m.chat, `《✧》Solo puedes proteger waifus que te pertenezcan. *${targetCharacter.name}* es de ${ownerTag}.`, m, { mentions: targetCharacter.user ? [targetCharacter.user] : [] })
+        if (targetCharacter.user !== userId) return await conn.reply(m.chat, `《✧》Solo puedes proteger waifus que te pertenezcan.`, m)
+
+        // --- CORRECCIÓN: BLOQUEAR SI YA TIENE TOKEN ---
+        if (targetCharacter.protectionUntil && targetCharacter.protectionUntil > now) {
+            return await conn.reply(m.chat, `🛡️ **${targetCharacter.name}** ya tiene un escudo activo. No puedes acumular más protección hasta que este expire.`, m)
         }
 
-        // 2. Verificar Dinero (5,000 monedas)
-        const userCoin = await getUserCoin(userId)
-        if (userCoin < PROTECTION_TOKEN_COST) {
-            return await conn.reply(m.chat, `❌ **Saldo insuficiente.**\n\nEl Token de Protección Semanal cuesta **${PROTECTION_TOKEN_COST.toLocaleString()}** 💰.\nTu saldo actual: **${userCoin.toLocaleString()}** 💰.`, m)
+        // 2. Verificar Dinero (Usando global.db para consistencia)
+        let user = global.db.data.users[userId]
+        if (!user || (user.coin || 0) < PROTECTION_TOKEN_COST) {
+            return await conn.reply(m.chat, `❌ **Saldo insuficiente.** Necesitas **${PROTECTION_TOKEN_COST}** 💰.`, m)
         }
 
-        // 3. Aplicar/Extender Protección
-        // Si ya tiene protección, se le suma la semana a la fecha de expiración actual
-        const currentProtection = targetCharacter.protectionUntil || now
-        const baseTime = currentProtection > now ? currentProtection : now
-        characters[targetIndex].protectionUntil = baseTime + TOKEN_DURATION
-
-        // 4. Deduce el costo y guarda
-        const newCoin = await updateUserCoin(userId, -PROTECTION_TOKEN_COST)
+        // 3. Aplicar Protección y Cobrar
+        characters[targetIndex].protectionUntil = now + TOKEN_DURATION
+        user.coin -= PROTECTION_TOKEN_COST 
+        
         await saveCharacters(characters)
 
-        const expirationDate = new Date(characters[targetIndex].protectionUntil).toLocaleString('es-ES', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-
-        await conn.reply(m.chat, `🛡️ **¡PROTECCIÓN ADQUIRIDA!**\n\nHas protegido a **${targetCharacter.name}** contra intentos de robo.\n\n📅 **Expira el:** ${expirationDate}\n💰 **Costo:** ${PROTECTION_TOKEN_COST.toLocaleString()}\n👛 **Saldo restante:** ${newCoin.toLocaleString()} 💰`, m)
+        const expirationDate = new Date(characters[targetIndex].protectionUntil).toLocaleString('es-ES')
+        await conn.reply(m.chat, `🛡️ **¡PROTECCIÓN ADQUIRIDA!**\n\nHas protegido a **${targetCharacter.name}**.\n📅 **Expira:** ${expirationDate}\n💰 **Costo:** ${PROTECTION_TOKEN_COST}`, m)
 
     } catch (error) {
-        await conn.reply(m.chat, `✘ Error al comprar el token: ${error.message}`, m)
+        await conn.reply(m.chat, `✘ Error: ${error.message}`, m)
     }
 }
 
