@@ -8,7 +8,7 @@ let handler = async (m, { conn }) => {
     let user = global.db.data.users[m.sender];
     let name = conn.getName(m.sender);
 
-    // ContextInfo estético de Ellen Joe
+    // ContextInfo estético de Victoria Housekeeping
     const contextInfo = {
         mentionedJid: [m.sender],
         isForwarded: true,
@@ -20,8 +20,8 @@ let handler = async (m, { conn }) => {
         },
         externalAdReply: {
             title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `— Exploración de Zonas para ${name}`,
-            thumbnail: icons, // Miniatura para el link
+            body: `— Incursión en Cavidad para ${name}`,
+            thumbnail: icons, 
             sourceUrl: redes,
             mediaType: 1,
             renderLargerThumbnail: false
@@ -29,66 +29,78 @@ let handler = async (m, { conn }) => {
     };
 
     if (!user) {
-        return conn.reply(m.chat, `*— ¿Quién eres?* No estás en mi lista. Qué molesto.`, m);
+        return conn.reply(m.chat, `*— ¿Eh?* No estás en mis registros. Qué pérdida de tiempo.`, m);
     }
 
+    // Validación de Salud (Mínimo 80 HP para entrar a la Cavidad)
     if (user.health < 80) {
-        return conn.reply(m.chat, `*— Tsk...* Estás demasiado mal para ir a ningún lado. Tienes **${user.health} HP**. Ve a curarte o déjame dormir.`, m, { contextInfo });
+        return conn.reply(m.chat, `*— Tsk...* El nivel de éter te mataría con esa salud. Tienes **${user.health} HP**. Ve a descansar o usa #heal, no quiero recoger tus restos.`, m, { contextInfo });
     }
 
+    // Cooldown de 25 minutos
     if (user.lastAdventure && new Date() - user.lastAdventure <= 1500000) {
         let timeLeft = 1500000 - (new Date() - user.lastAdventure);
-        return conn.reply(m.chat, `*— (Bostezo)*... Qué pesadez. Te faltan **${msToTime(timeLeft)}** de descanso. No voy a moverme antes.`, m, { contextInfo });
+        return conn.reply(m.chat, `*— (Bostezo)*... Las incursiones agotan. Vuelve en **${msToTime(timeLeft)}**. Estoy en mi descanso y no pienso moverme.`, m, { contextInfo });
     }
 
-    let kingdoms = [
-        'Reino de Eldoria', 'Reino de Drakonia', 'Reino de Arkenland', 
-        'Reino de Valoria', 'Reino de Mystara', 'Reino de Ferelith', 
-        'Reino de Thaloria', 'Reino de Nimboria', 'Reino de Galadorn', 'Reino de Elenaria'
+    // Zonas de Zenless Zone Zero (Cavidades y New Eridu)
+    let hollows = [
+        'Cavidad Zero', 
+        'Sector de Construcción de la Línea 2', 
+        'Distrito de Negocios de la Cavidad 6', 
+        'Zona de Contaminación por Éter: Punto Cero',
+        'Antiguo Almacén de la Guadaña',
+        'Subsuelo de la Plaza de la Perla',
+        'Ruinas del Metro de New Eridu',
+        'Zona Crítica: Hollow 0',
+        'Plaza de la Fuente Abandonada',
+        'Laboratorio de Investigación Etérea'
     ];
 
-    let randomKingdom = pickRandom(kingdoms);
-    let coin = pickRandom([20, 50, 70, 90, 300, 500]);
-    let emerald = pickRandom([1, 5, 8]);
-    let iron = pickRandom([10, 20, 50, 80]);
-    let gold = pickRandom([10, 20, 50, 88]);
-    let coal = pickRandom([50, 100, 500]);
-    let stone = pickRandom([200, 500, 800]);
-    let diamonds = pickRandom([1, 2, 3, 5]);
-    let exp = pickRandom([20, 40, 60, 100]);
+    let randomHollow = pickRandom(hollows);
+    
+    // Recompensas temáticas
+    let coin = pickRandom([100, 200, 300, 500, 800, 1200]); // Dennies
+    let exp = pickRandom([50, 80, 100, 150]); // Experiencia de Proxy
+    let diamonds = pickRandom([1, 2, 3, 5]); // Películas / Cromo
+    let iron = pickRandom([10, 20, 30, 50]); // Chatarra
+    let emerald = pickRandom([1, 2, 4]); // Cristales Etéreos
+    let coal = pickRandom([20, 40, 60, 100]); // Combustible
+    let gold = pickRandom([5, 10, 15, 25]); // Componentes de Motor
 
     // Actualizar datos del usuario
     user.coin += coin;
-    user.emerald += emerald;
-    user.iron += iron;
-    user.gold += gold;
-    user.coal += coal;
-    user.stone += stone;
-    user.diamonds += diamonds;
     user.exp += exp;
-    user.health -= 50;
+    user.diamonds += diamonds;
+    user.iron += iron;
+    user.emerald += emerald;
+    user.coal += coal;
+    user.gold += gold;
+    user.health -= 50; // El desgaste de la cavidad
     user.lastAdventure = new Date();
 
     if (user.health < 0) user.health = 0;
 
-    let info = `🦈 **𝐑𝐄𝐒𝐔𝐌𝐄𝐍 𝐃𝐄 𝐋𝐀 𝐄𝐗𝐏𝐋𝐎𝐑𝐀𝐂𝐈𝐎́𝐍**
-    
-*— Bien, ya volví.* Fuimos al **${randomKingdom}**. Esto es lo que logré rescatar mientras no me quedaba dormida. Espero que te sirva.
+    let info = `🦈 **𝐈𝐍𝐅𝐎𝐑𝐌𝐄 𝐃𝐄 𝐄𝐗𝐓𝐑𝐀𝐂𝐂𝐈𝐎́𝐍: 𝐂𝐀𝐕𝐈𝐃𝐀𝐃**
 
-💰 **${moneda}:** +${coin}
-✨ **Experiencia:** +${exp}
-💎 **Diamantes:** +${diamonds}
-♦️ **Esmeralda:** +${emerald}
-🔩 **Hierro:** +${iron}
-🏅 **Oro:** +${gold}
-🪨 **Piedra/Carbón:** ${stone}/${coal}
+*— Ugh, qué cansancio.* He terminado la incursión en: 
+📍 **${randomHollow}**
 
-❤️ **Salud Actual:** ${user.health} HP
+He recolectado esto entre tanto Eterio suelto... espero que sea suficiente para que me dejes en paz:
 
-*— Ahora me voy a mi descanso, no me busques.*`;
+💸 **Dennies:** +${coin.toLocaleString()}
+✨ **Exp de Proxy:** +${exp}
+💎 **Películas:** +${diamonds}
+♦️ **Cristal Etéreo:** +${emerald}
+🔩 **Chatarra:** +${iron}
+🕋 **Combustible:** +${coal}
+🏅 **Componentes:** +${gold}
 
-    // Usamos conn.sendMessage con la imagen de 'icons' en grande
-    // 'icons' debe ser una URL o Buffer válido según tu configuración global
+❤️ **Resistencia Actual:** ${user.health} HP
+
+*— Mi turno terminó. No me molestes mientras como mi dulce.*`;
+
+    // Enviar mensaje con la imagen de 'icons' en grande
     await conn.sendMessage(m.chat, { 
         image: { url: icons }, 
         caption: info,
@@ -98,7 +110,7 @@ let handler = async (m, { conn }) => {
 
 handler.help = ['aventura'];
 handler.tags = ['rpg'];
-handler.command = ['adventure', 'aventura'];
+handler.command = ['adventure', 'aventura', 'hollow'];
 handler.group = true;
 handler.register = true;
 
