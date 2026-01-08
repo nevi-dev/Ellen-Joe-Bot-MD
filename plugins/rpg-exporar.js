@@ -24,7 +24,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         externalAdReply: {
             title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
             body: `— Patrulla de Distrito para ${name}`,
-            thumbnail: icons, 
+            thumbnail: icons, // Se usa directamente la variable icons
             sourceUrl: redes,
             mediaType: 1,
             renderLargerThumbnail: false
@@ -77,11 +77,11 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
 *— Terminé mi ronda. Me voy a la cocina a buscar algo dulce, no me sigas.*`;
 
-    // Envío con imagen grande de la variable global 'icons'
+    // SOLUCIÓN: Al ser un Buffer, se envía la variable directamente sin { url: ... }
     await conn.sendMessage(m.chat, { 
-        image: { url: icons }, 
-        caption: info,
-        contextInfo
+        image: icons, 
+        caption: info, 
+        contextInfo 
     }, { quoted: m });
 
     global.db.write();
