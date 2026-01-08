@@ -21,7 +21,7 @@ let handler = async (m, { conn }) => {
         externalAdReply: {
             title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
             body: `— Incursión en Cavidad para ${name}`,
-            thumbnail: icons, 
+            thumbnail: icons, // Buffer directo
             sourceUrl: redes,
             mediaType: 1,
             renderLargerThumbnail: false
@@ -33,17 +33,17 @@ let handler = async (m, { conn }) => {
     }
 
     // Validación de Salud (Mínimo 80 HP para entrar a la Cavidad)
-    if (user.health < 80) {
-        return conn.reply(m.chat, `*— Tsk...* El nivel de éter te mataría con esa salud. Tienes **${user.health} HP**. Ve a descansar o usa #heal, no quiero recoger tus restos.`, m, { contextInfo });
+    if ((user.health || 0) < 80) {
+        return conn.reply(m.chat, `*— Tsk...* El nivel de éter te mataría con esa salud. Tienes **${user.health || 0} HP**. Ve a descansar o usa #heal, no quiero recoger tus restos.`, m, { contextInfo });
     }
 
-    // Cooldown de 25 minutos
+    // Cooldown de 25 minutos (1500000 ms)
     if (user.lastAdventure && new Date() - user.lastAdventure <= 1500000) {
         let timeLeft = 1500000 - (new Date() - user.lastAdventure);
         return conn.reply(m.chat, `*— (Bostezo)*... Las incursiones agotan. Vuelve en **${msToTime(timeLeft)}**. Estoy en mi descanso y no pienso moverme.`, m, { contextInfo });
     }
 
-    // Zonas de Zenless Zone Zero (Cavidades y New Eridu)
+    // Zonas de Zenless Zone Zero
     let hollows = [
         'Cavidad Zero', 
         'Sector de Construcción de la Línea 2', 
@@ -60,24 +60,24 @@ let handler = async (m, { conn }) => {
     let randomHollow = pickRandom(hollows);
     
     // Recompensas temáticas
-    let coin = pickRandom([100, 200, 300, 500, 800, 1200]); // Dennies
-    let exp = pickRandom([50, 80, 100, 150]); // Experiencia de Proxy
-    let diamonds = pickRandom([1, 2, 3, 5]); // Películas / Cromo
-    let iron = pickRandom([10, 20, 30, 50]); // Chatarra
-    let emerald = pickRandom([1, 2, 4]); // Cristales Etéreos
-    let coal = pickRandom([20, 40, 60, 100]); // Combustible
-    let gold = pickRandom([5, 10, 15, 25]); // Componentes de Motor
+    let coin = pickRandom([100, 200, 300, 500, 800, 1200]);
+    let exp = pickRandom([50, 80, 100, 150]);
+    let diamonds = pickRandom([1, 2, 3, 5]);
+    let iron = pickRandom([10, 20, 30, 50]);
+    let emerald = pickRandom([1, 2, 4]);
+    let coal = pickRandom([20, 40, 60, 100]);
+    let gold = pickRandom([5, 10, 15, 25]);
 
-    // Actualizar datos del usuario
-    user.coin += coin;
-    user.exp += exp;
-    user.diamonds += diamonds;
-    user.iron += iron;
-    user.emerald += emerald;
-    user.coal += coal;
-    user.gold += gold;
-    user.health -= 50; // El desgaste de la cavidad
-    user.lastAdventure = new Date();
+    // Actualizar datos del usuario con seguridad
+    user.coin = (user.coin || 0) + coin;
+    user.exp = (user.exp || 0) + exp;
+    user.diamonds = (user.diamonds || 0) + diamonds;
+    user.iron = (user.iron || 0) + iron;
+    user.emerald = (user.emerald || 0) + emerald;
+    user.coal = (user.coal || 0) + coal;
+    user.gold = (user.gold || 0) + gold;
+    user.health = (user.health || 100) - 50; 
+    user.lastAdventure = new Date() * 1; // Guardar como timestamp
 
     if (user.health < 0) user.health = 0;
 
@@ -100,12 +100,14 @@ He recolectado esto entre tanto Eterio suelto... espero que sea suficiente para 
 
 *— Mi turno terminó. No me molestes mientras como mi dulce.*`;
 
-    // Enviar mensaje con la imagen de 'icons' en grande
+    // Envío con el Buffer directo para evitar TypeError
     await conn.sendMessage(m.chat, { 
-        image: { url: icons }, 
+        image: icons, 
         caption: info,
         contextInfo
     }, { quoted: m });
+
+    global.db.write();
 };
 
 handler.help = ['aventura'];
