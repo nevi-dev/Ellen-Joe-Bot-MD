@@ -1,71 +1,98 @@
 let cooldowns = {};
 
+// Configuración de Identidad (Newsletter)
+const newsletterJid = '120363418071540900@newsletter';
+const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
+
 let handler = async (m, { conn }) => {
   let users = global.db.data.users;
   let senderId = m.sender;
+  let name = conn.getName(senderId);
 
-  let tiempoEspera = 10 * 60;
+  let tiempoEspera = 10 * 60; // 10 minutos
+
+  // ContextInfo para estética de canal
+  const contextInfo = {
+    mentionedJid: [m.sender],
+    isForwarded: true,
+    forwardingScore: 999,
+    forwardedNewsletterMessageInfo: {
+      newsletterJid,
+      newsletterName,
+      serverMessageId: -1
+    },
+    externalAdReply: {
+      title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+      body: `— Operación en curso para ${name}`,
+      thumbnail: icons, 
+      sourceUrl: redes,
+      mediaType: 1,
+      renderLargerThumbnail: false
+    }
+  };
 
   if (cooldowns[senderId] && Date.now() - cooldowns[senderId] < tiempoEspera * 1000) {
     let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[senderId] + tiempoEspera * 1000 - Date.now()) / 1000));
-    return conn.reply(m.chat, `⏱️ Ya has cazado recientemente. Espera ⏳ *${tiempoRestante}* antes de intentar de nuevo.`, m);
+    return conn.reply(m.chat, `*— (Bostezo)*... Qué molesto. Mis pies aún duelen de la última Cavidad. Espera **${tiempoRestante}** o vete tú solo por ahí.`, m, { contextInfo });
   }
-
-  cooldowns[senderId] = Date.now();
 
   if (!users[senderId]) {
     users[senderId] = { health: 100, coin: 0, exp: 0 };
   }
 
   const eventos = [
-    { nombre: 'Batalla contra los Goblins', tipo: 'victoria', coin: randomNumber(20, 40), exp: randomNumber(10, 20), health: 0, mensaje: `🏆 ¡Has derrotado a los Goblins! Al caer, dejaron caer un montón de ${moneda}.` },
-    { nombre: 'Enfrentamiento con el Orco', tipo: 'derrota', coin: randomNumber(-30, -10), exp: randomNumber(5, 10), health: randomNumber(-15, -5), mensaje: `⚠️ Un Orco te atacó y has perdido salud y monedas en la pelea.` },
-    { nombre: 'Desafío del Dragón', tipo: 'victoria', coin: randomNumber(100, 150), exp: randomNumber(50, 80), health: 0, mensaje: `🔥 ¡Has vencido al Dragón! Encuentras un tesoro antiguo lleno de ${moneda}.` },
-    { nombre: 'Confrontación con el Esqueleto', tipo: 'derrota', coin: randomNumber(-20, -10), exp: randomNumber(5, 10), health: randomNumber(-10, -5), mensaje: `💀 Has caído ante un Esqueleto. La batalla fue intensa y perdiste algunas ${moneda}.` },
-    { nombre: 'Combate contra la Manticora', tipo: 'victoria', coin: randomNumber(80, 120), exp: randomNumber(40, 60), health: 0, mensaje: `🦁 Has derrotado a la Manticora. Su pelaje brillaba mientras caía, revelando un tesoro oculto de ${moneda}.` },
-    { nombre: 'Confrontación con el Troll', tipo: 'derrota', coin: randomNumber(-50, -20), exp: randomNumber(10, 20), health: randomNumber(-20, -10), mensaje: `🧌 Un Troll te atacó. Has perdido salud y algunas ${moneda} en la contienda.` },
-    { nombre: 'Duelo con el Licántropo', tipo: 'victoria', coin: randomNumber(60, 100), exp: randomNumber(30, 50), health: 0, mensaje: `🐺 Has derrotado a un Licántropo en una feroz batalla. Ganaste un botín de ${moneda}.` },
-    { nombre: 'Enfrentamiento con el Minotauro', tipo: 'derrota', coin: randomNumber(-40, -15), exp: randomNumber(10, 20), health: randomNumber(-15, -5), mensaje: `🪓 El Minotauro te ha atacado. Has sufrido daños y perdido algunas ${moneda}.` },
-    { nombre: 'Batalla contra el Fantasma', tipo: 'victoria', coin: randomNumber(30, 50), exp: randomNumber(20, 40), health: 0, mensaje: `👻 Has conseguido vencer al Fantasma que atormentaba la aldea. Recibes ${moneda} como recompensa.` },
-    { nombre: 'Lucha contra el Dragón de Hielo', tipo: 'derrota', coin: randomNumber(-60, -20), exp: randomNumber(15, 30), health: randomNumber(-25, -10), mensaje: `❄️ El Dragón de Hielo te ha congelado. Has perdido salud y algunas ${moneda}.` },
-    { nombre: 'Combate con la Hidra', tipo: 'victoria', coin: randomNumber(90, 130), exp: randomNumber(50, 80), health: 0, mensaje: `🐉 Has derrotado a la Hidra y encontrado un tesoro de ${moneda}.` },
-    { nombre: 'Desafío del Caballero Caído', tipo: 'derrota', coin: randomNumber(-30, -10), exp: randomNumber(5, 10), health: randomNumber(-15, -5), mensaje: `⚔️ Has sido derrotado por el Caballero Caído. Has perdido salud y monedas.` },
-    { nombre: 'Encuentro con la Bruja', tipo: 'troll', coin: 0, exp: randomNumber(20, 40), health: randomNumber(-10, -5), mensaje: `🧙 Te encontraste con una bruja que te lanzó un hechizo. Ganas experiencia.` },
-    { nombre: 'Emboscada de los Bandidos', tipo: 'troll', coin: 0, exp: randomNumber(15, 30), health: randomNumber(-5, -3), mensaje: `🗡️ Te emboscaron unos bandidos. Aunque lograste escapar, has perdido algo de salud.` },
-    { nombre: 'Caza de la Serpiente Gigante', tipo: 'victoria', coin: randomNumber(50, 80), exp: randomNumber(30, 50), health: 0, mensaje: `🐍 Has cazado a la Serpiente Gigante. Su piel es valiosa y obtienes ${moneda}.` },
+    { nombre: 'Caza de Etéreos menores', tipo: 'victoria', coin: randomNumber(50, 100), exp: randomNumber(20, 40), health: 0, mensaje: `Encontré unos Etéreos estorbando. Los eliminé rápido para poder seguir descansando.` },
+    { nombre: 'Emboscada en la Cavidad', tipo: 'derrota', coin: randomNumber(-50, -20), exp: randomNumber(10, 20), health: randomNumber(-15, -10), mensaje: `Aparecieron de la nada. Tuve que usar mi guadaña y se me arruinó el uniforme. Qué fastidio.` },
+    { nombre: 'Suministros de Victoria Housekeeping', tipo: 'victoria', coin: randomNumber(200, 350), exp: randomNumber(80, 120), health: 5, mensaje: `Encontré un cargamento perdido de la empresa. Supongo que puedo quedarme con una parte.` },
+    { nombre: 'Distorsión de Datos HDD', tipo: 'derrota', coin: randomNumber(-40, -10), exp: randomNumber(5, 15), health: randomNumber(-10, -5), mensaje: `El sistema de navegación falló. Caminamos en círculos y perdí mis caramelos.` },
+    { nombre: 'Encuentro con un Bangboo', tipo: 'victoria', coin: randomNumber(100, 150), exp: randomNumber(40, 60), health: 0, mensaje: `Un pequeño Bangboo me dio unos Dennies por ayudarle. Al menos no fue una pérdida de tiempo.` },
+    { nombre: 'Residuo de Corrupción', tipo: 'derrota', coin: 0, exp: randomNumber(15, 30), health: randomNumber(-20, -15), mensaje: `Había demasiado Éter en esa zona. Me siento mareada... necesito un dulce pronto.` },
   ];
 
   let evento = eventos[Math.floor(Math.random() * eventos.length)];
 
+  // Lógica de recompensas corregida
   if (evento.tipo === 'victoria') {
     users[senderId].coin += evento.coin;
     users[senderId].exp += evento.exp;
-    users[senderId].health += evento.health;
-  } else if (evento.tipo === 'derrota') {
-    users[senderId].coin += evento.coin;
-    users[senderId].exp += evento.exp;
-    users[senderId].health -= evento.health;
-  } else if (evento.tipo === 'troll') {
-    users[senderId].exp += evento.exp;
-    users[senderId].health -= evento.health;
+    users[senderId].health += (evento.health || 0);
+  } else {
+    users[senderId].coin += (evento.coin || 0);
+    users[senderId].exp += (evento.exp || 0);
+    users[senderId].health += (evento.health || 0); // Aquí ya viene negativo del evento
   }
 
-  let img = 'https://qu.ax/bbfSN.jpg';
-  let info = `╭━〔 Gremio de Aventureros 〕\n` +
-             `┃Misión: *${evento.nombre}*\n` +
-             `┃Evento: ${evento.mensaje}\n` +
-             `┃Recompensa: ${evento.coin > 0 ? '+' : '-'}${Math.abs(evento.coin)} ${moneda} y +${evento.exp} XP.\n` +
-             `┃Tu salud ${users[senderId].health < 0 ? 'bajó en: ' + Math.abs(users[senderId].health) : 'se mantuvo igual.'}\n` +
-             `╰━━━━━━━━━━━━⬣`;
+  // Límites
+  if (users[senderId].coin < 0) users[senderId].coin = 0;
+  if (users[senderId].health > 100) users[senderId].health = 100;
+  if (users[senderId].health < 0) users[senderId].health = 0;
 
-  await conn.sendFile(m.chat, img, 'gremio.jpg', info, fkontak);
+  cooldowns[senderId] = Date.now();
+
+  let info = `🦈 **𝐑𝐄𝐏𝐎𝐑𝐓𝐄 𝐃𝐄 𝐄𝐗𝐏𝐋𝐎𝐑𝐀𝐂𝐈𝐎́𝐍: 𝐇𝐎𝐋𝐋𝐎𝐖**
+
+📍 **Incidente:** ${evento.nombre}
+💬 **Ellen Joe:** *"${evento.mensaje}"*
+
+💰 **Balance:** ${evento.coin >= 0 ? '+' : ''}${evento.coin} ${moneda}
+✨ **Progreso:** +${evento.exp} XP
+❤️ **Estado:** ${users[senderId].health} HP
+
+*— Terminé mi ronda. Me voy a la cocina a buscar algo dulce, no me sigas.*`;
+
+  // Envío con la imagen corregida (Buffer directo)
+  await conn.sendMessage(m.chat, { 
+    image: icons, 
+    caption: info, 
+    contextInfo 
+  }, { quoted: m });
 
   await global.db.write();
 };
 
 handler.tags = ['rpg'];
 handler.help = ['gremio'];
-handler.command = ['gremio', 'mision'];
+handler.command = ['gremio', 'mision', 'caza'];
 handler.register = true;
 handler.group = true;
 
@@ -78,5 +105,5 @@ function randomNumber(min, max) {
 function segundosAHMS(segundos) {
   let minutos = Math.floor(segundos / 60);
   let segundosRestantes = segundos % 60;
-  return `${minutos} minutos y ${segundosRestantes} segundos`;
+  return `${minutos}m y ${segundosRestantes}s`;
 }
