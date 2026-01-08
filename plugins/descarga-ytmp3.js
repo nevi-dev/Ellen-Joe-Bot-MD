@@ -1,10 +1,5 @@
 import fetch from 'node-fetch';
-import crypto from 'crypto';
 import axios from 'axios';
-import path from 'path';
-import fs from 'fs';
-// Asegúrate de que estas funciones existan en tu ../lib/
-import { ogmp3 } from '../lib/youtubedl.js'; 
 import { ytmp3 } from '../lib/ytscraper.js'; 
 
 // --- Constantes y Configuración ---
@@ -38,7 +33,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
         }
     };
 
-    // 1. Initial Check (Ellen Joe Style)
+    // 1. Initial Check
     if (!url) {
         return conn.reply(
             m.chat,
@@ -56,10 +51,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     );
     await m.react("🎧");
 
-    let finalDownloadUrl, finalTitle;
-
-    // Función de envío centralizada
-    const sendAudio = async (downloadUrl, title) => {
+    // Función de envío centralizada para URL
+    const sendAudioFromUrl = async (downloadUrl, title) => {
         try {
             await m.react("📥");
             const response = await axios.head(downloadUrl);
@@ -71,7 +64,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     document: { url: downloadUrl },
                     fileName: `${title}.mp3`,
                     mimetype: 'audio/mpeg',
-                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nEl archivo excede el límite de carga directa, así que lo envío como documento. Ten más cuidado la próxima vez.\n\n🎵 *Archivo:* ${title}`
+                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nEl archivo excede el límite de carga directa, así que lo envío como documento.\n\n🎵 *Archivo:* ${title}`
                 }, { quoted: m });
                 await m.react("📄");
             } else {
@@ -79,101 +72,65 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     audio: { url: downloadUrl }, 
                     mimetype: 'audio/mpeg', 
                     fileName: `${title}.mp3`,
-                    caption: `🦈 *Aquí tienes tu pedido.* 🎧\n\n🎵 *Título:* ${title}\n✦ *Servicio:* Victoria Housekeeping`,
+                    ptt: false // Cambiar a true si quieres que se envíe como nota de voz
                 }, { quoted: m });
                 await m.react("✅");
             }
         } catch (error) {
             console.error("Error al enviar audio:", error);
-            throw new Error(`Hubo un fallo en la entrega. Mi guadaña no pudo cortar este enlace.`);
+            throw new Error(`Fallo en la entrega.`);
         }
     };
     
-    // --- TIER 1: YTSCRAPER ---
+    // --- ESTRATEGIA DE DESCARGA (TIERS) ---
+
+    // TIER 1: Tu ytscraper.js local
     try {
-        const scraperResult = await ytmp3(url);
+        const scraperResult = await ytmp3(url, 128); // 128kbps por defecto
         if (scraperResult?.status && scraperResult.download?.url) {
-            finalDownloadUrl = scraperResult.download.url;
-            finalTitle = scraperResult.metadata?.title || 'Audio Extrayendo...';
-            await sendAudio(finalDownloadUrl, finalTitle);
+            await sendAudioFromUrl(scraperResult.download.url, scraperResult.metadata?.title || 'Audio_Yt');
             return;
         }
-        throw new Error('Tier 1 falló');
-    } catch (e1) {
-        console.error("Error en Tier 1:", e1.message);
+    } catch (e) {
+        console.log("Tier 1 falló...");
+    }
 
-        // --- TIER 2: NEVI API ---
-        try {
-            const neviApiUrl = `http://neviapi.ddns.net:5000/download`;
-            const res = await fetch(neviApiUrl, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-API-KEY': NEVI_API_KEY,
-                },
-                body: JSON.stringify({ url: url, format: "mp3" }),
-            });
-
-            const json = await res.json();
-            if (json.status === "success" && json.download_link) {
-                finalDownloadUrl = json.download_link;
-                finalTitle = json.title || 'Audio Pedido';
-                await sendAudio(finalDownloadUrl, finalTitle);
-                return;
-            }
-            throw new Error(json.message || "NEVI API falló");
-        } catch (e2) {
-            console.error("Error en Tier 2:", e2.message);
-
-            // --- TIER 3: OGMP3/LOCAL ---
-            try {
-                const tempDir = path.join(process.cwd(), './tmp');
-                if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
-                const tempFilePath = path.join(tempDir, `${Date.now()}_audio.mp3`);
-                
-                const downloadResult = await ogmp3.download(url, tempFilePath, 'audio');
-                
-                if (downloadResult.status && fs.existsSync(tempFilePath)) {
-                    const stats = fs.statSync(tempFilePath);
-                    const fileSizeMb = stats.size / (1024 * 1024);
-                    const fileBuffer = fs.readFileSync(tempFilePath);
-                    finalTitle = downloadResult.result.title || 'Audio de Cavidad';
-                    
-                    if (fileSizeMb > SIZE_LIMIT_MB) {
-                        await conn.sendMessage(m.chat, {
-                            document: fileBuffer,
-                            fileName: `${finalTitle}.mp3`,
-                            mimetype: 'audio/mpeg',
-                            caption: `🦈 *Pesado...* (${fileSizeMb.toFixed(2)} MB). Va como documento.\n\n🎵 *Archivo:* ${finalTitle}`
-                        }, { quoted: m });
-                    } else {
-                        await conn.sendMessage(m.chat, { 
-                            audio: fileBuffer, 
-                            mimetype: 'audio/mpeg', 
-                            fileName: `${finalTitle}.mp3`
-                        }, { quoted: m });
-                    }
-                    
-                    fs.unlinkSync(tempFilePath);
-                    await m.react("✅");
-                    return;
-                }
-                throw new Error("Tier 3 falló.");
-
-            } catch (e3) {
-                console.error("Error en Tier 3:", e3.message);
-                await conn.reply(m.chat, `🦈 *Tsk...* El sistema de extracción falló. El enlace es defectuoso o los Etéreos han interferido en la red. Inténtalo más tarde.`, m, { contextInfo });
-                await m.react("❌");
-            }
+    // TIER 2: NEVI API
+    try {
+        const res = await fetch(`http://neviapi.ddns.net:5000/download`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-API-KEY': NEVI_API_KEY },
+            body: JSON.stringify({ url, format: "mp3" }),
+        });
+        const json = await res.json();
+        if (json.status === "success" && json.download_link) {
+            await sendAudioFromUrl(json.download_link, json.title || 'Audio_Nevi');
+            return;
         }
+    } catch (e) {
+        console.log("Tier 2 falló...");
+    }
+
+    // TIER 3: API DE RESPALDO (Reemplazo de OGMP3)
+    try {
+        const apiRes = await fetch(`https://api.zenkey.my.id/api/download/ytmp3?url=${encodeURIComponent(url)}`);
+        const resJson = await apiRes.json();
+        
+        if (resJson.status && resJson.result?.download_url) {
+            await sendAudioFromUrl(resJson.result.download_url, resJson.result.title || 'Audio_Respaldo');
+            return;
+        }
+        throw new Error("Sin recursos");
+    } catch (e) {
+        await conn.reply(m.chat, `🦈 *Tsk...* El sistema de extracción falló. El enlace es defectuoso o los Etéreos han interferido. Inténtalo más tarde.`, m, { contextInfo });
+        await m.react("❌");
     }
 };
 
-handler.help = ['ytmp3'].map(v => v + ' <link>');
+handler.help = ['ytmp3 <link>'];
 handler.tags = ['descargas'];
 handler.command = ['ytmp3', 'ytaudio', 'mp3'];
 handler.register = true;
 handler.limit = true;
-handler.coin = 2;
 
 export default handler;
