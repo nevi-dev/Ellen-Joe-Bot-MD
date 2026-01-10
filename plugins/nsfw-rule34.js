@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 
 // --- CONFIGURACIÓN DE LA API ---
 const API_BASE_URL = "https://api-causas.duckdns.org/api/v1/nsfw/descargas/rule34";
-const API_KEY = "causa-6e2da545497cfba1";
+const API_KEY = "causa-ee5ee31dcfc79da4";
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
     // 1. Verificación de NSFW
