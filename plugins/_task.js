@@ -18,29 +18,32 @@ let handler = async (m, { conn, args, isOwner }) => {
     let targetJID;
     let characterNames;
     let transferAll = false;
+    let resetAll = false;
 
-    // 1. Parsear argumentos y detectar modo "ALL"
+    // 1. Parsear argumentos
     if (m.quoted) {
         targetJID = m.quoted.sender;
         characterNames = args;
     } else {
-        if (args.length < 2) {
-            let usage = '⚠️ *USO INCORRECTO*\n\n';
-            usage += 'Usa: `.yoshy all <JID>` para transferir todo.\n';
-            usage += 'Usa: `.yoshy <Nombre> <JID>` para personajes específicos.';
-            return m.reply(usage);
+        // Caso especial: .yoshy reset (no necesita JID)
+        if (args[0]?.toLowerCase() === 'reset') {
+            resetAll = true;
+        } else {
+            if (args.length < 2) {
+                let usage = '⚠️ *USO INCORRECTO*\n\n';
+                usage += '• `.yoshy reset` -> Libera TODOS los personajes.\n';
+                usage += '• `.yoshy all <JID>` -> Pasa todo a un usuario.\n';
+                usage += '• `.yoshy <Nombre> <JID>` -> Pasa personajes específicos.';
+                return m.reply(usage);
+            }
+            targetJID = args[args.length - 1];
+            characterNames = args.slice(0, args.length - 1);
         }
-        targetJID = args[args.length - 1];
-        characterNames = args.slice(0, args.length - 1);
     }
 
-    // Verificar si se pidió transferir todo
-    if (characterNames[0]?.toLowerCase() === 'all') {
+    // Identificar si es "all" para transferencia masiva
+    if (!resetAll && characterNames[0]?.toLowerCase() === 'all') {
         transferAll = true;
-    }
-
-    if (!targetJID || !targetJID.includes('@')) {
-        return m.reply(`❌ JID no válido.`);
     }
 
     // 2. Cargar base de datos
@@ -52,63 +55,50 @@ let handler = async (m, { conn, args, isOwner }) => {
         return m.reply('❌ Error al leer la base de datos.');
     }
 
-    // 3. Procesar transferencia
+    // 3. Procesar Cambios
     try {
-        const normalizedNamesToFind = characterNames.map(normalizeName);
-        const transferred = [];
-        const alreadyOwned = [];
-        const foundNormalized = new Set();
+        const normalizedNamesToFind = characterNames ? characterNames.map(normalizeName) : [];
+        let count = 0;
 
         const updatedCharacters = characters.map(char => {
             const normDBName = normalizeName(char.name);
             
-            // Lógica de selección: Si es 'all' o si el nombre coincide
-            if (transferAll || normalizedNamesToFind.includes(normDBName)) {
-                foundNormalized.add(normDBName);
-
-                if (char.user === targetJID) {
-                    alreadyOwned.push(char.name);
-                } else {
+            if (resetAll) {
+                // Lógica de RESET: Quitar dueño y poner libre
+                if (char.user) {
+                    char.user = "";
+                    char.status = "Libre"; // O el estado que uses para waifus sin dueño
+                    count++;
+                }
+            } else if (transferAll || normalizedNamesToFind.includes(normDBName)) {
+                // Lógica de TRANSFERENCIA (Individual o All)
+                if (char.user !== targetJID) {
                     char.user = targetJID;
                     char.status = 'Reclamado';
-                    transferred.push(char.name);
+                    count++;
                 }
             }
             return char;
         });
 
-        // 4. Guardar cambios
-        if (transferred.length > 0) {
+        // 4. Guardar si hubo cambios
+        if (count > 0) {
             await fs.writeFile(charactersFilePath, JSON.stringify(updatedCharacters, null, 2), 'utf-8');
         }
 
-        // 5. Reporte
-        let replyMsg = `✅ *REPORTE DE TRANSFERENCIA ${transferAll ? '(TODO)' : ''}*\n`;
-        replyMsg += `Destino: @${targetJID.split('@')[0]}\n`;
-        replyMsg += `-----------------------------------\n`;
-
-        if (transferred.length > 0) {
-            // Si son muchos, solo mostramos el conteo para no saturar el chat
-            if (transferred.length > 20) {
-                replyMsg += `*Transferidos:* ${transferred.length} personajes.\n`;
-            } else {
-                replyMsg += `*Transferidos:* \n- ${transferred.join('\n- ')}\n`;
-            }
+        // 5. Reporte final
+        let message = '';
+        if (resetAll) {
+            message = `✨ *RESET COMPLETO*\nSe han liberado ${count} personajes. Ahora todos están disponibles.`;
+        } else {
+            message = `✅ *TRANSFERENCIA FINALIZADA*\nSe han asignado ${count} personajes a @${targetJID.split('@')[0]}`;
         }
 
-        if (alreadyOwned.length > 0 && !transferAll) {
-            replyMsg += `\n*Ya pertenecían al destino:* ${alreadyOwned.length}\n`;
-        }
-
-        if (transferred.length === 0) {
-            replyMsg = `⚠️ No se realizaron cambios. El usuario ya poseía los personajes o la lista estaba vacía.`;
-        }
-
-        conn.reply(m.chat, replyMsg, m, { mentions: [targetJID] });
+        conn.reply(m.chat, message, m, { mentions: targetJID ? [targetJID] : [] });
 
     } catch (error) {
         console.error(error);
-        m.reply('❌ Error interno.');
+        m.reply('❌ Error interno al procesar los datos.');
     }
 }
 
