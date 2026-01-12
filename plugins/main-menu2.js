@@ -56,8 +56,8 @@ ${sep}
 🎙️ **TOTAL:** ${db_audios.length} Audios
 ${sep}
 ⚙️ **CONTROLES:**
-| 🔓 \`${usedPrefix}${command} on\`
-| 🔒 \`${usedPrefix}${command} off\`
+| 🔓 \`${usedPrefix}audios on\`
+| 🔒 \`${usedPrefix}audios off\`
 ${sep}
 
 ${listaAudios}
