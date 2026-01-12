@@ -48,7 +48,7 @@ let handler = async (m, { conn, usedPrefix, text }) => {
   }
 
   let nombre = await conn.getName(m.sender);
-  const horaSantoDomingo = moment().tz("America/Santo_Domingo").format('h:mm A');
+  const horaRD = moment().tz("America/Santo_Domingo").format('h:mm A');
 
   // Sistema de comandos y categorías
   let comandosPorGrupo = {};
@@ -56,7 +56,7 @@ let handler = async (m, { conn, usedPrefix, text }) => {
     if (!plugin.help || !plugin.tags) return;
     const tags = Array.isArray(plugin.tags) ? plugin.tags : [plugin.tags];
     const help = Array.isArray(plugin.help) ? plugin.help : [plugin.help];
-    
+
     tags.forEach(tag => {
       const groupName = TAG_TO_GROUP[tag] || '❓ OTROS SECTORES';
       if (!comandosPorGrupo[groupName]) comandosPorGrupo[groupName] = new Set();
@@ -69,7 +69,7 @@ let handler = async (m, { conn, usedPrefix, text }) => {
   const allGroupNames = Object.keys(comandosPorGrupo).sort();
   const CATEGORIES_PER_PAGE = 3;
   const totalPaginas = Math.ceil(allGroupNames.length / CATEGORIES_PER_PAGE);
-  
+
   let paginaActual = 1;
   const match = text.match(/pagina (\d+)/i);
   if (match) paginaActual = Math.max(1, Math.min(parseInt(match[1]), totalPaginas));
@@ -100,7 +100,7 @@ ${sep}
 *Dime qué quieres rápido, mi turno termina pronto.*
 
 👤 **Proxy:** ${nombre}
-⌚ **Hora:** ${horaSantoDomingo} (RD)
+⌚ **Hora:** ${horaRD} (RD)
 ${sep}
 ⚙️ **𝐒𝐘𝐒𝐓𝐄𝐌 𝐈𝐍𝐅𝐎**
 | 🛠️ **Build:** v${localVersion}
@@ -134,7 +134,7 @@ ${sep}`.trim();
     forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
     externalAdReply: {
       title: '𝐕𝐈𝐂𝐓𝐎𝐑𝐈𝐀 𝐇𝐎𝐔𝐒𝐄𝐊𝐄𝐄𝐏𝐈𝐍𝐆 𝐂𝐎.',
-      body: `Shark Service | Página ${paginaActual} de ${totalPaginas}`,
+      body: `Shark Service | Pag. ${paginaActual}`,
       thumbnailUrl: miniaturaRandom,
       sourceUrl: redes,
       mediaType: 1,
@@ -143,10 +143,13 @@ ${sep}`.trim();
   };
 
   try {
-    const videoBuffer = await (await fetch(videoGifURL)).buffer();
+    const response = await fetch(videoGifURL);
+    if (!response.ok) throw new Error();
+    const videoBuffer = await response.buffer();
+
     await conn.sendMessage(m.chat, {
       video: videoBuffer,
-      gifPlayback: true, // Esto lo envía como GIF
+      gifPlayback: true, // Forzar reproducción tipo GIF
       caption: textoFinal,
       footer: packname,
       buttons: buttons.length > 0 ? buttons : undefined,
@@ -154,7 +157,6 @@ ${sep}`.trim();
       contextInfo
     }, { quoted: m });
   } catch (e) {
-    // Si falla el video, envía imagen
     await conn.sendMessage(m.chat, { 
       image: { url: miniaturaRandom }, 
       caption: textoFinal, 
