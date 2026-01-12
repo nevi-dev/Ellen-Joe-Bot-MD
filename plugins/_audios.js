@@ -29,22 +29,25 @@ handler.all = async function (m) {
     }
 
     if (audio) {
-      await this.sendPresenceUpdate('recording', m.chat)
+      // 1. Mostrar estado según el modo
+      if (audio.convert !== false) {
+        await this.sendPresenceUpdate('recording', m.chat)
+      }
+
       const response = await fetch(encodeURI(audio.link))
       if (!response.ok) return !0
       const buffer = await response.buffer()
 
-      // VALIDACIÓN: ¿Pasar por FFmpeg o mandar directo?
+      // --- MODO DESCARGA (convert: false) ---
       if (audio.convert === false) {
-        // MODO NORMAL (Mickey y Triste)
         return await this.sendMessage(m.chat, { 
           audio: buffer, 
           mimetype: audio.link.includes('.mp4') ? 'audio/mp4' : 'audio/mpeg', 
-          ptt: true 
+          ptt: false // Se envía como archivo descargable
         }, { quoted: m })
       }
 
-      // MODO OPUS (Todos los demás)
+      // --- MODO NOTA DE VOZ (FFmpeg a Opus) ---
       const tempIn = path.join(process.cwd(), `temp_in_${Date.now()}`)
       const tempOut = path.join(process.cwd(), `temp_out_${Date.now()}.opus`)
       writeFileSync(tempIn, buffer)
@@ -60,7 +63,7 @@ handler.all = async function (m) {
           }, { quoted: m })
         }
       } catch (e) {
-        // Respaldo si falla FFmpeg
+        // Respaldo en caso de error de FFmpeg
         await this.sendMessage(m.chat, { audio: buffer, mimetype: 'audio/mp4', ptt: false }, { quoted: m })
       } finally {
         if (existsSync(tempIn)) unlinkSync(tempIn)
