@@ -26,31 +26,21 @@ let handler = async (m, { conn, usedPrefix, text, command }) => {
   try {
     const audioPath = path.join(process.cwd(), 'src', 'database', 'audios.json');
     db_audios = JSON.parse(fs.readFileSync(audioPath, 'utf-8'));
-    
+
     const dbPath = path.join(process.cwd(), 'src', 'database', 'db.json');
     enlacesMultimedia = JSON.parse(fs.readFileSync(dbPath, 'utf-8')).links;
   } catch (e) {
     return conn.reply(m.chat, '❌ Error al cargar las bases de datos.', m);
   }
 
-  // 3. Configuración de Paginación
-  const AUDIOS_PER_PAGE = 10;
-  const totalPaginas = Math.ceil(db_audios.length / AUDIOS_PER_PAGE);
-  let paginaActual = 1;
-  const matchPage = text.match(/(\d+)/);
-  if (matchPage) paginaActual = Math.max(1, Math.min(parseInt(matchPage[1]), totalPaginas));
-
-  const startIndex = (paginaActual - 1) * AUDIOS_PER_PAGE;
-  const audiosPagina = db_audios.slice(startIndex, startIndex + AUDIOS_PER_PAGE);
-
-  // 4. Construcción de la Lista
-  const listaAudios = audiosPagina.map((audio, index) => {
+  // 3. Construcción de la Lista Completa (Sin paginación)
+  const listaAudios = db_audios.map((audio, index) => {
     const keys = audio.keywords.join(' / ');
     const icon = audio.convert === false ? '📂' : '🎙️';
-    return `*${startIndex + index + 1}.* ${icon} ${keys}`;
+    return `*${index + 1}.* ${icon} ${keys}`;
   }).join('\n');
 
-  // 5. Diseño del Mensaje
+  // 4. Diseño del Mensaje
   const horaRD = moment().tz("America/Santo_Domingo").format('h:mm A');
   const estadoAudios = chat.audios ? '✅ ACTIVO' : '❌ DESACTIVO';
   const sep = '——————————————————';
@@ -63,7 +53,6 @@ ${sep}
 
 📢 **ESTADO:** ${estadoAudios}
 ⌚ **HORA:** ${horaRD} (RD)
-📑 **PÁGINA:** ${paginaActual} / ${totalPaginas}
 🎙️ **TOTAL:** ${db_audios.length} Audios
 ${sep}
 ⚙️ **CONTROLES:**
@@ -77,16 +66,7 @@ ${sep}
 *— Si no respondo, es que estoy en mi descanso.*
 *${packname}*`.trim();
 
-  // 6. Botones de Navegación
-  let buttons = [];
-  if (paginaActual > 1) {
-    buttons.push({ buttonId: `${usedPrefix}${command} ${paginaActual - 1}`, buttonText: { displayText: '⬅️ ANTERIOR' }, type: 1 });
-  }
-  if (paginaActual < totalPaginas) {
-    buttons.push({ buttonId: `${usedPrefix}${command} ${paginaActual + 1}`, buttonText: { displayText: 'SIGUIENTE ➡️' }, type: 1 });
-  }
-
-  // 7. Multimedia y Envío
+  // 5. Multimedia y Envío (Forzado a GIF)
   const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
   const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
 
@@ -97,7 +77,7 @@ ${sep}
     forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
     externalAdReply: {
       title: '𝐕.𝐇. 𝐀𝐔𝐃𝐈𝐎 𝐒𝐘𝐒𝐓𝐄𝐌',
-      body: `Estado: ${estadoAudios} | Pag. ${paginaActual}`,
+      body: `Shark Menu | Estado: ${estadoAudios}`,
       thumbnailUrl: miniaturaRandom,
       sourceUrl: redes,
       mediaType: 1,
@@ -106,29 +86,29 @@ ${sep}
   };
 
   try {
-    const videoBuffer = await (await fetch(videoGifURL)).buffer();
+    const response = await fetch(videoGifURL);
+    if (!response.ok) throw new Error('Error al descargar video');
+    const videoBuffer = await response.buffer();
+    
     await conn.sendMessage(m.chat, {
       video: videoBuffer,
-      gifPlayback: true,
+      gifPlayback: true, // Esto lo manda como GIF obligatoriamente
       caption: encabezado,
-      footer: 'Usa los botones para navegar entre sectores',
-      buttons: buttons.length > 0 ? buttons : undefined,
-      headerType: 5,
       contextInfo
     }, { quoted: m });
+
   } catch (e) {
+    // Si el video falla por alguna razón, manda imagen de respaldo
     await conn.sendMessage(m.chat, { 
       image: { url: miniaturaRandom }, 
       caption: encabezado, 
-      footer: packname, 
-      buttons, 
       contextInfo 
     }, { quoted: m });
   }
 };
 
-handler.help = ['audios', 'audios on', 'audios off'];
-handler.tags = ['main', 'group'];
-handler.command = ['menu2', 'menuaudios'];
+handler.help = ['menu2', 'audios on', 'audios off'];
+handler.tags = ['main'];
+handler.command = ['menu2', 'menuaudios', 'audios'];
 
 export default handler;
