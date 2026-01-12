@@ -3,25 +3,37 @@ import path from 'path'
 
 const handler = m => m
 handler.all = async function (m, { conn }) {
-  // Añadimos !conn para evitar el error de la imagen
+  // Filtros: Solo grupos, no bots, solo si hay texto y existe la conexión
   if (!m.isGroup || m.isBaileys || !m.text || !conn) return !0
 
   let chat = global.db.data.chats[m.chat]
   if (!chat || !chat.audios) return !0
 
-  if (m.text.length > 30) return !0
+  // Si el mensaje es muy largo (ej. más de 40 letras), ignorar para evitar spam
+  if (m.text.length > 40) return !0
 
   try {
-    // Asegúrate de que esta carpeta exista: src/database/
     const jsonPath = path.join(process.cwd(), 'src', 'database', 'audios.json')
     if (!existsSync(jsonPath)) return !0 
 
     const db_audios = JSON.parse(readFileSync(jsonPath, 'utf-8'))
-    let text = m.text.toLowerCase().trim()
+    let text = m.text.trim()
 
-    const audioEncontrado = db_audios.find(item => 
-      item.keywords.some(key => text.includes(key.toLowerCase()))
-    )
+    // Buscamos el audio usando la lógica de RegExp del código que mostraste
+    let audioEncontrado = null
+    
+    for (const item of db_audios) {
+      // Creamos una expresión regular para cada keyword del JSON
+      // 'i' hace que no importe si es MAYÚSCULA o minúscula
+      const match = item.keywords.some(key => 
+        new RegExp(`^${key}$`, 'i').test(text)
+      )
+      
+      if (match) {
+        audioEncontrado = item
+        break // Detenemos el bucle en la primera coincidencia
+      }
+    }
 
     if (audioEncontrado) {
       await conn.sendMessage(m.chat, { 
@@ -30,7 +42,7 @@ handler.all = async function (m, { conn }) {
         fileName: `audio.mp3`,
         ptt: false 
       }, { quoted: m })
-
+      
       return !0
     }
 
