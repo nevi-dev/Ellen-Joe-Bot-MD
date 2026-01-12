@@ -9,7 +9,6 @@ const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒erv
 const packname = '˚🄴🄻🄼🄴🄽-🄹🄾🄴-🄱🄾🅃';
 const redes = 'https://github.com/nevi-dev';
 
-// --- Global variable for repository info ---
 const GITHUB_REPO_OWNER = 'nevi-dev';
 const GITHUB_REPO_NAME = 'Ellen-Joe-Bot-MD';
 const GITHUB_BRANCH = 'main';
@@ -43,77 +42,57 @@ let handler = async (m, { conn, usedPrefix, text }) => {
   let enlacesMultimedia;
   try {
     const dbPath = path.join(process.cwd(), 'src', 'database', 'db.json');
-    enlacesMultimedia = JSON.parse(fs.readFileSync(dbPath)).links;
+    enlacesMultimedia = JSON.parse(fs.readFileSync(dbPath, 'utf-8')).links;
   } catch (e) {
-    return conn.reply(m.chat, 'Error al leer la base de datos.', m);
+    return conn.reply(m.chat, '❌ Error al leer la base de datos de enlaces.', m);
   }
 
   let nombre = await conn.getName(m.sender);
   const horaSantoDomingo = moment().tz("America/Santo_Domingo").format('h:mm A');
 
-  // Datos del Bot
-  const esPrincipal = conn.user.jid === global.conn.user.jid;
-  const numeroPrincipal = global.conn?.user?.jid?.split('@')[0] || "Desconocido";
-  const totalComandos = Object.keys(global.plugins || {}).length;
-  const tiempoActividad = clockString(process.uptime() * 1000);
-  const totalRegistros = Object.keys(global.db?.data?.users || {}).length;
-
-  const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
-  const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
-
-  // Paginación
-  const CATEGORIES_PER_PAGE = 3;
+  // Sistema de comandos y categorías
   let comandosPorGrupo = {};
-  for (let plugin of Object.values(global.plugins || {})) {
-    if (!plugin.help || !plugin.tags) continue;
-    const tagsArray = Array.isArray(plugin.tags) ? plugin.tags : [plugin.tags];
-    for (let tag of tagsArray) {
+  Object.values(global.plugins).forEach(plugin => {
+    if (!plugin.help || !plugin.tags) return;
+    const tags = Array.isArray(plugin.tags) ? plugin.tags : [plugin.tags];
+    const help = Array.isArray(plugin.help) ? plugin.help : [plugin.help];
+    
+    tags.forEach(tag => {
       const groupName = TAG_TO_GROUP[tag] || '❓ OTROS SECTORES';
       if (!comandosPorGrupo[groupName]) comandosPorGrupo[groupName] = new Set();
-      const helpArray = Array.isArray(plugin.help) ? plugin.help : [plugin.help];
-      for (let help of helpArray) {
-        if (/^\$|^=>|^>/.test(help)) continue;
-        comandosPorGrupo[groupName].add(`${usedPrefix}${help}`);
-      }
-    }
-  }
-
-  for (let groupName in comandosPorGrupo) {
-    comandosPorGrupo[groupName] = Array.from(comandosPorGrupo[groupName]).sort();
-  }
+      help.forEach(h => {
+        if (!/^\$|^=>|^>/.test(h)) comandosPorGrupo[groupName].add(`${usedPrefix}${h}`);
+      });
+    });
+  });
 
   const allGroupNames = Object.keys(comandosPorGrupo).sort();
+  const CATEGORIES_PER_PAGE = 3;
   const totalPaginas = Math.ceil(allGroupNames.length / CATEGORIES_PER_PAGE);
+  
   let paginaActual = 1;
   const match = text.match(/pagina (\d+)/i);
-  if (match) {
-    const requestedPage = parseInt(match[1]);
-    if (requestedPage >= 1 && requestedPage <= totalPaginas) paginaActual = requestedPage;
-  }
+  if (match) paginaActual = Math.max(1, Math.min(parseInt(match[1]), totalPaginas));
 
   const startIndex = (paginaActual - 1) * CATEGORIES_PER_PAGE;
   const gruposPagina = allGroupNames.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
 
   const secciones = gruposPagina.map(groupName => {
-    const title = `\n🔷 **${groupName}**\n`;
-    const commandList = comandosPorGrupo[groupName].map(cmd => `  ○ ${cmd}`).join('\n');
-    return title + commandList;
+    const commandList = Array.from(comandosPorGrupo[groupName]).sort().map(cmd => `  ○ ${cmd}`).join('\n');
+    return `\n🔷 **${groupName}**\n${commandList}`;
   }).join('\n');
 
   // Versión Check
-  let localVersion = '1.0.0'; 
-  let serverVersion = '1.0.0';
-  let updateStatus = 'Sincronizado';
+  let localVersion = '1.0.0';
+  let updateStatus = '✅ Operativo';
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
     localVersion = pkg.version;
     const res = await axios.get(`https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/${GITHUB_BRANCH}/package.json`);
-    serverVersion = res.data.version;
-    updateStatus = localVersion === serverVersion ? '✅ Operativo' : '⚠️ Actualización disponible';
+    if (localVersion !== res.data.version) updateStatus = '⚠️ Actualización disponible';
   } catch (e) {}
 
   const sep = '——————————————————';
-  
   const encabezado = `
 🦈 **𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄 | 𝐒𝐄𝐑𝐕𝐈𝐂𝐄 𝐌𝐄𝐍𝐔**
 ${sep}
@@ -126,28 +105,27 @@ ${sep}
 ⚙️ **𝐒𝐘𝐒𝐓𝐄𝐌 𝐈𝐍𝐅𝐎**
 | 🛠️ **Build:** v${localVersion}
 | 🔔 **Status:** ${updateStatus}
-| ⏳ **Uptime:** ${tiempoActividad}
-| 🏙️ **Usuarios:** ${totalRegistros}
-| 📑 **Comandos:** ${totalComandos}
+| ⏳ **Uptime:** ${clockString(process.uptime() * 1000)}
+| 🏙️ **Usuarios:** ${Object.keys(global.db?.data?.users || {}).length}
+| 📑 **Comandos:** ${Object.keys(global.plugins).length}
 ${sep}
 📑 **𝐒𝐄𝐂𝐓𝐎𝐑:** ${paginaActual} / ${totalPaginas}
 ${sep}`.trim();
 
   const textoFinal = `${encabezado}\n${secciones}\n\n*— No me pidas nada más fuera de mi horario.*\n*${packname}*`;
 
-  let botones = [];
+  // Botones
+  let buttons = [];
   if (paginaActual > 1) {
-    botones.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual - 1}`, buttonText: { displayText: '⬅️ ANTERIOR' }, type: 1 });
+    buttons.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual - 1}`, buttonText: { displayText: '⬅️ ANTERIOR' }, type: 1 });
   }
   if (paginaActual < totalPaginas) {
-    botones.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual + 1}`, buttonText: { displayText: 'SIGUIENTE ➡️' }, type: 1 });
+    buttons.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual + 1}`, buttonText: { displayText: 'SIGUIENTE ➡️' }, type: 1 });
   }
 
-  let videoBuffer;
-  try {
-    const response = await fetch(videoGifURL);
-    videoBuffer = await response.buffer();
-  } catch (e) {}
+  // Multimedia
+  const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
+  const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
 
   const contextInfo = {
     mentionedJid: [m.sender],
@@ -156,7 +134,7 @@ ${sep}`.trim();
     forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
     externalAdReply: {
       title: '𝐕𝐈𝐂𝐓𝐎𝐑𝐈𝐀 𝐇𝐎𝐔𝐒𝐄𝐊𝐄𝐄𝐏𝐈𝐍𝐆 𝐂𝐎.',
-      body: `Página ${paginaActual} de ${totalPaginas} | Shark Service`,
+      body: `Shark Service | Página ${paginaActual} de ${totalPaginas}`,
       thumbnailUrl: miniaturaRandom,
       sourceUrl: redes,
       mediaType: 1,
@@ -164,17 +142,26 @@ ${sep}`.trim();
     }
   };
 
-  if (videoBuffer) {
+  try {
+    const videoBuffer = await (await fetch(videoGifURL)).buffer();
     await conn.sendMessage(m.chat, {
       video: videoBuffer,
-      gifPlayback: true,
+      gifPlayback: true, // Esto lo envía como GIF
       caption: textoFinal,
-      buttons: botones.length > 0 ? botones : undefined,
+      footer: packname,
+      buttons: buttons.length > 0 ? buttons : undefined,
       headerType: 5,
       contextInfo
     }, { quoted: m });
-  } else {
-    await conn.reply(m.chat, textoFinal, m, { contextInfo });
+  } catch (e) {
+    // Si falla el video, envía imagen
+    await conn.sendMessage(m.chat, { 
+      image: { url: miniaturaRandom }, 
+      caption: textoFinal, 
+      footer: packname,
+      buttons: buttons.length > 0 ? buttons : undefined,
+      contextInfo 
+    }, { quoted: m });
   }
 };
 
@@ -185,8 +172,8 @@ handler.command = ['menu', 'menú', 'help'];
 export default handler;
 
 function clockString(ms) {
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor(ms / 60000) % 60;
-  const s = Math.floor(ms / 1000) % 60;
+  let h = Math.floor(ms / 3600000);
+  let m = Math.floor(ms / 60000) % 60;
+  let s = Math.floor(ms / 1000) % 60;
   return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
 }
