@@ -254,21 +254,7 @@ console.log(chalk.bold.yellow(`\n❐ ESCANEA EL CÓDIGO QR, EXPIRA EN 45 SEGUNDO
 if (connection == 'open') {
 console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 }
-// -------------------------------------------------------------------
-// 🔑 INICIO DE LA LÓGICA DE CHEQUEO DEL ENDPOINT DE CÓDIGOS (MARIA) 🔑
-// Ahora es completamente silencioso, solo reporta errores.
-// -------------------------------------------------------------------
 
-// 1. Ejecutar el chequeo inmediatamente al conectar
-checkCodesEndpoint(conn, global.db.data); 
-
-// 2. Ejecutar el chequeo cada 60 segundos (60,000 milisegundos)
-global.codesCheckInterval = setInterval(() => {
-    // La función checkCodesEndpoint es silenciosa.
-    checkCodesEndpoint(conn, global.db.data); 
-}, 60 * 1000); 
-
-// -------------------------------------------------------------------
 let reason = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
 if (reason === DisconnectReason.badSession) {
