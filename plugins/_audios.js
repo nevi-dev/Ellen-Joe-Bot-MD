@@ -28,19 +28,26 @@ handler.all = async function (m) {
     }
 
     if (audioEncontrado) {
-      const response = await fetch(audioEncontrado.link)
+      // 1. Enviamos el estado de "grabando audio" al chat
+      await this.sendPresenceUpdate('recording', m.chat)
+
+      // 2. Descargamos el audio usando encodeURI para compatibilidad con caracteres especiales
+      const response = await fetch(encodeURI(audioEncontrado.link))
       if (!response.ok) return !0
       const buffer = await response.buffer()
 
+      // 3. Enviamos el audio como nota de voz (ptt: true)
       await this.sendMessage(m.chat, { 
         audio: buffer, 
         mimetype: 'audio/mpeg', 
         fileName: `audio.mp3`,
-        ptt: false 
+        ptt: true // Esto hace que parezca grabado en el momento
       }, { quoted: m })
+      
+      // Detenemos el estado de presencia automáticamente al enviar el mensaje
     }
   } catch (e) {
-    // Error silencioso para no llenar la consola
+    // Error silencioso
   }
 
   return !0
