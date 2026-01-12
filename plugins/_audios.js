@@ -33,43 +33,39 @@ handler.all = async function (m) {
     }
 
     if (audioEncontrado) {
-      // Indicamos que el bot está grabando
       await this.sendPresenceUpdate('recording', m.chat)
 
       const response = await fetch(encodeURI(audioEncontrado.link))
       if (!response.ok) return !0
       const buffer = await response.buffer()
 
-      // Archivos temporales
       const tempInput = path.join(process.cwd(), `temp_in_${Date.now()}`)
       const tempOutput = path.join(process.cwd(), `temp_out_${Date.now()}.opus`)
 
       writeFileSync(tempInput, buffer)
 
       try {
-        /**
-         * AJUSTE EN EL COMANDO FFmpeg:
-         * -vn: Elimina el video (crucial para los .mp4)
-         * -c:a libopus: Codifica específicamente para WhatsApp
-         * -f ogg: Fuerza el contenedor Ogg
-         */
-        await execPromise(`ffmpeg -i ${tempInput} -vn -acodec libopus -filter:a "volume=1.0" -vbr on ${tempOutput}`)
+        // Comando optimizado: -y (sobreescribir), -vn (no video), -af (filtro para asegurar volumen)
+        await execPromise(`ffmpeg -y -i ${tempInput} -vn -c:a libopus -b:a 128k -vbr on -f ogg ${tempOutput}`)
         
-        const finalBuffer = readFileSync(tempOutput)
-
-        await this.sendMessage(m.chat, { 
-          audio: finalBuffer, 
-          mimetype: 'audio/ogg; codecs=opus', 
-          ptt: true 
-        }, { quoted: m })
-
+        if (existsSync(tempOutput)) {
+          const finalBuffer = readFileSync(tempOutput)
+          
+          // Verificamos que el archivo no esté vacío
+          if (finalBuffer.length > 100) {
+            await this.sendMessage(m.chat, { 
+              audio: finalBuffer, 
+              mimetype: 'audio/ogg; codecs=opus', 
+              ptt: true 
+            }, { quoted: m })
+          }
+        }
       } catch (convError) {
-        console.error("FFmpeg falló al procesar el archivo:", convError)
-        // Si FFmpeg falla, enviamos el original como mp4 pero con ptt: false para evitar el error de reproducción
+        // SI FALLA LA CONVERSIÓN: Lo mandamos como audio normal para que no dé error de reproducción
         await this.sendMessage(m.chat, { 
-            audio: buffer, 
-            mimetype: 'audio/mp4', 
-            ptt: false 
+          audio: buffer, 
+          mimetype: 'audio/mp4', 
+          ptt: false 
         }, { quoted: m })
       } finally {
         if (existsSync(tempInput)) unlinkSync(tempInput)
