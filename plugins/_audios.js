@@ -3,7 +3,6 @@ import { readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs'
 import path from 'path'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import fs from 'fs'
 
 const execPromise = promisify(exec)
 
@@ -20,61 +19,55 @@ handler.all = async function (m) {
 
     const db_audios = JSON.parse(readFileSync(jsonPath, 'utf-8'))
     const text = m.text.trim().toLowerCase()
-    let audioEncontrado = null
+    let audio = null
 
     for (const item of db_audios) {
-      const match = item.keywords.some(key => 
-        new RegExp(`\\b${key}\\b`, 'i').test(text)
-      )
-      if (match) {
-        audioEncontrado = item
+      if (item.keywords.some(key => new RegExp(`\\b${key}\\b`, 'i').test(text))) {
+        audio = item
         break 
       }
     }
 
-    if (audioEncontrado) {
+    if (audio) {
       await this.sendPresenceUpdate('recording', m.chat)
-
-      const response = await fetch(encodeURI(audioEncontrado.link))
+      const response = await fetch(encodeURI(audio.link))
       if (!response.ok) return !0
       const buffer = await response.buffer()
 
-      const tempInput = path.join(process.cwd(), `temp_in_${Date.now()}`)
-      const tempOutput = path.join(process.cwd(), `temp_out_${Date.now()}.opus`)
+      // VALIDACIÓN: ¿Pasar por FFmpeg o mandar directo?
+      if (audio.convert === false) {
+        // MODO NORMAL (Mickey y Triste)
+        return await this.sendMessage(m.chat, { 
+          audio: buffer, 
+          mimetype: audio.link.includes('.mp4') ? 'audio/mp4' : 'audio/mpeg', 
+          ptt: true 
+        }, { quoted: m })
+      }
 
-      writeFileSync(tempInput, buffer)
+      // MODO OPUS (Todos los demás)
+      const tempIn = path.join(process.cwd(), `temp_in_${Date.now()}`)
+      const tempOut = path.join(process.cwd(), `temp_out_${Date.now()}.opus`)
+      writeFileSync(tempIn, buffer)
 
       try {
-        // Comando optimizado: -y (sobreescribir), -vn (no video), -af (filtro para asegurar volumen)
-        await execPromise(`ffmpeg -y -i ${tempInput} -vn -c:a libopus -b:a 128k -vbr on -f ogg ${tempOutput}`)
-        
-        if (existsSync(tempOutput)) {
-          const finalBuffer = readFileSync(tempOutput)
-          
-          // Verificamos que el archivo no esté vacío
-          if (finalBuffer.length > 100) {
-            await this.sendMessage(m.chat, { 
-              audio: finalBuffer, 
-              mimetype: 'audio/ogg; codecs=opus', 
-              ptt: true 
-            }, { quoted: m })
-          }
+        await execPromise(`ffmpeg -y -i ${tempIn} -vn -c:a libopus -b:a 128k -vbr on -f ogg ${tempOut}`)
+        const finalBuffer = readFileSync(tempOut)
+        if (finalBuffer.length > 100) {
+          await this.sendMessage(m.chat, { 
+            audio: finalBuffer, 
+            mimetype: 'audio/ogg; codecs=opus', 
+            ptt: true 
+          }, { quoted: m })
         }
-      } catch (convError) {
-        // SI FALLA LA CONVERSIÓN: Lo mandamos como audio normal para que no dé error de reproducción
-        await this.sendMessage(m.chat, { 
-          audio: buffer, 
-          mimetype: 'audio/mp4', 
-          ptt: false 
-        }, { quoted: m })
+      } catch (e) {
+        // Respaldo si falla FFmpeg
+        await this.sendMessage(m.chat, { audio: buffer, mimetype: 'audio/mp4', ptt: false }, { quoted: m })
       } finally {
-        if (existsSync(tempInput)) unlinkSync(tempInput)
-        if (existsSync(tempOutput)) unlinkSync(tempOutput)
+        if (existsSync(tempIn)) unlinkSync(tempIn)
+        if (existsSync(tempOut)) unlinkSync(tempOut)
       }
     }
-  } catch (e) {
-    // Error silencioso
-  }
+  } catch (e) {}
   return !0
 }
 
