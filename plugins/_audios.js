@@ -2,37 +2,25 @@ import fetch from 'node-fetch'
 
 const handler = m => m
 handler.all = async function (m, { conn }) {
-  // 1. Log de recepción: Ver en consola todo lo que llega al handler
+  // 1. LOG DE RECEPCIÓN: Verás esto en la consola de Evihost cada vez que alguien escriba
   if (m.isGroup && m.text) {
-    console.log(`[DEBUG] Mensaje recibido en: ${m.chat} | Texto: "${m.text}"`)
+    console.log(`[DEBUG] Recibido en: ${m.chat} | Texto: "${m.text}"`)
   }
 
-  // Filtros básicos
+  // 2. FILTROS BÁSICOS: Solo grupos, no bots, debe haber texto y conexión 'conn'
   if (!m.isGroup || m.isBaileys || !m.text || !conn) return !0
 
-  // 2. Debug del Switch: Ver si la función está ON u OFF en el grupo
+  // 3. VERIFICAR SWITCH: Verifica si el administrador activó el modo audios
   let chat = global.db.data.chats[m.chat]
-  if (!chat) {
-    console.log(`[DEBUG] El chat ${m.chat} no existe en la base de datos.`)
-    return !0
-  }
+  if (!chat || !chat.audios) return !0
 
-  if (!chat.audios) {
-    // console.log(`[DEBUG] Los audios están DESACTIVADOS en este grupo.`) // Descomenta si quieres ver esto siempre
-    return !0
-  }
+  // 4. VALIDACIÓN DE LONGITUD: Máximo 40 caracteres para evitar spam
+  if (m.text.length > 40) return !0
 
-  console.log(`[DEBUG] Los audios están ACTIVADOS en este grupo. Buscando coincidencia...`)
-
-  // 3. Validación de longitud
-  if (m.text.length > 40) {
-    console.log(`[DEBUG] Mensaje ignorado por ser demasiado largo (${m.text.length} caracteres).`)
-    return !0
-  }
-
-  const text = m.text.trim()
+  const text = m.text.trim().toLowerCase()
   let audioEncontrado = null
 
+  // --- BASE DE DATOS DE AUDIOS ---
   const db_audios = [
     { "keywords": ["chamba", "trabajar", "mi primera chamba"], "link": "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/src/file_1768176498317.mpeg" },
     { "keywords": ["goku", "esta vaina es seria", "seria"], "link": "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/src/file_1768176618931.mpeg" },
@@ -51,10 +39,11 @@ handler.all = async function (m, { conn }) {
     { "keywords": ["bienvenido", "welcome", "bienvenida"], "link": "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/src/file_1768177368621.mpeg" }
   ]
 
-  // Búsqueda
+  // --- LÓGICA DE BÚSQUEDA ---
   for (const item of db_audios) {
+    // Busca la palabra clave completa (\b) dentro del texto
     const match = item.keywords.some(key => 
-      new RegExp(`^${key}$`, 'i').test(text)
+      new RegExp(`\\b${key}\\b`, 'i').test(text)
     )
     
     if (match) {
@@ -63,11 +52,12 @@ handler.all = async function (m, { conn }) {
     }
   }
 
+  // --- EJECUCIÓN ---
   if (audioEncontrado) {
-    console.log(`[DEBUG] ¡COINCIDENCIA ENCONTRADA! Intentando enviar: ${audioEncontrado.link}`)
+    console.log(`[DEBUG] Coincidencia encontrada: ${text}. Enviando audio...`)
     try {
       const response = await fetch(audioEncontrado.link)
-      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
+      if (!response.ok) throw new Error(`Status: ${response.status}`)
       const buffer = await response.buffer()
 
       await conn.sendMessage(m.chat, { 
@@ -76,14 +66,12 @@ handler.all = async function (m, { conn }) {
         fileName: `audio.mp3`,
         ptt: false 
       }, { quoted: m })
-      
-      console.log(`[DEBUG] Audio enviado con éxito.`)
+
+      console.log(`[DEBUG] Audio enviado exitosamente.`)
       return !0
     } catch (e) {
-      console.log(`[DEBUG] Error al procesar el audio: ${e.message}`)
+      console.error(`[DEBUG] Error al descargar/enviar:`, e)
     }
-  } else {
-    console.log(`[DEBUG] No se encontró ninguna palabra clave coincidente.`)
   }
 
   return !0
