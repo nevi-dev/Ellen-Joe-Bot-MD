@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs'
 import path from 'path'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -33,25 +33,29 @@ handler.all = async function (m) {
     }
 
     if (audioEncontrado) {
+      // Indicamos que el bot está grabando
       await this.sendPresenceUpdate('recording', m.chat)
 
       const response = await fetch(encodeURI(audioEncontrado.link))
       if (!response.ok) return !0
       const buffer = await response.buffer()
 
-      // --- PROCESO DE CONVERSIÓN ---
-      // Creamos nombres de archivos temporales
+      // Archivos temporales
       const tempInput = path.join(process.cwd(), `temp_in_${Date.now()}`)
       const tempOutput = path.join(process.cwd(), `temp_out_${Date.now()}.opus`)
 
-      // Guardamos el buffer descargado
-      fs.writeFileSync(tempInput, buffer)
+      writeFileSync(tempInput, buffer)
 
       try {
-        // Comando FFmpeg para convertir a nota de voz compatible (Ogg/Opus)
-        await execPromise(`ffmpeg -i ${tempInput} -acodec libopus -filter:a "volume=1.0" -vbr on -compression_level 10 ${tempOutput}`)
+        /**
+         * AJUSTE EN EL COMANDO FFmpeg:
+         * -vn: Elimina el video (crucial para los .mp4)
+         * -c:a libopus: Codifica específicamente para WhatsApp
+         * -f ogg: Fuerza el contenedor Ogg
+         */
+        await execPromise(`ffmpeg -i ${tempInput} -vn -acodec libopus -filter:a "volume=1.0" -vbr on ${tempOutput}`)
         
-        const finalBuffer = fs.readFileSync(tempOutput)
+        const finalBuffer = readFileSync(tempOutput)
 
         await this.sendMessage(m.chat, { 
           audio: finalBuffer, 
@@ -60,17 +64,20 @@ handler.all = async function (m) {
         }, { quoted: m })
 
       } catch (convError) {
-        console.error("FFmpeg no está instalado o falló:", convError)
-        // Si falla la conversión, intentamos enviarlo normal como respaldo
-        await this.sendMessage(m.chat, { audio: buffer, mimetype: 'audio/mp4', ptt: true }, { quoted: m })
+        console.error("FFmpeg falló al procesar el archivo:", convError)
+        // Si FFmpeg falla, enviamos el original como mp4 pero con ptt: false para evitar el error de reproducción
+        await this.sendMessage(m.chat, { 
+            audio: buffer, 
+            mimetype: 'audio/mp4', 
+            ptt: false 
+        }, { quoted: m })
       } finally {
-        // Borrar archivos temporales para no llenar el disco
-        if (existsSync(tempInput)) fs.unlinkSync(tempInput)
-        if (existsSync(tempOutput)) fs.unlinkSync(tempOutput)
+        if (existsSync(tempInput)) unlinkSync(tempInput)
+        if (existsSync(tempOutput)) unlinkSync(tempOutput)
       }
     }
   } catch (e) {
-    console.error("Error general:", e)
+    // Error silencioso
   }
   return !0
 }
