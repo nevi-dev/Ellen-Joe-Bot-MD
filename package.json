@@ -1,6 +1,6 @@
 {
   "name": "Ellen-Joe-Bot-MD",
-  "version": "3",
+  "version": "3.1",
   "description": "WhatsApp Bot Multi Device",
   "main": "index.js",
   "type": "module",
