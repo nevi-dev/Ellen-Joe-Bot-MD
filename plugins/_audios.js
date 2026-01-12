@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
 
 const handler = m => m
-handler.all = async function (m, { conn }) {
-  // 1. FILTROS BÁSICOS
-  if (!m.isGroup || m.isBaileys || !m.text || !conn) return !0
+handler.all = async function (m) {
+  // 1. FILTROS BÁSICOS (this reemplaza a conn)
+  if (!m.isGroup || m.isBaileys || !m.text || !this) return !0
 
   // 2. SISTEMA DE DEBUG EN CONSOLA
   let chat = global.db.data.chats[m.chat]
@@ -15,16 +15,13 @@ handler.all = async function (m, { conn }) {
   console.log(`| Estado en este grupo: ${estadoAudios}`)
   console.log(`------------------------------------------\n`)
 
-  // Si está desactivado, detenemos la ejecución aquí
-  if (!chat || !chat.audios) return !0
-
-  // 3. VALIDACIÓN DE LONGITUD
-  if (m.text.length > 40) return !0
+  // Si está desactivado o el mensaje es muy largo, nos detenemos
+  if (!chat || !chat.audios || m.text.length > 40) return !0
 
   const text = m.text.trim().toLowerCase()
   let audioEncontrado = null
 
-  // 4. BASE DE DATOS INTEGRADA
+  // 3. BASE DE DATOS INTEGRADA
   const db_audios = [
     { "keywords": ["chamba", "trabajar", "mi primera chamba"], "link": "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/src/file_1768176498317.mpeg" },
     { "keywords": ["goku", "esta vaina es seria", "seria"], "link": "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/src/file_1768176618931.mpeg" },
@@ -43,7 +40,7 @@ handler.all = async function (m, { conn }) {
     { "keywords": ["bienvenido", "welcome", "bienvenida"], "link": "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/src/file_1768177368621.mpeg" }
   ]
 
-  // 5. LÓGICA DE BÚSQUEDA
+  // 4. LÓGICA DE BÚSQUEDA (REGEX)
   for (const item of db_audios) {
     const match = item.keywords.some(key => 
       new RegExp(`\\b${key}\\b`, 'i').test(text)
@@ -54,21 +51,21 @@ handler.all = async function (m, { conn }) {
     }
   }
 
-  // 6. EJECUCIÓN
+  // 5. EJECUCIÓN (Usando this.sendMessage)
   if (audioEncontrado) {
-    console.log(`[DEBUG AUDIOS] -> Coincidencia hallada. Enviando: ${audioEncontrado.link}`)
     try {
+      console.log(`[DEBUG AUDIOS] -> Coincidencia encontrada. Descargando...`)
       const response = await fetch(audioEncontrado.link)
-      if (!response.ok) throw new Error(`Status: ${response.status}`)
       const buffer = await response.buffer()
 
-      await conn.sendMessage(m.chat, { 
+      await this.sendMessage(m.chat, { 
         audio: buffer, 
         mimetype: 'audio/mpeg', 
         fileName: `audio.mp3`,
         ptt: false 
       }, { quoted: m })
 
+      console.log(`[DEBUG AUDIOS] -> Audio enviado con éxito.`)
       return !0
     } catch (e) {
       console.error(`[DEBUG AUDIOS] -> Error:`, e.message)
