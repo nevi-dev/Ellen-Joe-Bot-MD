@@ -61,7 +61,7 @@ const contextInfo = {
         } else {
           await conn.sendMessage(m.chat, { 
             video: { url: downloadUrl }, 
-            caption: `🎬 *Aquí tienes.* No me pidas nada más en un rato.\n\n🦈 *Contenido:* ${title}\n⚙️ *Motor:* ${res.data.motor}`, 
+            caption: `🎬 *Aquí tienes.* No me pidas nada más en un rato.\n\n🦈 *Contenido:* ${title}`, 
             mimetype: "video/mp4" 
           }, { quoted: m });
           await m.react("📽️");
