@@ -23,23 +23,22 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     externalAdReply: {
       title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
       body: `— Suspiro... ¿Qué quieres ahora, ${name}?`,
-      thumbnailUrl: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg', // Puedes cambiar esto
+      thumbnailUrl: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg',
       sourceUrl: 'https://github.com', 
       mediaType: 1,
       renderLargerThumbnail: false
     }
   };
 
-  // 1. Validar argumentos
   if (!args[0]) {
     return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué? No soy adivina.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger - The Cranberries*`, m, { contextInfo });
   }
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
-  const type = isMode ? args[0].toLowerCase() : "audio"; // Por defecto audio
+  const type = isMode ? args[0].toLowerCase() : null;
   const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-  // 2. Lógica de Descarga Directa (si el usuario ya eligió audio/video)
+  // --- LÓGICA DE DESCARGA (Cuando se pulsa un botón) ---
   if (isMode) {
     await m.react(type === 'audio' ? "🎧" : "📽️");
     try {
@@ -47,7 +46,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       const res = response.data;
 
       if (res.status && res.data.download_url) {
-        const { title, download_url, thumbnail } = res.data;
+        const { title, download_url } = res.data;
         
         if (type === 'audio') {
           await conn.sendMessage(m.chat, { 
@@ -64,30 +63,30 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
           }, { quoted: m });
           await m.react("📽️");
         }
-      } else {
-        throw new Error();
-      }
+      } else { throw new Error(); }
       return;
     } catch (error) {
-      console.error(error);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Mi API personal falló. Qué molesto, intenta más tarde.`, m);
+      return conn.reply(m.chat, `*— Tsk...* Error en mi servidor. Qué molesto.`, m);
     }
   }
 
-  // 3. Lógica de Búsqueda (si solo puso el nombre)
+  // --- LÓGICA DE BÚSQUEDA ---
   await m.react("🔍");
   let video;
   try {
     const searchResult = await yts(query);
     video = searchResult.videos?.[0];
-  } catch (e) {
-    return conn.reply(m.chat, `*— Qué patético...* No encontré nada.`, m);
-  }
+  } catch (e) { return conn.reply(m.chat, `*— Error en búsqueda.*`, m); }
 
-  if (!video) return conn.reply(m.chat, `*— (Masticando caramelos)*... No hay nada. Busca otra cosa.`, m);
+  if (!video) return conn.reply(m.chat, `*— No hay nada.*`, m);
 
-  // 4. Enviar Menú de Selección
+  // --- MENÚ CON BOTONES ---
+  const buttons = [
+    { buttonId: `${usedPrefix}play audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
+    { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
+  ];
+
   const caption = `
 ┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪۪۪۪۪ٜ݊᷼⁔᮫ּׅ̫ׄ࣪︵᮫ּ๋ׅׅ۪۪۪۪ׅ࣪࣪͡⌒🌀𔗨⃪̤̤̤ٜ۫۫۫҈҈҈҈҉҉᷒ᰰ꤬۫۫۫𔗨̤̤̤𐇽─۪۪۪۪ٜ᷼┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪݊᷼
 ₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀 — 𝘿𝘼𝙏𝙊𝙎 ✧˖°
@@ -95,20 +94,17 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
 > ૢ⃘꒰🍭⃝︩֟፝ *Título:* ${video.title}
 > ૢ⃘꒰⏱️⃝︩֟፝ *Tiempo:* ${video.timestamp}
-> ૢ⃘꒰👀⃝︩֟፝ *Vistas:* ${video.views.toLocaleString()}
 > ૢ⃘꒰👤⃝︩֟፝ *Canal:* ${video.author.name}
 
-*— Escribe lo siguiente para descargar:*
-🦈 *Audio:* ${usedPrefix}play audio ${video.url}
-🎬 *Video:* ${usedPrefix}play video ${video.url}
-
-*— Elige rápido. Se me acaba la paciencia.*
+*— Elige rápido abajo. Mi hora de descanso es sagrada.*
 ⌣᮫ֶุ࣪ᷭ⌣〫᪲꒡᳝۪︶᮫໋࣭〭〫𝆬࣪࣪𝆬࣪꒡ֶ〪࣪ ׅ۫ெ᮫〪⃨〫〫᪲࣪˚̥ׅ੭ֶ֟ৎ᮫໋ׅ̣𝆬  ּ֢̊࣪⡠᮫ ໋🦈᮫ุ〪〪〫〫ᷭ ݄࣪⢄ꠋּ֢ ࣪ ֶׅ੭ֶ̣֟ৎ᮫˚̥࣪ெ᮫〪〪⃨〫᪲ ࣪꒡᮫໋〭࣪𝆬࣪︶〪᳝۪ꠋּ꒡ׅ⌣᮫ֶ࣪᪲⌣᮫ุ᳝〫֩ᷭ`;
 
   await conn.sendMessage(m.chat, {
     image: { url: video.thumbnail },
     caption,
     footer: 'Victoria Housekeeping Service',
+    buttons,
+    headerType: 4,
     contextInfo
   }, { quoted: m });
 };
