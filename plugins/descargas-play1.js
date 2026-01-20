@@ -11,7 +11,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
   args = args.filter(v => v?.trim());
 
-  const contextInfo = {
+const contextInfo = {
     mentionedJid: [m.sender],
     isForwarded: true,
     forwardingScore: 999,
@@ -23,8 +23,8 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     externalAdReply: {
       title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
       body: `— Suspiro... ¿Qué quieres ahora, ${name}?`,
-      thumbnailUrl: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg',
-      sourceUrl: 'https://github.com', 
+      thumbnail: icons, // Aquí pasas el Buffer directamente
+      sourceUrl: redes, // Asegúrate de que esta variable esté definida arriba
       mediaType: 1,
       renderLargerThumbnail: false
     }
