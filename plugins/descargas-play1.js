@@ -38,36 +38,42 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   const type = isMode ? args[0].toLowerCase() : null;
   const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-  // --- LÓGICA DE DESCARGA (Cuando se pulsa un botón) ---
+  // --- LÓGICA DE DESCARGA (CONEXIÓN CON TU API) ---
   if (isMode) {
     await m.react(type === 'audio' ? "🎧" : "📽️");
     try {
+      // Petición a tu API con los parámetros correctos
       const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
       const res = response.data;
 
-      if (res.status && res.data.download_url) {
-        const { title, download_url } = res.data;
+      // Según tu JSON: res.status es true y el archivo está en res.data.download.url
+      if (res.status && res.data.download.url) {
+        const title = res.data.title;
+        const downloadUrl = res.data.download.url;
         
         if (type === 'audio') {
           await conn.sendMessage(m.chat, { 
-            audio: { url: download_url }, 
+            audio: { url: downloadUrl }, 
             mimetype: "audio/mpeg", 
             fileName: `${title}.mp3` 
           }, { quoted: m });
           await m.react("🎧");
         } else {
           await conn.sendMessage(m.chat, { 
-            video: { url: download_url }, 
-            caption: `🎬 *Aquí tienes.* No me pidas nada más en un rato.\n🦈 *Contenido:* ${title}`, 
+            video: { url: downloadUrl }, 
+            caption: `🎬 *Aquí tienes.* No me pidas nada más en un rato.\n\n🦈 *Contenido:* ${title}\n⚙️ *Motor:* ${res.data.motor}`, 
             mimetype: "video/mp4" 
           }, { quoted: m });
           await m.react("📽️");
         }
-      } else { throw new Error(); }
+      } else {
+        throw new Error("Respuesta de API inválida");
+      }
       return;
     } catch (error) {
+      console.error("Error API Causas:", error.response?.data || error.message);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Error en mi servidor. Qué molesto.`, m);
+      return conn.reply(m.chat, `*— Tsk...* El servidor de descargas respondió con error. Intenta de nuevo.`, m);
     }
   }
 
