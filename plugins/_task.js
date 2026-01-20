@@ -10,9 +10,10 @@ function normalizeName(text) {
     return text.trim().toLowerCase().replace(/-/g, ' ');
 }
 
-let handler = async (m, { conn, args, isOwner }) => {
+let handler = async (m, { conn, args, isOwner, usedPrefix }) => {
     if (!isOwner) return m.reply('*— (Bostezo)*... Solo mi jefe puede pedirme estas cosas. No me molestes.');
 
+    const name = conn.getName(m.sender);
     const senderNumber = m.sender.split('@')[0];
     const isSuperAdmin = senderNumber === SUPER_ADMIN;
     const adminJid = SUPER_ADMIN + '@s.whatsapp.net';
@@ -38,54 +39,65 @@ let handler = async (m, { conn, args, isOwner }) => {
 
     if (!resetAll && characterNames[0]?.toLowerCase() === 'all') transferAll = true;
 
-    // 2. SISTEMA DE BOTONES PARA COMANDOS CRÍTICOS
+    // 2. SISTEMA DE BOTONES ESTILO "PLAY"
     if (resetAll || transferAll) {
-        const actionType = resetAll ? 'RESETEAR TODO' : 'TRANSFERIR TODO';
+        const actionType = resetAll ? 'RESETEAR TODA LA DB' : 'TRANSFERENCIA MASIVA';
         
-        // Construcción del mensaje con botones
         const buttons = [
-            { buttonId: `confirm_yoshy_si`, buttonText: { displayText: '✅ Aceptar Solicitud' }, type: 1 },
-            { buttonId: `confirm_yoshy_no`, buttonText: { displayText: '❌ Rechazar' }, type: 1 }
+            { buttonId: `${usedPrefix}confirmar_yoshy si`, buttonText: { displayText: '✅ ACEPTAR' }, type: 1 },
+            { buttonId: `${usedPrefix}confirmar_yoshy no`, buttonText: { displayText: '❌ RECHAZAR' }, type: 1 }
         ];
 
-        const buttonMessage = {
-            text: `⚠️ **𝐀𝐋𝐄𝐑𝐓𝐀 𝐃𝐄 𝐒𝐄𝐆𝐔𝐑𝐈𝐃𝐀𝐃**\n\n*— Oye, @${SUPER_ADMIN}...*\n@${senderNumber} quiere ejecutar: **${actionType}**.\n\n¿Realmente quieres que gaste energía en esto?`,
-            footer: '— Victoria Housekeeping Service',
-            buttons: buttons,
-            headerType: 1,
-            mentions: [adminJid, m.sender]
-        };
+        const caption = `
+┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪۪۪۪۪ٜ݊᷼⁔᮫ּׅ̫ׄ࣪︵᮫ּ๋ׅׅ۪۪۪۪ׅ࣪࣪͡⌒🌀𔗨⃪̤̤̤ٜ۫۫۫҈҈҈҈҉҉᷒ᰰ꤬۫۫۫𔗨̤̤̤𐇽─۪۪۪۪ٜ᷼┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪݊᷼
+₊‧꒰ 🦈 ꒱ 𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄 𝐒𝐄𝐑𝐕𝐈𝐂𝐄 — 𝐀𝐋𝐄𝐑𝐓𝐀 ✧˖°
+︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶    ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶    ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶
 
-        // Enviamos los botones
-        const sentMsg = await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
+> ૢ⃘꒰⚠️⃝︩֟፝ *Acción:* ${actionType}
+> ૢ⃘꒰👤⃝︩֟፝ *Solicita:* @${senderNumber}
+> ૢ⃘꒰🦈⃝︩֟፝ *Destino:* ${resetAll ? 'LIMPIEZA TOTAL' : '@' + targetJID.split('@')[0]}
 
-        // Colector de respuestas (espera el botón)
+*— Oye @${SUPER_ADMIN}, ¿realmente quieres que haga este trabajo extra? Responde rápido.*
+⌣᮫ֶุ࣪ᷭ⌣〫᪲꒡᳝۪︶᮫໋࣭〭〫𝆬࣪࣪𝆬࣪꒡ֶ〪࣪ ׅ۫ெ᮫〪⃨〫〫᪲࣪˚̥ׅ੭ֶ֟ৎ᮫໋ׅ̣𝆬  ּ֢̊࣪⡠᮫ ໋🦈᮫ุ〪〪〫〫ᷭ ݄࣪⢄ꠋּ֢ ࣪ ֶׅ੭ֶ̣֟ৎ᮫˚̥࣪ெ᮫〪〪⃨〫᪲ ࣪꒡᮫໋〭࣪𝆬࣪︶〪᳝۪ꠋּ꒡ׅ⌣᮫ֶ࣪᪲⌣᮫ุ᳝〫֩ᷭ`;
+
+        await conn.sendMessage(m.chat, {
+            image: { url: 'https://qu.ax/STfV.jpg' }, // Imagen de Ellen Joe
+            caption,
+            footer: 'Victoria Housekeeping Service',
+            buttons,
+            headerType: 4,
+            contextInfo: {
+                mentionedJid: [adminJid, m.sender, targetJID],
+                forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 }
+            }
+        }, { quoted: m });
+
+        // Colector para procesar el botón
         const collector = conn.createMessageCollector(m.chat, {
-            filter: (v) => v.quoted && v.quoted.id === sentMsg.id && v.sender === adminJid,
-            time: 60000 // 1 minuto
+            filter: (v) => v.sender === adminJid && v.msg?.selectedButtonId?.includes('confirmar_yoshy'),
+            time: 60000
         });
 
         collector.on('collect', async (v) => {
-            const id = v.msg.selectedButtonId;
-            if (id === 'confirm_yoshy_no') {
-                await conn.reply(m.chat, '*— Menos mal.* Solicitud cancelada. Vuelvo a mi siesta.', v);
+            const selection = v.msg.selectedButtonId.split(' ')[1];
+            if (selection === 'no') {
+                await conn.reply(m.chat, '*— Tsk.* Sabía que era una pérdida de tiempo. Solicitud cancelada.', v);
                 return collector.stop();
             }
 
-            if (id === 'confirm_yoshy_si') {
+            if (selection === 'si') {
                 collector.stop();
                 await executeLogic(m, conn, charactersFilePath, resetAll, transferAll, targetJID, characterNames);
             }
         });
 
-        return; // Detenemos la ejecución aquí hasta que el admin presione el botón
+        return;
     }
 
-    // Si no es masivo (es una transferencia normal), se ejecuta directo
+    // Transferencia normal
     await executeLogic(m, conn, charactersFilePath, resetAll, transferAll, targetJID, characterNames);
 }
 
-// Función separada para procesar la lógica después de la aprobación
 async function executeLogic(m, conn, pathFile, resetAll, transferAll, targetJID, characterNames) {
     try {
         const data = await fs.readFile(pathFile, 'utf-8');
@@ -99,7 +111,7 @@ async function executeLogic(m, conn, pathFile, resetAll, transferAll, targetJID,
                 if (char.user || char.protectionUntil) {
                     char.user = "";
                     char.status = "Libre";
-                    char.protectionUntil = 0; // Limpia escudos
+                    char.protectionUntil = 0;
                     count++;
                 }
             } else if (transferAll || normalizedNames.includes(normDBName)) {
@@ -114,17 +126,18 @@ async function executeLogic(m, conn, pathFile, resetAll, transferAll, targetJID,
 
         if (count > 0) await fs.writeFile(pathFile, JSON.stringify(characters, null, 2));
 
-        const response = resetAll 
-            ? `*— Agh, listo.* He limpiado la base de datos. ${count} personajes liberados y sin escudos. No me hables en una hora.`
-            : `🦈 **𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄 𝐒𝐄𝐑𝐕𝐈𝐂𝐄**\n\n*— Movimiento terminado.* He pasado **${count}** personajes a @${targetJID.split('@')[0]}. Hazlo legal la próxima.`;
+        const resMsg = resetAll 
+            ? `*— (Bostezo)...* Listo. He vaciado la base de datos y mandé los escudos al desguace. ${count} personajes libres.`
+            : `*— Ya está.* He movido ${count} personajes a la cuenta de ese usuario. No me pidas nada más.`;
 
-        return conn.reply(m.chat, response, m, { 
-            mentions: [targetJID],
-            forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 } 
+        return conn.reply(m.chat, resMsg, m, {
+            contextInfo: {
+                mentionedJid: [targetJID],
+                forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 }
+            }
         });
-
     } catch (e) {
-        return m.reply('*— Tsk.* Algo se rompió. Qué problemático...');
+        return m.reply('*— Tsk.* Error interno. Qué molestia.');
     }
 }
 
