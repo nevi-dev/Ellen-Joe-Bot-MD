@@ -61,7 +61,7 @@ let handler = async (m, { conn, args, isOwner, usedPrefix }) => {
 ⌣᮫ֶุ࣪ᷭ⌣〫᪲꒡᳝۪︶᮫໋࣭〭〫𝆬࣪࣪𝆬࣪꒡ֶ〪࣪ ׅ۫ெ᮫〪⃨〫〫᪲࣪˚̥ׅ੭ֶ֟ৎ᮫໋ׅ̣𝆬  ּ֢̊࣪⡠᮫ ໋🦈᮫ุ〪〪〫〫ᷭ ݄࣪⢄ꠋּ֢ ࣪ ֶׅ੭ֶ̣֟ৎ᮫˚̥࣪ெ᮫〪〪⃨〫᪲ ࣪꒡᮫໋〭࣪𝆬࣪︶〪᳝۪ꠋּ꒡ׅ⌣᮫ֶ࣪᪲⌣᮫ุ᳝〫֩ᷭ`;
 
         await conn.sendMessage(m.chat, {
-            image: { url: 'https://qu.ax/STfV.jpg' }, // Imagen de Ellen Joe
+            image: icons, // Imagen de Ellen Joe
             caption,
             footer: 'Victoria Housekeeping Service',
             buttons,
