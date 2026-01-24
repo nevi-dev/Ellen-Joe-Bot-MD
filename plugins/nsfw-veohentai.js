@@ -13,7 +13,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     if (m.isGroup && !chat?.nsfw) return m.reply(`*🔞 Activa el modo NSFW.*`);
     if (!args[0]) return m.reply(`*— Dame un nombre o URL.*`);
 
-    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
     const query = args.join(' ');
     const isUrl = query.match(/https?:\/\/veohentai\.com\//i);
@@ -33,8 +33,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         const { title, download_url } = json.data;
         filePath = path.join(tmpDir, `${Date.now()}.mp4`);
 
-        console.log(`[1] Descargando: ${title}`);
-
+        // Descarga directa al disco
         const res = await fetch(download_url);
         const fileStream = fs.createWriteStream(filePath);
 
@@ -46,22 +45,26 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         const stats = fs.statSync(filePath);
         const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
-        console.log(`[2] Peso en disco: ${sizeMB} MB`);
 
-        console.log(`[3] Subiendo a WhatsApp mediante Stream (Protegiendo RAM)...`);
-        
-        // --- LA CLAVE PARA NO COLAPSAR LA RAM ---
-        // Usamos fs.createReadStream para que Baileys no cargue todo el archivo en memoria
-        const videoStream = fs.createReadStream(filePath);
-
-        await conn.sendMessage(m.chat, { 
-            video: { stream: videoStream }, // Enviamos como stream
-            caption: `✅ *Aquí tienes:* ${title}\n*Peso:* ${sizeMB} MB`,
-            mimetype: 'video/mp4',
-            fileName: `${title}.mp4`
-        }, { quoted: m });
-
-        console.log(`[4] Enviado con éxito.`);
+        // --- ESTRATEGIA PARA NO MATAR LA RAM ---
+        // Si el video es mayor a 40MB, lo mandamos como documento para evitar que Baileys procese el video en RAM
+        if (stats.size > 40 * 1024 * 1024) {
+            console.log(`[!] Video pesado (${sizeMB}MB). Enviando como documento para salvar RAM.`);
+            await conn.sendMessage(m.chat, { 
+                document: { url: filePath }, 
+                caption: `✅ *${title}*\n*Peso:* ${sizeMB} MB\n\n_Se envió como archivo para evitar colapsar el servidor._`,
+                mimetype: 'video/mp4',
+                fileName: `${title}.mp4`
+            }, { quoted: m });
+        } else {
+            // Si es pequeño, lo mandamos como video pero intentando no cargar todo en memoria
+            await conn.sendMessage(m.chat, { 
+                video: { url: filePath }, 
+                caption: `✅ *${title}*\n*Peso:* ${sizeMB} MB`,
+                mimetype: 'video/mp4',
+                fileName: `${title}.mp4`
+            }, { quoted: m });
+        }
 
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         await m.react('✅');
@@ -69,11 +72,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     } catch (e) {
         console.error(`[ERROR]:`, e);
         await m.react('❌');
-        m.reply(`*— Error:* ${e.message}`);
-        
-        if (filePath && fs.existsSync(filePath)) {
-            try { fs.unlinkSync(filePath); } catch {}
-        }
+        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 };
 
