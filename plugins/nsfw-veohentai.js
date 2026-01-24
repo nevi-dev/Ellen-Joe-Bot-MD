@@ -6,17 +6,21 @@ const API_BASE_URL = "https://api-causas.duckdns.org/api/v1/nsfw/descargas/veohe
 const API_KEY = "causa-ee5ee31dcfc79da4";
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
+    // 1. Definimos la carpeta y variables fuera para que todo el código las vea
+    const tmpDir = './tmp2';
+    let filePath = ''; 
+    
     const chat = global.db.data.chats[m.chat];
     if (m.isGroup && !chat?.nsfw) return m.reply(`*🔞 Activa el modo NSFW.*`);
     if (!args[0]) return m.reply(`*— Dame un nombre o URL.*`);
+
+    // Crear tmp2 si no existe
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
     const query = args.join(' ');
     const isUrl = query.match(/https?:\/\/veohentai\.com\//i);
     const queryParam = isUrl ? `url=${encodeURIComponent(query)}` : `q=${encodeURIComponent(query)}`;
     const queryUrl = `${API_BASE_URL}?${queryParam}&subs=false&apikey=${API_KEY}`;
-
-    // Crear carpeta tmp si no existe
-    if (!fs.existsSync('./tmp')) fs.mkdirSync('./tmp');
 
     try {
         await m.react('⏳');
@@ -29,11 +33,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         }
 
         const { title, download_url } = json.data;
-        const filePath = path.join('./tmp', `${Date.now()}.mp4`);
+        
+        // Asignamos valor a filePath
+        filePath = path.join(tmpDir, `${Date.now()}.mp4`);
 
-        console.log(`[1] Descargando: ${title}`);
+        console.log(`[1] Descargando en tmp2: ${title}`);
 
-        // --- DESCARGA AL DISCO ---
         const res = await fetch(download_url);
         const fileStream = fs.createWriteStream(filePath);
 
@@ -44,31 +49,33 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         });
 
         const stats = fs.statSync(filePath);
-        console.log(`[2] Descarga completa. Tamaño: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+        console.log(`[2] Peso: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
 
-        // --- ENVÍO COMO VIDEO NORMAL ---
-        console.log(`[3] Subiendo a WhatsApp...`);
+        console.log(`[3] Enviando a WhatsApp...`);
         
+        // Enviamos usando el PATH directamente para que Baileys gestione el stream
         await conn.sendMessage(m.chat, { 
-            video: fs.readFileSync(filePath), // Usamos el buffer del archivo local
+            video: { url: filePath }, 
             caption: `✅ *Aquí tienes:* ${title}`,
             mimetype: 'video/mp4',
-            fileName: `${title}.mp4`,
-            seconds: 60, // Engañamos un poco al sistema con la duración
-            gifPlayback: false
+            fileName: `${title}.mp4`
         }, { quoted: m });
 
         console.log(`[4] Enviado con éxito.`);
 
-        // Limpieza inmediata
+        // Borramos después de enviar
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         await m.react('✅');
 
     } catch (e) {
         console.error(`[ERROR]:`, e);
         await m.react('❌');
-        m.reply(`*— Tsk... Falló.* Verifica que el video no sea demasiado largo para tu servidor.`);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        m.reply(`*— Tsk... Falló.* ${e.message}`);
+        
+        // Aquí filePath ya es visible, así que no dará ReferenceError
+        if (filePath && fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
     }
 };
 
