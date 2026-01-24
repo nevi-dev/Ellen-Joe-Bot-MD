@@ -2,125 +2,77 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 
-// --- CONFIGURACIÓN DE LA API ---
 const API_BASE_URL = "https://api-causas.duckdns.org/api/v1/nsfw/descargas/veohentai";
 const API_KEY = "causa-ee5ee31dcfc79da4";
 
-// --- CONFIGURACIÓN DE CANAL ---
-const newsletterJid = '120363418071540900@newsletter';
-const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
-
-// Asegurar que la carpeta tmp existe al cargar el comando
-if (!fs.existsSync('./tmp')) {
-    fs.mkdirSync('./tmp');
-}
-
 const handler = async (m, { conn, args, usedPrefix, command }) => {
-    const name = conn.getName(m.sender);
-
-    // 1. Verificación de NSFW
     const chat = global.db.data.chats[m.chat];
-    if (m.isGroup && !chat?.nsfw) {
-        return m.reply(`*¿En serio vas a pedir eso aquí?* 🔞\nEste lugar es demasiado "santo". Si quieres que trabaje, activa el modo NSFW: *${usedPrefix}nsfw on*`);
-    }
-
-    // Configuración de ContextInfo
-    const contextInfo = {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardingScore: 999,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid,
-            newsletterName,
-            serverMessageId: -1
-        },
-        externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `— Suspiro... Solo te daré esto una vez, ${name}.`,
-            thumbnail: icons, 
-            sourceUrl: redes, 
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
-    };
-
-    // 2. Validación de Argumentos
-    if (!args[0]) {
-        return conn.reply(m.chat, `*— (Bostezo)*... ¿Me vas a dar un nombre o vas a seguir mirándome?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix + command} *overflow*`, m, { contextInfo });
-    }
+    if (m.isGroup && !chat?.nsfw) return m.reply(`*🔞 Activa el modo NSFW.*`);
+    if (!args[0]) return m.reply(`*— Dame un nombre o URL.*`);
 
     const query = args.join(' ');
     const isUrl = query.match(/https?:\/\/veohentai\.com\//i);
     const queryParam = isUrl ? `url=${encodeURIComponent(query)}` : `q=${encodeURIComponent(query)}`;
     const queryUrl = `${API_BASE_URL}?${queryParam}&subs=false&apikey=${API_KEY}`;
 
+    // Crear carpeta tmp si no existe
+    if (!fs.existsSync('./tmp')) fs.mkdirSync('./tmp');
+
     try {
         await m.react('⏳');
-
         const response = await fetch(queryUrl);
         const json = await response.json();
 
         if (!json.status || !json.data) {
             await m.react('❌');
-            return conn.reply(m.chat, `*Cero unidades encontradas.* 🦈\nNo hay nada de "${query}" aquí.`, m, { contextInfo });
+            return m.reply(`*No encontré nada.*`);
         }
 
-        const { title, info, download_url, thumbnail } = json.data;
-        
-        // Creamos una ruta de archivo única en la carpeta tmp
+        const { title, download_url } = json.data;
         const filePath = path.join('./tmp', `${Date.now()}.mp4`);
 
-        let infoText = `
-₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀 — 𝙃𝙀𝙉𝙏𝘼𝙄 ✧˖°
+        console.log(`[1] Descargando: ${title}`);
 
-> 🎬 *Título:* ${title}
-> 🏢 *Estudio:* ${info.estudio || 'N/A'}
-> 🏷️ *Tags:* ${info.tags ? info.tags.join(', ') : 'Vacio'}
-
-*— Descargando video al servidor... No seas impaciente.*`;
-
-        await conn.sendMessage(m.chat, { 
-            image: { url: thumbnail || 'https://qu.ax/ZpYp.jpg' }, 
-            caption: infoText,
-            contextInfo 
-        }, { quoted: m });
-
-        // 3. DESCARGA DIRECTA AL DISCO (Sin pasar por la RAM)
+        // --- DESCARGA AL DISCO ---
         const res = await fetch(download_url);
         const fileStream = fs.createWriteStream(filePath);
 
         await new Promise((resolve, reject) => {
             res.body.pipe(fileStream);
-            res.body.on('error', (err) => {
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-                reject(err);
-            });
+            res.body.on('error', reject);
             fileStream.on('finish', resolve);
         });
 
-        // 4. ENVÍO DESDE EL ARCHIVO LOCAL
-        if (fs.existsSync(filePath)) {
-            await conn.sendMessage(m.chat, { 
-                video: { url: filePath }, 
-                caption: `🎬 *Misión cumplida.* ${title}\n\n*Redes:* ${global.redes}`, 
-                mimetype: 'video/mp4',
-                fileName: `${title}.mp4`,
-                contextInfo
-            }, { quoted: m });
+        const stats = fs.statSync(filePath);
+        console.log(`[2] Descarga completa. Tamaño: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
 
-            // 5. LIMPIEZA: Borrar el archivo después de enviar
-            fs.unlinkSync(filePath);
-            await m.react('✅');
-        }
+        // --- ENVÍO COMO VIDEO NORMAL ---
+        console.log(`[3] Subiendo a WhatsApp...`);
+        
+        await conn.sendMessage(m.chat, { 
+            video: fs.readFileSync(filePath), // Usamos el buffer del archivo local
+            caption: `✅ *Aquí tienes:* ${title}`,
+            mimetype: 'video/mp4',
+            fileName: `${title}.mp4`,
+            seconds: 60, // Engañamos un poco al sistema con la duración
+            gifPlayback: false
+        }, { quoted: m });
+
+        console.log(`[4] Enviado con éxito.`);
+
+        // Limpieza inmediata
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        await m.react('✅');
 
     } catch (e) {
-        console.error('Error:', e);
+        console.error(`[ERROR]:`, e);
         await m.react('❌');
-        await conn.reply(m.chat, `*— Tsk...* Algo salió mal procesando el video pesado.`, m, { contextInfo });
+        m.reply(`*— Tsk... Falló.* Verifica que el video no sea demasiado largo para tu servidor.`);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 };
 
-handler.help = ['veohentai <búsqueda>'];
+handler.help = ['veohentai'];
 handler.tags = ['nsfw'];
 handler.command = ['veohentai', 'vh'];
 handler.register = true;
