@@ -6,7 +6,6 @@ const API_BASE_URL = "https://api-causas.duckdns.org/api/v1/nsfw/descargas/veohe
 const API_KEY = "causa-ee5ee31dcfc79da4";
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
-    // 1. Definimos la carpeta y variables fuera para que todo el código las vea
     const tmpDir = './tmp2';
     let filePath = ''; 
     
@@ -14,7 +13,6 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     if (m.isGroup && !chat?.nsfw) return m.reply(`*🔞 Activa el modo NSFW.*`);
     if (!args[0]) return m.reply(`*— Dame un nombre o URL.*`);
 
-    // Crear tmp2 si no existe
     if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
     const query = args.join(' ');
@@ -33,11 +31,9 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         }
 
         const { title, download_url } = json.data;
-        
-        // Asignamos valor a filePath
         filePath = path.join(tmpDir, `${Date.now()}.mp4`);
 
-        console.log(`[1] Descargando en tmp2: ${title}`);
+        console.log(`[1] Descargando: ${title}`);
 
         const res = await fetch(download_url);
         const fileStream = fs.createWriteStream(filePath);
@@ -49,32 +45,34 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         });
 
         const stats = fs.statSync(filePath);
-        console.log(`[2] Peso: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+        const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+        console.log(`[2] Peso en disco: ${sizeMB} MB`);
 
-        console.log(`[3] Enviando a WhatsApp...`);
+        console.log(`[3] Subiendo a WhatsApp mediante Stream (Protegiendo RAM)...`);
         
-        // Enviamos usando el PATH directamente para que Baileys gestione el stream
+        // --- LA CLAVE PARA NO COLAPSAR LA RAM ---
+        // Usamos fs.createReadStream para que Baileys no cargue todo el archivo en memoria
+        const videoStream = fs.createReadStream(filePath);
+
         await conn.sendMessage(m.chat, { 
-            video: { url: filePath }, 
-            caption: `✅ *Aquí tienes:* ${title}`,
+            video: { stream: videoStream }, // Enviamos como stream
+            caption: `✅ *Aquí tienes:* ${title}\n*Peso:* ${sizeMB} MB`,
             mimetype: 'video/mp4',
             fileName: `${title}.mp4`
         }, { quoted: m });
 
         console.log(`[4] Enviado con éxito.`);
 
-        // Borramos después de enviar
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         await m.react('✅');
 
     } catch (e) {
         console.error(`[ERROR]:`, e);
         await m.react('❌');
-        m.reply(`*— Tsk... Falló.* ${e.message}`);
+        m.reply(`*— Error:* ${e.message}`);
         
-        // Aquí filePath ya es visible, así que no dará ReferenceError
         if (filePath && fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+            try { fs.unlinkSync(filePath); } catch {}
         }
     }
 };
