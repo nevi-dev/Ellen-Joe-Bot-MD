@@ -1,4 +1,6 @@
 import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
 
 // --- CONFIGURACIÓN DE LA API ---
 const API_BASE_URL = "https://api-causas.duckdns.org/api/v1/nsfw/descargas/veohentai";
@@ -8,16 +10,21 @@ const API_KEY = "causa-ee5ee31dcfc79da4";
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
+// Asegurar que la carpeta tmp existe al cargar el comando
+if (!fs.existsSync('./tmp')) {
+    fs.mkdirSync('./tmp');
+}
+
 const handler = async (m, { conn, args, usedPrefix, command }) => {
     const name = conn.getName(m.sender);
-    
+
     // 1. Verificación de NSFW
     const chat = global.db.data.chats[m.chat];
     if (m.isGroup && !chat?.nsfw) {
         return m.reply(`*¿En serio vas a pedir eso aquí?* 🔞\nEste lugar es demasiado "santo". Si quieres que trabaje, activa el modo NSFW: *${usedPrefix}nsfw on*`);
     }
 
-    // Configuración de ContextInfo (Igual a tu comando Play)
+    // Configuración de ContextInfo
     const contextInfo = {
         mentionedJid: [m.sender],
         isForwarded: true,
@@ -39,7 +46,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     // 2. Validación de Argumentos
     if (!args[0]) {
-        return conn.reply(m.chat, `*— (Bostezo)*... ¿Me vas a dar un nombre o vas a seguir mirándome? No busco cosas por instinto.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix + command} *overflow*`, m, { contextInfo });
+        return conn.reply(m.chat, `*— (Bostezo)*... ¿Me vas a dar un nombre o vas a seguir mirándome?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix + command} *overflow*`, m, { contextInfo });
     }
 
     const query = args.join(' ');
@@ -55,46 +62,61 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         if (!json.status || !json.data) {
             await m.react('❌');
-            return conn.reply(m.chat, `*Cero unidades encontradas.* 🦈\nNo hay nada de "${query}" aquí. Qué pérdida de tiempo.`, m, { contextInfo });
+            return conn.reply(m.chat, `*Cero unidades encontradas.* 🦈\nNo hay nada de "${query}" aquí.`, m, { contextInfo });
         }
 
         const { title, info, download_url, thumbnail } = json.data;
+        
+        // Creamos una ruta de archivo única en la carpeta tmp
+        const filePath = path.join('./tmp', `${Date.now()}.mp4`);
 
-        // 3. Metadata con estética de Ellen
         let infoText = `
-┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪۪۪۪۪ٜ݊᷼⁔᮫ּׅ̫ׄ࣪︵᮫ּ๋ׅׅ۪۪۪۪ׅ࣪࣪͡⌒🌀𔗨⃪̤̤̤ٜ۫۫۫҈҈҈҈҉҉᷒ᰰ꤬۫۫۫𔗨̤̤̤𐇽─۪۪۪۪ٜ᷼┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪݊᷼
 ₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀 — 𝙃𝙀𝙉𝙏𝘼𝙄 ✧˖°
-︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶    ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶
 
-> ૢ⃘꒰ 🎬 ⃝︩֟፝ *Título:* ${title}
-> ૢ⃘꒰ 🏢 ⃝︩֟፝ *Estudio:* ${info.estudio || 'N/A'}
-> ૢ⃘꒰ 🏷️ ⃝︩֟፝ *Tags:* ${info.tags ? info.tags.join(', ') : 'Vacio'}
+> 🎬 *Título:* ${title}
+> 🏢 *Estudio:* ${info.estudio || 'N/A'}
+> 🏷️ *Tags:* ${info.tags ? info.tags.join(', ') : 'Vacio'}
 
-*— Espera a que cargue el video. No seas impaciente.*
-⌣᮫ֶุ࣪ᷭ⌣〫᪲꒡᳝۪︶᮫໋࣭〭〫𝆬࣪࣪𝆬࣪꒡ֶ〪࣪ ׅ۫ெ᮫〪⃨〫〫᪲࣪˚̥ׅ੭ֶ֟ৎ᮫໋ׅ̣𝆬  ּ֢̊࣪⡠᮫ ໋🦈᮫ุ〪〪〫〫ᷭ ݄࣪⢄ꠋּ֢ ࣪ ֶׅ੭ֶ̣֟ৎ᮫˚̥࣪ெ᮫〪〪⃨〫᪲ ࣪꒡᮫໋〭࣪𝆬࣪︶〪᳝۪ꠋּ꒡ׅ⌣᮫ֶ࣪᪲⌣᮫ุ᳝〫֩ᷭ`;
+*— Descargando video al servidor... No seas impaciente.*`;
 
-        // Enviar Información inicial con Portada e icons/redes
         await conn.sendMessage(m.chat, { 
             image: { url: thumbnail || 'https://qu.ax/ZpYp.jpg' }, 
             caption: infoText,
             contextInfo 
         }, { quoted: m });
 
-        // 4. Enviar el Video
-        if (download_url) {
+        // 3. DESCARGA DIRECTA AL DISCO (Sin pasar por la RAM)
+        const res = await fetch(download_url);
+        const fileStream = fs.createWriteStream(filePath);
+
+        await new Promise((resolve, reject) => {
+            res.body.pipe(fileStream);
+            res.body.on('error', (err) => {
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                reject(err);
+            });
+            fileStream.on('finish', resolve);
+        });
+
+        // 4. ENVÍO DESDE EL ARCHIVO LOCAL
+        if (fs.existsSync(filePath)) {
             await conn.sendMessage(m.chat, { 
-                video: { url: download_url }, 
+                video: { url: filePath }, 
                 caption: `🎬 *Misión cumplida.* ${title}\n\n*Redes:* ${global.redes}`, 
                 mimetype: 'video/mp4',
+                fileName: `${title}.mp4`,
                 contextInfo
             }, { quoted: m });
+
+            // 5. LIMPIEZA: Borrar el archivo después de enviar
+            fs.unlinkSync(filePath);
             await m.react('✅');
         }
 
     } catch (e) {
         console.error('Error:', e);
         await m.react('❌');
-        await conn.reply(m.chat, `*— Tsk...* Algo se rompió en el servidor. Arréglatelas solo por ahora.`, m, { contextInfo });
+        await conn.reply(m.chat, `*— Tsk...* Algo salió mal procesando el video pesado.`, m, { contextInfo });
     }
 };
 
