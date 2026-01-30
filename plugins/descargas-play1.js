@@ -1,7 +1,7 @@
 import axios from 'axios';
 import yts from "yt-search";
 
-const API_BASE = 'https://api-causas.duckdns.org/api/v1/descargas/youtube';
+const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 
 const newsletterJid = '120363418071540900@newsletter';
