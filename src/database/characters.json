@@ -1,5 +1,19 @@
 [
     {
+        "id": "0",
+        "name": "sophie rain",
+        "gender": "Mujer",
+        "value": "2200",
+        "source": "del azul",
+        "img": [     
+"https://files.catbox.moe/n11yvh.jpeg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
         "id": "1",
         "name": "Aika Sano",
         "gender": "Mujer",
