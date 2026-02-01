@@ -1,10 +1,13 @@
-import { ytmp4, metadata } from '../lib/ytscraper.js';
 import axios from 'axios';
+
+// --- Configuración API Causas ---
+const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
+const API_KEY = 'causa-ee5ee31dcfc79da4';
+const SIZE_LIMIT_MB = 100; 
 
 // Configuración de Ellen Joe / Victoria Housekeeping
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
-const SIZE_LIMIT_MB = 100;
 
 var handler = async (m, { conn, args, usedPrefix, command }) => {
     const name = conn.getName(m.sender);
@@ -41,34 +44,35 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     await m.react("📽️");
     await conn.reply(
         m.chat,
-        `✦ *Procesando...* Estoy preparando el archivo de video con el equipo de Victoria Housekeeping. No me presiones.`,
+        `✦ *Procesando...* Estoy preparando el video con los servidores de Causas. No me presiones.`,
         m,
         { contextInfo, quoted: m }
     );
 
     try {
-        // TIER 1: Usando el scraper local ytscraper.js que proporcionaste
-        const result = await ytmp4(url, 360); // Calidad por defecto 360p
+        // Petición exclusiva a API Causas con type=video
+        const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(url)}&type=video&apikey=${API_KEY}`);
+        const res = response.data;
 
-        if (result.status && result.download.url) {
-            const downloadUrl = result.download.url;
-            const title = result.metadata.title || 'Video de Cavidad';
-            
-            // Verificar tamaño del archivo
-            const response = await axios.head(downloadUrl);
-            const contentLength = response.headers['content-length'];
-            const fileSizeMb = contentLength / (1024 * 1024);
+        if (res.status && res.data.download.url) {
+            const { title, download } = res.data;
+            const downloadUrl = download.url;
 
             await m.react("📥");
 
+            // Verificar tamaño del archivo antes de enviar
+            const checkHeader = await axios.head(downloadUrl);
+            const fileSizeMb = (checkHeader.headers['content-length'] || 0) / (1024 * 1024);
+
             if (fileSizeMb > SIZE_LIMIT_MB) {
-                // Enviar como documento si es pesado
+                // Enviar como documento si es muy pesado
                 await conn.sendMessage(m.chat, {
                     document: { url: downloadUrl },
                     fileName: `${title}.mp4`,
                     mimetype: 'video/mp4',
-                    caption: `🦈 *Es demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nNo cabe en mi equipo, así que va como documento.\n\n🎬 *Archivo:* ${title}`
+                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nSupera mi límite de carga, así que va como documento para no forzar el equipo.\n\n🎬 *Video:* ${title}`
                 }, { quoted: m });
+                await m.react("📄");
             } else {
                 // Enviar como video normal
                 await conn.sendMessage(m.chat, { 
@@ -78,35 +82,22 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     caption: `🦈 *Aquí tienes tu pedido.* 🎞️\n\n🎬 *Título:* ${title}\n✦ *Servicio:* Victoria Housekeeping`,
                     contextInfo
                 }, { quoted: m });
+                await m.react("✅");
             }
-            await m.react("✅");
-            
+
         } else {
-            throw new Error("El scraper no devolvió URL");
+            throw new Error("API Causas devolvió error o enlace inválido");
         }
 
     } catch (error) {
-        console.error("Error en ytscraper:", error);
-
-        // TIER DE RESPALDO: API Externa si el scraper local falla
-        try {
-            const apiRes = await axios.get(`https://api.zenkey.my.id/api/download/ytmp4?url=${encodeURIComponent(url)}`);
-            const resJson = apiRes.data;
-
-            if (resJson.status && resJson.result?.download_url) {
-                await conn.sendMessage(m.chat, { 
-                    video: { url: resJson.result.download_url }, 
-                    caption: `🦈 *Tuve que usar un método de emergencia.* 🎞️\n\n🎬 *Título:* ${resJson.result.title || 'Video'}`,
-                    contextInfo
-                }, { quoted: m });
-                await m.react("✅");
-            } else {
-                throw new Error("Respaldo fallido");
-            }
-        } catch (e) {
-            await conn.reply(m.chat, `🦈 *Tsk...* Fallé en la misión. El nivel de Éter es demasiado alto o el link está roto. Inténtalo luego.`, m, { contextInfo });
-            await m.react("❌");
-        }
+        console.error("Error en API Causas (Video):", error.message);
+        await m.react("❌");
+        await conn.reply(
+            m.chat, 
+            `🦈 *Tsk...* El servidor de Causas no respondió correctamente. El enlace está roto o mi acceso fue denegado.`, 
+            m, 
+            { contextInfo }
+        );
     }
 };
 
