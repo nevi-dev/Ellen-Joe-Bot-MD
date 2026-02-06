@@ -17,7 +17,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
     externalAdReply: {
       title: '🖤 ⏤͟͟͞͞𝙀𝙇𝙇𝙀𝙉 - 𝘽𝙊𝙏 ᨶ႒ᩚ',
-      body: `✦ 𝙀sperando 𝙩u s𝙤𝙡𝙞𝙘𝙞𝙩u𝙙, ${name}. ♡`,
+      body: `✦ 𝙋𝙧𝙤𝙘𝙚𝙨𝙖𝙣𝙙𝙤 𝙩𝙪 𝙥𝙞𝙨𝙩𝙖, ${name}...`,
       thumbnail: icons, 
       sourceUrl: redes, 
       mediaType: 1,
@@ -25,79 +25,65 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     }
   };
 
-  if (!spotifyUrl) {
-    return conn.reply(m.chat, `🎶 *¿᥎іᥒіs𝗍ᥱ ᥲ ⍴ᥱძіrmᥱ ᥲᥣg᥆ sіᥒ sᥲᑲᥱr 𝗊ᥙᥱ́?*\nძі ᥣ᥆ 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs... ᥆ ᥎ᥱ𝗍ᥱ.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} https://open.spotify.com/track/...`, m, { contextInfo });
-  }
-
-  if (!/open\.spotify\.com/.test(spotifyUrl)) {
-    return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.* Esa URL no es de Spotify.`, m, { contextInfo });
-  }
+  if (!spotifyUrl) return conn.reply(m.chat, `🎶 *¿Vienes con las manos vacías?*\nUsa: ${usedPrefix}${command} <enlace de spotify>`, m, { contextInfo });
 
   await m.react("📥");
 
   try {
-    // 1. CONSULTA A LA API
-    const { data: response } = await axios.get(`https://rest.apicausas.xyz/api/v1/descargadores/spotify`, {
-      params: {
-        url: spotifyUrl,
-        apikey: CAUSA_API_KEY
-      }
-    });
+    // 1. PETICIÓN A LA API
+    const apiUrl = `https://rest.apicausas.xyz/api/v1/descargadores/spotify?url=${encodeURIComponent(spotifyUrl)}&apikey=${CAUSA_API_KEY}`;
+    const { data: response } = await axios.get(apiUrl);
 
-    // 2. VERIFICACIÓN Y EXTRACCIÓN (Basado en tu nuevo JSON)
-    if (response.status && response.data) {
-      const { title, artist, thumbnail, download } = response.data;
-      const audioUrl = download.url;
+    if (!response.status || !response.data) {
+      throw new Error("No se obtuvieron datos de la canción.");
+    }
 
-      const caption = `
-₊‧꒰ 🎧 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙋𝙊𝙏𝙄𝙁𝙔 ✧˖°
+    // 2. EXTRACCIÓN DE DATOS (Basado en tu JSON)
+    const { title, artist, thumbnail, download } = response.data;
+    const audioUrl = download.url;
+
+    const caption = `₊‧꒰ 🎧 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙋𝙊𝙏𝙄𝙁𝙔 ✧˖°
 ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶   ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶
 
 > 🎶 *Título:* ${title}
 > 👤 *Artista:* ${artist}
 > 🦈 *Servicio:* Ellen Joe's Service
 
-*Procesando la pista musical... aguarda.*`;
+*Enviando el audio, no te desesperes...*`;
 
-      // 3. ENVIAR THUMBNAIL E INFO
+    // 3. ENVIAR PORTADA E INFO
+    await conn.sendMessage(m.chat, {
+      image: { url: thumbnail },
+      caption: caption,
+      contextInfo
+    }, { quoted: m });
+
+    // 4. DESCARGAR EL AUDIO
+    const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(audioResponse.data);
+    const fileSizeMb = buffer.length / (1024 * 1024);
+
+    // 5. ENVIAR AUDIO O DOCUMENTO
+    if (fileSizeMb > SIZE_LIMIT_MB) {
       await conn.sendMessage(m.chat, {
-        image: { url: thumbnail },
-        caption: caption,
-        footer: 'Dime cómo lo quieres... o no digas nada ┐(￣ー￣)┌.',
-        contextInfo
+        document: buffer,
+        fileName: `${title}.mp3`,
+        mimetype: 'audio/mpeg'
       }, { quoted: m });
-
-      await m.react("🎧");
-
-      // 4. DESCARGAR Y ENVIAR AUDIO
-      const responseAudio = await axios.get(audioUrl, { responseType: 'arraybuffer' });
-      const audioBuffer = Buffer.from(responseAudio.data);
-      const fileSizeMb = audioBuffer.length / (1024 * 1024);
-
-      if (fileSizeMb > SIZE_LIMIT_MB) {
-          await conn.sendMessage(m.chat, {
-              document: audioBuffer,
-              fileName: `${title}.mp3`,
-              mimetype: 'audio/mpeg',
-              caption: `⚠️ *Archivo pesado (${fileSizeMb.toFixed(2)} MB). Se envía como documento.*`
-          }, { quoted: m });
-          await m.react("📄");
-      } else {
-          await conn.sendMessage(m.chat, {
-              audio: audioBuffer,
-              mimetype: "audio/mpeg",
-              fileName: `${title}.mp3`
-          }, { quoted: m });
-          await m.react("✅");
-      }
-
+      await m.react("📄");
     } else {
-      throw new Error("Sin respuesta de datos.");
+      await conn.sendMessage(m.chat, {
+        audio: buffer,
+        mimetype: 'audio/mpeg',
+        fileName: `${title}.mp3`
+      }, { quoted: m });
+      await m.react("✅");
     }
+
   } catch (e) {
-    console.error(e);
+    console.error("Error en Spotify:", e);
     await m.react("❌");
-    conn.reply(m.chat, `💔 *Error crítico.* No pude traer la música, Proxy.`, m);
+    conn.reply(m.chat, `💔 *Anomalía detectada.* No pude traer la pista.`, m);
   }
 };
 
