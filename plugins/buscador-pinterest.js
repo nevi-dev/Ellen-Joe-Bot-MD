@@ -42,7 +42,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     if (!text) return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Dime qué buscar en Pinterest.`, m, { contextInfo, quoted: m });
 
     await m.react('🔄');
-    conn.reply(m.chat, `🔄 *Iniciando barrido de red (Causa API)...* Buscando: ${text}`, m, { contextInfo, quoted: m });
+    conn.reply(m.chat, `🔄 *Iniciando barrido de red...* Buscando: ${text}`, m, { contextInfo, quoted: m });
 
     try {
         // 1. LLAMADA A LA NUEVA API (GET)
@@ -96,7 +96,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
                                 'text': `╭━━━━[ 𝙿𝚒𝚗𝚝𝚎𝚛𝚎𝚜𝚝 𝙳𝚎𝚌𝚘𝚍𝚎𝚍 ]━━━━⬣\n🖼️ *Proxy:* ${name}\n🔎 *Búsqueda:* ${text}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`
                             }),
                             'footer': proto.Message.InteractiveMessage.Footer.create({
-                                'text': "Ellen Joe's Service | Causa API"
+                                'text': "Ellen Joe's Service"
                             }),
                             'carouselMessage': proto.Message.InteractiveMessage.CarouselMessage.fromObject({
                                 'cards': carouselCards
