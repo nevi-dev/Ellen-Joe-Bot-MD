@@ -30,7 +30,7 @@ const CATEGORY_GROUPS = {
   '⬇️ DESCARGAS | DOWNLOADS': ['downloads', 'dl', 'buscador', 'internet'],
   '👥 GESTIÓN DE FACCIÓN | GRUPOS': ['group'],
   '✨ ARCHIVOS MULTIMEDIA': ['anime', 'audio'],
-  '❓ OTROS SECTORES': ['nable'], 
+  '⚙️ configuracion': ['nable'], 
 };
 
 const TAG_TO_GROUP = {};
