@@ -1,7 +1,6 @@
 import { promises as fs } from 'fs'
 
 const charactersFilePath = './src/database/characters.json'
-const haremFilePath = './src/database/harem.json'
 
 async function loadCharacters() {
     try {
@@ -9,15 +8,6 @@ async function loadCharacters() {
         return JSON.parse(data)
     } catch (error) {
         throw new Error('❀ No se pudo cargar el archivo characters.json.')
-    }
-}
-
-async function loadHarem() {
-    try {
-        const data = await fs.readFile(haremFilePath, 'utf-8')
-        return JSON.parse(data)
-    } catch (error) {
-        return []
     }
 }
 
@@ -34,19 +24,30 @@ let handler = async (m, { conn, args }) => {
         const character = characters.find(c => c.name.toLowerCase() === characterName)
 
         if (!character) {
-            await conn.reply(m.chat, `《✧》No se ha encontrado el personaje *${characterName}*. Asegúrate de que el nombre esté correcto.`, m)
+            await conn.reply(m.chat, `《✧》No se ha encontrado el personaje *${characterName}*.`, m)
+            return
+        }
+
+        if (!character.img || character.img.length === 0) {
+            await conn.reply(m.chat, `《✧》El personaje *${character.name}* no tiene imágenes registradas.`, m)
             return
         }
 
         const randomImage = character.img[Math.floor(Math.random() * character.img.length)]
 
-        const message = `❀ Nombre » *${character.name}*
+        const caption = `❀ Nombre » *${character.name}*
 ⚥ Género » *${character.gender}*
 ❖ Fuente » *${character.source}*`
 
-        await conn.sendFile(m.chat, randomImage, `${character.name}.jpg`, message, m)
+        // Usamos sendMessage con la propiedad 'image' para forzar el envío como foto grande con texto
+        await conn.sendMessage(m.chat, { 
+            image: { url: randomImage }, 
+            caption: caption,
+            mimetype: 'image/jpeg' 
+        }, { quoted: m })
+
     } catch (error) {
-        await conn.reply(m.chat, `✘ Error al cargar la imagen del personaje: ${error.message}`, m)
+        await conn.reply(m.chat, `✘ Error: ${error.message}`, m)
     }
 }
 
