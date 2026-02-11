@@ -1,8 +1,6 @@
 import { promises as fs } from 'fs'
 
 const charactersFilePath = './src/database/characters.json'
-const haremFilePath = './src/database/harem.json'
-
 const cooldowns = {}
 
 async function loadCharacters() {
@@ -28,11 +26,8 @@ let handler = async (m, { conn }) => {
 
     try {
         let characters = await loadCharacters()
-        
-        // --- 🎲 LÓGICA DE PROBABILIDAD (Priorizar No Reclamados) ---
         let randomCharacter = characters[Math.floor(Math.random() * characters.length)]
-        
-        // Si el personaje está reclamado, intentamos buscar uno libre hasta 3 veces para favorecer la suerte
+
         if (randomCharacter.user) {
             for (let i = 0; i < 3; i++) {
                 let retry = characters[Math.floor(Math.random() * characters.length)]
@@ -42,7 +37,6 @@ let handler = async (m, { conn }) => {
                 }
             }
         }
-        // ----------------------------------------------------------
 
         const hasVideos = randomCharacter.vid && randomCharacter.vid.length > 0
         const hasImages = randomCharacter.img && randomCharacter.img.length > 0
@@ -50,17 +44,30 @@ let handler = async (m, { conn }) => {
         let resourceURL
         let resourceType 
 
-        // Probabilidad de 70% video si existe, para que luzcan los archivos nuevos
-        if (hasVideos && Math.random() < 0.7) { 
+        // --- LÓGICA DE SELECCIÓN CORREGIDA ---
+        if (hasVideos && hasImages) {
+            // Si tiene ambos, 70% probabilidad de video
+            if (Math.random() < 0.7) {
+                resourceURL = randomCharacter.vid[Math.floor(Math.random() * randomCharacter.vid.length)]
+                resourceType = 'video'
+            } else {
+                resourceURL = randomCharacter.img[Math.floor(Math.random() * randomCharacter.img.length)]
+                resourceType = 'image'
+            }
+        } else if (hasVideos) {
             resourceURL = randomCharacter.vid[Math.floor(Math.random() * randomCharacter.vid.length)]
             resourceType = 'video'
         } else if (hasImages) {
             resourceURL = randomCharacter.img[Math.floor(Math.random() * randomCharacter.img.length)]
             resourceType = 'image'
         } else {
-            resourceURL = randomCharacter.vid[0]
-            resourceType = 'video'
+            return await conn.reply(m.chat, '✘ Este personaje no tiene imágenes ni videos configurados.', m)
         }
+
+        // --- VALIDACIÓN EXTRA DE EXTENSIÓN ---
+        // Si por error una imagen está en la lista de videos, esto lo corrige al vuelo
+        if (resourceURL.match(/\.(jpg|jpeg|png|webp|gif)$/i)) resourceType = 'image'
+        if (resourceURL.match(/\.(mp4|mov|avi)$/i)) resourceType = 'video'
 
         const statusMessage = randomCharacter.user
             ? `Reclamado por @${randomCharacter.user.split('@')[0]}`
@@ -80,9 +87,8 @@ let handler = async (m, { conn }) => {
 ꥓໋╰ׅ۬═ֽ̥࣪━᜔๋݈═𑂺ׄ︵ິּ֙᷼⌒݈᳹᪾̯ ⋮꥓ּ࣭ׄ🐦‍🔥⋮⌒ໍּ֣ׄ═ᮣໍ࣭ׄ━𑂺᜔꥓໋┉꥓ׂ᷼━᜔࣭֙━๋݈═̥࣭۬╯`
 
         const mentions = randomCharacter.user ? [randomCharacter.user] : []
-        
+
         if (resourceType === 'video') {
-            // Enviado siempre como GIF (reproducción infinita)
             await conn.sendMessage(m.chat, { 
                 video: { url: resourceURL }, 
                 gifPlayback: true, 
@@ -90,11 +96,9 @@ let handler = async (m, { conn }) => {
                 mentions 
             }, { quoted: m })
         } else {
-            // Enviado como imagen grande
             await conn.sendMessage(m.chat, { 
                 image: { url: resourceURL }, 
                 caption: message,
-                mimetype: 'image/jpeg',
                 mentions 
             }, { quoted: m })
         }
@@ -102,6 +106,7 @@ let handler = async (m, { conn }) => {
         cooldowns[userId] = now + COOLDOWN_TIME
 
     } catch (error) {
+        console.error(error)
         await conn.reply(m.chat, `✘ Error al cargar el personaje: ${error.message}`, m)
     }
 }
