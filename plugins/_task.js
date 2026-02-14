@@ -16,7 +16,7 @@ let handler = async (m, { conn, args, isOwner, usedPrefix, command }) => {
         const isSuperAdmin = m.sender.split('@')[0] === SUPER_ADMIN;
         if (!isSuperAdmin) return m.reply('*— Tsk.* Solo mi jefe real puede tocar ese botón.');
 
-        const type = args[1]; // 'reset', 'all' o 'no'
+        const type = args[1]; // 'all' o 'no'
         const target = args[2]; // JID si es transferencia
 
         if (type === 'no') return m.reply('*— Lo sabía.* Solicitud cancelada. No me vuelvas a despertar.');
