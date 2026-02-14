@@ -2,7 +2,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 
 const charactersFilePath = path.join(process.cwd(), './src/database/characters.json');
-const SUPER_ADMIN = '18096758983'; 
+const SUPER_ADMIN = '526145495036'; 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
