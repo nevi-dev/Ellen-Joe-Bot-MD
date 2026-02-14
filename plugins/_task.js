@@ -22,7 +22,7 @@ let handler = async (m, { conn, args, isOwner, usedPrefix, command }) => {
         if (type === 'no') return m.reply('*— Lo sabía.* Solicitud cancelada. No me vuelvas a despertar.');
 
         // Ejecutar lógica de base de datos
-        await executeLogic(m, conn, charactersFilePath, type === 'reset', type === 'all', target, []);
+        await executeLogic(m, conn, charactersFilePath, type === 'all', target, []);
         return;
     }
 
