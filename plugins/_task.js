@@ -5,7 +5,7 @@ const charactersFilePath = path.join(process.cwd(), './src/database/characters.j
 
 // --- CONFIGURACIÓN DE JEFES (SUPER ADMINS) ---
 // Añade aquí los números que quieres que tengan poder total (sin @s.whatsapp.net)
-const SUPER_ADMINS = ['526145495036', '16028790660']; 
+const SUPER_ADMINS = ['18493873691', '16028790660']; 
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ鯊 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
