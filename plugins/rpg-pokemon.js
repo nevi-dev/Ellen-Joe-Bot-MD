@@ -1,253 +1,255 @@
 import fetch from 'node-fetch'
 
-// Memoria volátil para sesiones de juego activas
+// Memoria volátil para encuentros y ofertas
 let pokemonActivo = {}
 let intercambios = {}
-let crianzaPendiente = {}
 
-let handler = async (m, { conn, args, usedPrefix, command }) => {
+let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
   let user = global.db.data.users[m.sender]
-  
+  const adminNumber = '18493873691' // Tu número configurado
+
   // ==========================================
-  // ⚙️ INICIALIZACIÓN INTEGRAL DE DATOS
+  // ⚙️ INICIALIZACIÓN INTEGRAL (ANTI-BUG)
   // ==========================================
   if (!user.pokemones) user.pokemones = []
   if (typeof user.pkStarted === 'undefined') user.pkStarted = false
-  if (typeof user.coin === 'undefined') user.coin = 500
-  if (!user.pkMochila) user.pkMochila = { caramelos: 0, piedras: 0, pociones: 5 }
-  if (!user.pkCooldowns) user.pkCooldowns = { explorar: 0, raid: 0, atrapar: 0, huevo: 0 }
-  if (!user.pokeballs) user.pokeballs = { normal: 10, super: 2, ultra: 0, master: 0 }
+  if (typeof user.coin === 'undefined') user.coin = 1000
+  if (!user.pkMochila) user.pkMochila = { caramelos: 0, pociones: 5 }
+  if (!user.pkCooldowns) user.pkCooldowns = { explorar: 0, raid: 0, huevo: 0 }
+  if (!user.pokeballs) user.pokeballs = { normal: 10, super: 5, ultra: 2, master: 0 }
 
   // ==========================================
-  // 🎓 1. SISTEMA DE INICIO (LABORATORIO OAK)
+  // 🚫 COMANDO RESET GLOBAL (SOLO TÚ)
+  // ==========================================
+  if (command === 'pkreset') {
+    let senderNum = m.sender.split('@')[0]
+    if (senderNum !== adminNumber && !isOwner) return m.reply('❌ Acceso denegado. Solo el Desarrollador puede reiniciar el mundo Pokémon.')
+    
+    let users = global.db.data.users
+    Object.keys(users).forEach(id => {
+      users[id].pokemones = []
+      users[id].pkStarted = false
+      users[id].coin = 1000
+      users[id].pkMochila = { caramelos: 0, pociones: 5 }
+      users[id].pokeballs = { normal: 10, super: 5, ultra: 2, master: 0 }
+    })
+    return m.reply('🧹 **APOCALIPSIS POKÉMON:** Todos los datos han sido borrados. El mundo ha vuelto a nacer.')
+  }
+
+  // ==========================================
+  // 🎓 INICIO: LABORATORIO OAK
   // ==========================================
   if (command === 'pkstart') {
-    if (user.pkStarted) return m.reply('❌ ¡Ya eres un entrenador! No puedes volver a empezar.')
-    let eleccion = parseInt(args[0])
-    const iniciales = [1, 4, 7] // Bulbasaur, Charmander, Squirtle
-
-    if (!eleccion || eleccion < 1 || eleccion > 3) {
-      let menu = `╭━━━「 🧬 LABORATORIO POKÉMON 」━━━\n`
-      menu += `┃ ¡Hola! Soy el Profesor Oak.\n┃ Elige a tu primer compañero:\n┃\n`
-      menu += `┃ 1️⃣ Bulbasaur (Planta/Veneno)\n┃ 2️⃣ Charmander (Fuego)\n┃ 3️⃣ Squirtle (Agua)\n┃\n`
-      menu += `┃ Uso: *${usedPrefix + command} [1-3]*\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━`
-      return m.reply(menu)
+    if (user.pkStarted) return m.reply('❌ Ya tienes un compañero Pokémon. ¡Ve a explorar!')
+    let choice = parseInt(args[0])
+    if (![1, 2, 3].includes(choice)) {
+      let texto = `╭━━━━「 🎓 PROFESOR OAK 」━━━━\n`
+      texto += `┃ ¡Hola! Bienvenido al mundo Pokémon.\n┃ Elige a tu primer compañero:\n┃\n`
+      texto += `┃ 1️⃣ Bulbasaur 🍃 (Planta)\n┃ 2️⃣ Charmander 🔥 (Fuego)\n┃ 3️⃣ Squirtle 💧 (Agua)\n┃\n`
+      texto += `┃ Uso: *${usedPrefix}pkstart [1-3]*\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━`
+      return m.reply(texto)
     }
-
-    let data = await getPokeData(iniciales[eleccion - 1])
+    
+    let ids = [1, 4, 7]
+    let data = await getPokeData(ids[choice - 1])
     user.pokemones.push(data)
     user.pkStarted = true
-    return conn.sendFile(m.chat, data.imagen, 'p.png', `✨ ¡Has recibido a **${data.nombre}**! Tu leyenda comienza hoy.`, m)
+    return conn.sendFile(m.chat, data.imagen, 'p.png', `✨ ¡Felicidades! Has recibido a **${data.nombre}**. ¡Cuídalo mucho!`, m)
   }
 
-  if (!user.pkStarted) return m.reply(`❌ Inicia tu aventura con *${usedPrefix}pkstart*`)
+  // Bloqueo si no ha empezado
+  if (!user.pkStarted) return m.reply(`❌ Primero debes hablar con el Profesor Oak usando *${usedPrefix}pkstart*`)
 
   // ==========================================
-  // 🌿 2. EXPLORACIÓN Y CAPTURA
+  // ⚔️ DUELO POKÉMON (PvP)
   // ==========================================
-  if (command === 'pokemon') {
-    let now = Date.now()
-    if (now - user.pkCooldowns.explorar < 180000) { // 3 min
-      let l = Math.ceil((user.pkCooldowns.explorar + 180000 - now) / 1000)
-      return m.reply(`⏳ Estás cansado. Descansa *${Math.floor(l / 60)}m ${l % 60}s* antes de volver al pasto alto.`)
+  if (command === 'pkpelea') {
+    let target = m.quoted ? m.quoted.sender : (m.mentionedJid?.[0] || null)
+    if (!target) return m.reply('❌ Menciona a alguien o responde a su mensaje para retarlo.')
+    
+    let miIdx = parseInt(args[0]) - 1
+    let suIdx = parseInt(args[1]) - 1
+    let oppUser = global.db.data.users[target]
+
+    if (!user.pokemones[miIdx] || !oppUser?.pokemones?.[suIdx]) {
+      return m.reply(`❌ Uso: *${usedPrefix}pkpelea [Mi_ID] [Su_ID]*\nEjemplo: .pkpelea 1 1`)
     }
 
-    user.pkCooldowns.explorar = now
-    let id = Math.floor(Math.random() * 898) + 1
-    let data = await getPokeData(id)
-    pokemonActivo[m.chat] = data
+    let p1 = user.pokemones[miIdx]
+    let p2 = oppUser.pokemones[suIdx]
 
-    let txt = `⭐ *¡POKÉMON SALVAJE!* ⭐\n\n`
-    txt += `| **${data.nombre}**\n| Tipo: ${data.tipos}\n| Poder: ${data.ataque + data.defensa}\n\n`
-    txt += `Usa: *${usedPrefix}atrapar [normal/super/ultra/master]*`
-    return conn.sendFile(m.chat, data.imagen, 'p.png', txt, m)
-  }
+    let p1Power = (p1.ataque + p1.defensa + p1.velocidad) + (p1.nivel * 8) + Math.floor(Math.random() * 60)
+    let p2Power = (p2.ataque + p2.defensa + p2.velocidad) + (p2.nivel * 8) + Math.floor(Math.random() * 60)
 
-  if (command === 'atrapar') {
-    if (!pokemonActivo[m.chat]) return m.reply('❌ No hay ningún Pokémon cerca.')
-    let bola = (args[0] || 'normal').toLowerCase()
-    if (!user.pokeballs[bola] || user.pokeballs[bola] <= 0) return m.reply(`❌ No tienes ${bola.toUpperCase()}BALLS.`)
+    let gano = p1Power > p2Power
+    let premio = 400
 
-    user.pokeballs[bola]--
-    let p = pokemonActivo[m.chat]
-    let luck = Math.random()
-    let ratios = { normal: 0.35, super: 0.55, ultra: 0.80, master: 1.0 }
+    let batalla = `⚔️ **BATALLA POKÉMON** ⚔️\n\n`
+    batalla += `🔴 ${p1.nombre} (Nvl ${p1.nivel}) vs 🔵 ${p2.nombre} (Nvl ${p2.nivel})\n\n`
     
-    delete pokemonActivo[m.chat]
-    if (luck <= ratios[bola]) {
-      user.pokemones.push(p)
-      return m.reply(`🎯 ¡Felicidades! Capturaste a **${p.nombre}** con una ${bola.toUpperCase()}BALL.`)
+    if (gano) {
+      user.coin += premio
+      batalla += `🏆 ¡Ganaste! @${m.sender.split('@')[0]} recibe 💰 ${premio} coins.`
     } else {
-      return m.reply(`💨 ¡Oh no! El **${p.nombre}** rompió la bola y escapó a toda prisa.`)
+      oppUser.coin += premio
+      batalla += `💀 Perdiste. @${target.split('@')[0]} se lleva el premio.`
     }
+    return conn.reply(m.chat, batalla, m, { mentions: [m.sender, target] })
   }
 
   // ==========================================
-  // 🥚 3. SISTEMA DE HUEVOS Y RAREZA
-  // ==========================================
-  if (command === 'pkhuevo') {
-    let now = Date.now()
-    if (now - user.pkCooldowns.huevo < 3600000) { // 1 hora
-      let l = Math.ceil((user.pkCooldowns.huevo + 3600000 - now) / 60000)
-      return m.reply(`⏳ Tu incubadora está ocupada. Falta *${l} minutos* para que eclosione el siguiente.`)
-    }
-
-    if (user.coin < 1000) return m.reply('❌ Necesitas 💰 1,000 coins para una incubadora.')
-    user.coin -= 1000
-    user.pkCooldowns.huevo = now
-    
-    await m.reply('🥚 *Colocando huevo en la incubadora...*')
-    setTimeout(async () => {
-      let r = Math.random()
-      let id;
-      if (r < 0.01) id = 151; // 1% Mew (Legendario)
-      else if (r < 0.10) id = Math.floor(Math.random() * 10) + 147; // 10% Raro (Dratini, etc)
-      else id = Math.floor(Math.random() * 800) + 1; // Común
-
-      let data = await getPokeData(id)
-      user.pokemones.push(data)
-      conn.reply(m.chat, `🐣 ¡El huevo eclosionó! Nació un **${data.nombre}** #${id}.`, m)
-    }, 5000) // Simulación rápida para el usuario
-  }
-
-  // ==========================================
-  // ⚔️ 4. RAIDS, NIVELES Y XP (DETALLADO)
-  // ==========================================
-  if (command === 'raid' || command === 'pkincursion') {
-    let idx = parseInt(args[0]) - 1
-    if (!user.pokemones[idx]) return m.reply(`❌ Elige tu pokémon: *${usedPrefix}raid [ID]*`)
-    
-    let now = Date.now()
-    if (now - user.pkCooldowns.raid < 300000) return m.reply('⏳ Tu Pokémon está agotado de la última batalla.')
-    
-    user.pkCooldowns.raid = now
-    let p = user.pokemones[idx]
-    let expGanada = Math.floor(Math.random() * 50) + 30
-    let coins = Math.floor(Math.random() * 200) + 100
-    
-    p.xp += expGanada
-    user.coin += coins
-    
-    let res = `🌋 **RESULTADO DE INCURSIÓN** 🌋\n\n`
-    res += `🥊 Pokémon: ${p.nombre}\n📈 EXP: +${expGanada}\n💰 Coins: +${coins}\n`
-    
-    // Cálculo de XP necesaria: (Nivel * 100)
-    let xpNecesaria = p.nivel * 100
-    if (p.xp >= xpNecesaria) {
-      p.nivel++
-      p.xp -= xpNecesaria
-      p.hp += 10; p.ataque += 5; p.defensa += 5
-      res += `\n⭐ ¡SUBIDA DE NIVEL! Ahora es **Nivel ${p.nivel}**`
-    } else {
-      res += `📊 XP Faltante para Lvl ${p.nivel + 1}: *${xpNecesaria - p.xp} XP*`
-    }
-    return m.reply(res)
-  }
-
-  // ==========================================
-  // 🎒 5. MOCHILA Y ESTADÍSTICAS
-  // ==========================================
-  if (command === 'mispokemon') {
-    let txt = `🎒 **MOCHILA DE ENTRENADOR**\n`
-    txt += `💰 Coins: ${user.coin} | 🥚 Siguiente Huevo: ${user.pkCooldowns.huevo ? 'En proceso' : 'Listo'}\n`
-    txt += `🔴 x${user.pokeballs.normal} | 🔵 x${user.pokeballs.super} | 🟡 x${user.pokeballs.ultra} | 🟣 x${user.pokeballs.master}\n\n`
-    
-    user.pokemones.slice(0, 20).forEach((p, i) => {
-      let xpBar = `[${'■'.repeat(Math.floor((p.xp / (p.nivel * 100)) * 10))}${'□'.repeat(10 - Math.floor((p.xp / (p.nivel * 100)) * 10))}]`
-      txt += `*${i + 1}.* ${p.nombre} (Lvl ${p.nivel})\n   ${xpBar} ${p.xp}/${p.nivel * 100}\n`
-    })
-    return m.reply(txt + `\n_Usa ${usedPrefix}pkstats [ID] para detalles._`)
-  }
-
-  // ==========================================
-  // 🏪 6. TIENDA Y VENTA
-  // ==========================================
-  if (command === 'pktienda') {
-    let items = { normal: 50, super: 150, ultra: 500, master: 10000, caramelo: 1000 }
-    let item = args[0]
-    let cant = parseInt(args[1]) || 1
-
-    if (!items[item]) {
-      let store = `🏪 **POKÉMART**\n\n`
-      for (let i in items) store += `• ${i.toUpperCase()}: 💰 ${items[i]}\n`
-      return m.reply(store + `\nCompra: ${usedPrefix}pktienda [item] [cantidad]`)
-    }
-
-    let total = items[item] * cant
-    if (user.coin < total) return m.reply('❌ Saldo insuficiente.')
-    
-    user.coin -= total
-    if (item === 'caramelo') user.pkMochila.caramelos += cant
-    else user.pokeballs[item] += cant
-    return m.reply(`🛒 Compraste ${cant} ${item}(s).`)
-  }
-
-  // ==========================================
-  // 🔄 7. TRADEO E INTERCAMBIO
+  // 🔄 TRADEO (INTERCAMBIO)
   // ==========================================
   if (command === 'pktradeo') {
     let target = m.quoted ? m.quoted.sender : null
-    if (!target) return m.reply('❌ Responde a alguien para tradear.')
+    if (!target) return m.reply('❌ Responde al mensaje del jugador para intercambiar.')
+    
     let miId = parseInt(args[0]) - 1
     let suId = parseInt(args[1]) - 1
-
     if (!user.pokemones[miId]) return m.reply('❌ No tienes ese Pokémon.')
+
     intercambios[target] = { emisor: m.sender, miId, suId }
-    return conn.reply(m.chat, `🔄 @${m.sender.split('@')[0]} propone un intercambio. \nResponde con *${usedPrefix}pkaceptar*`, m, { mentions: [m.sender] })
+    return m.reply(`🔄 @${m.sender.split('@')[0]} ofrece su Pokémon #${miId+1} por tu #${suId+1}.\nResponde *${usedPrefix}pkaceptar* para confirmar.`)
   }
 
   if (command === 'pkaceptar') {
-    let o = intercambios[m.sender]
-    if (!o) return m.reply('❌ No hay ofertas.')
-    let emisor = global.db.data.users[o.emisor]
+    let t = intercambios[m.sender]
+    if (!t) return m.reply('❌ No tienes ofertas.')
+    let emisor = global.db.data.users[t.emisor]
     
-    let p1 = emisor.pokemones.splice(o.miId, 1)[0]
-    let p2 = user.pokemones.splice(o.suId, 1)[0]
+    let pMio = user.pokemones.splice(t.suId, 1)[0]
+    let pSuyo = emisor.pokemones.splice(t.miId, 1)[0]
     
-    emisor.pokemones.push(p2)
-    user.pokemones.push(p1)
+    user.pokemones.push(pSuyo)
+    emisor.pokemones.push(pMio)
     delete intercambios[m.sender]
-    return m.reply('✅ ¡Intercambio completado con éxito!')
+    return m.reply('✅ ¡Intercambio completado!')
   }
 
   // ==========================================
-  // 📖 8. AYUDA Y COMANDOS
+  // 🏪 TIENDA Y MOCHILA
+  // ==========================================
+  if (command === 'pktienda') {
+    const items = { normal: 100, super: 300, ultra: 800, master: 15000, caramelo: 2500 }
+    let it = args[0]?.toLowerCase()
+    let cant = parseInt(args[1]) || 1
+
+    if (!items[it]) {
+      let mart = `🏪 **POKÉMART**\n\n💰 Coins: ${user.coin}\n\n`
+      for (let i in items) mart += `• ${i.toUpperCase()}: 💰 ${items[i]}\n`
+      return m.reply(mart + `\nCompra: ${usedPrefix}pktienda [objeto] [cantidad]`)
+    }
+
+    let total = items[it] * cant
+    if (user.coin < total) return m.reply('❌ No tienes suficiente dinero.')
+    
+    user.coin -= total
+    if (it === 'caramelo') user.pkMochila.caramelos += cant
+    else user.pokeballs[it] += cant
+    return m.reply(`🛒 Compraste ${cant}x ${it.toUpperCase()}.`)
+  }
+
+  if (command === 'usar') {
+    if (args[0] === 'caramelo') {
+      let idx = parseInt(args[1]) - 1
+      if (!user.pokemones[idx]) return m.reply('❌ Elige un Pokémon de tu mochila.')
+      if (user.pkMochila.caramelos <= 0) return m.reply('❌ No tienes caramelos raros.')
+      
+      user.pkMochila.caramelos--
+      let p = user.pokemones[idx]
+      p.nivel++
+      p.xp = 0
+      
+      // Lógica de evolución automática
+      const evos = { 1: 2, 2: 3, 4: 5, 5: 6, 7: 8, 8: 9 } // Ejemplo: Bulba -> Ivysaur
+      if (p.nivel >= 16 && evos[p.id]) {
+        let newData = await getPokeData(evos[p.id])
+        p.nombre = newData.nombre; p.id = newData.id; p.imagen = newData.imagen
+        m.reply(`✨ ¡Increíble! Tu Pokémon ha evolucionado a **${p.nombre}**!`)
+      }
+      return m.reply(`🍬 Usaste un Caramelo Raro. **${p.nombre}** subió al Nivel ${p.nivel}.`)
+    }
+  }
+
+  // ==========================================
+  // 🌿 MECÁNICAS DE JUEGO (CAPTURAR/VENDER)
+  // ==========================================
+  if (command === 'pokemon') {
+    let id = Math.floor(Math.random() * 898) + 1
+    let data = await getPokeData(id)
+    pokemonActivo[m.chat] = data
+    return conn.sendFile(m.chat, data.imagen, 'p.png', `🌿 **${data.nombre}** salvaje!\nUsa: *${usedPrefix}atrapar [bola]*`, m)
+  }
+
+  if (command === 'atrapar') {
+    let p = pokemonActivo[m.chat]
+    if (!p) return m.reply('❌ No hay ningún Pokémon frente a ti.')
+    let bola = (args[0] || 'normal').toLowerCase()
+    if (user.pokeballs[bola] <= 0) return m.reply(`❌ No tienes ${bola}balls.`)
+
+    user.pokeballs[bola]--
+    let luck = Math.random()
+    let rates = { normal: 0.3, super: 0.5, ultra: 0.8, master: 1.0 }
+    
+    delete pokemonActivo[m.chat]
+    if (luck <= rates[bola]) {
+      user.pokemones.push(p)
+      return m.reply(`🎯 ¡Gotcha! **${p.nombre}** capturado.`)
+    }
+    return m.reply('💨 Escapó...')
+  }
+
+  if (command === 'pkvender') {
+    let idx = parseInt(args[0]) - 1
+    if (!user.pokemones[idx] || user.pokemones.length === 1) return m.reply('❌ No puedes vender ese Pokémon.')
+    let p = user.pokemones[idx]
+    let precio = (p.hp + p.ataque) * 3 + (p.nivel * 200)
+    user.coin += precio
+    user.pokemones.splice(idx, 1)
+    return m.reply(`🤝 Vendiste a ${p.nombre} por 💰 ${precio} coins.`)
+  }
+
+  if (command === 'mispokemon') {
+    let txt = `🎒 **ENTRENADOR: ${conn.getName(m.sender)}**\n`
+    txt += `💰 Coins: ${user.coin} | 🍬 Caramelos: ${user.pkMochila.caramelos}\n\n`
+    user.pokemones.forEach((p, i) => {
+      let xpBar = `[${'■'.repeat(Math.floor(i%10))}${'□'.repeat(10-Math.floor(i%10))}]`
+      txt += `*${i + 1}.* ${p.nombre} (Lvl ${p.nivel})\n`
+    })
+    return m.reply(txt)
+  }
+
+  // ==========================================
+  // 📖 MENÚ DE AYUDA (INTEGRADO)
   // ==========================================
   if (command === 'pkhelp') {
-    let help = `🌟 **MENÚ MAESTRO POKÉMON** 🌟\n\n`
-    help += `🌿 *${usedPrefix}pokemon* - Explorar\n`
-    help += `🎯 *${usedPrefix}atrapar* - Capturar\n`
-    help += `🎒 *${usedPrefix}mispokemon* - Ver equipo\n`
-    help += `⚔️ *${usedPrefix}raid* - Subir nivel/XP\n`
-    help += `🏪 *${usedPrefix}pktienda* - Comprar bolas\n`
-    help += `🥚 *${usedPrefix}pkhuevo* - Eclosionar raros\n`
-    help += `🔄 *${usedPrefix}pktradeo* - Intercambiar\n`
-    help += `💰 *${usedPrefix}pkvender [ID]* - Ganar coins\n\n`
-    help += `_Tip: Mew solo sale en huevos con 1% de suerte._`
-    return m.reply(help)
+    let h = `🌟 **POKÉMON BOT - GUÍA** 🌟\n\n`
+    h += `🌿 *${usedPrefix}pokemon* - Buscar salvajes\n`
+    h += `🎯 *${usedPrefix}atrapar* [bola] - Capturar\n`
+    h += `⚔️ *${usedPrefix}pkpelea* [ID] [ID_Rival] - Duelo PvP\n`
+    h += `🔄 *${usedPrefix}pktradeo* - Intercambiar\n`
+    h += `🏪 *${usedPrefix}pktienda* - PokéMart\n`
+    h += `🍬 *${usedPrefix}usar caramelo* [ID] - Subir Nivel\n`
+    h += `💰 *${usedPrefix}pkvender* [ID] - Vender\n`
+    h += `🎒 *${usedPrefix}mispokemon* - Tu equipo\n`
+    h += `🧹 *${usedPrefix}pkreset* - Reiniciar todo (Admin)\n`
+    return m.reply(h)
   }
 }
 
-// ==========================================
-// 🛠️ MOTOR DE DATOS (POKEAPI)
-// ==========================================
+// --- UTILIDADES ---
 async function getPokeData(id) {
   const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
   const d = await r.json()
   return {
-    nombre: d.name.toUpperCase(),
-    id: d.id,
-    tipos: d.types.map(t => t.type.name).join('/'),
-    hp: d.stats[0].base_stat,
-    ataque: d.stats[1].base_stat,
-    defensa: d.stats[2].base_stat,
-    velocidad: d.stats[5].base_stat,
+    nombre: d.name.toUpperCase(), id: d.id,
+    hp: d.stats[0].base_stat, ataque: d.stats[1].base_stat, 
+    defensa: d.stats[2].base_stat, velocidad: d.stats[5].base_stat,
     imagen: d.sprites.other['official-artwork'].front_default,
-    nivel: 1,
-    xp: 0
+    nivel: 1, xp: 0
   }
 }
 
-handler.command = ['pkstart', 'pokemon', 'atrapar', 'mispokemon', 'pktienda', 'pkhuevo', 'raid', 'pkincursion', 'pktradeo', 'pkaceptar', 'pkhelp', 'pkvender']
+handler.command = ['pkstart', 'pokemon', 'atrapar', 'pktienda', 'usar', 'pkvender', 'mispokemon', 'pkpelea', 'pktradeo', 'pkaceptar', 'pkreset', 'pkhelp']
 handler.group = true
 export default handler
