@@ -1,30 +1,45 @@
-let handler = async (m, { conn, args, usedPrefix, command }) => {
+let handler = async (m, { args, usedPrefix, command }) => {
   let user = global.db.data.users[m.sender]
-  if (!user.pkMochila) user.pkMochila = { caramelos: 0, huevos: 0, pokebolas: 5, superball: 0, ultraball: 0 }
+  
+  // Aseguramos que la mochila exista para evitar errores
+  if (!user.pkMochila) user.pkMochila = { pokebolas: 0, superball: 0, ultraball: 0, caramelos: 0, huevos: 0 }
 
   let items = {
-    'pokebola': { precio: 150, key: 'pokebolas', desc: 'Eficacia Baja (35%)' },
-    'superball': { precio: 450, key: 'superball', desc: 'Eficacia Media (60%)' },
-    'ultraball': { precio: 1000, key: 'ultraball', desc: 'Eficacia Alta (85%)' },
-    'caramelo': { precio: 800, key: 'caramelos', desc: 'Sirve para subir nivel/evolucionar' },
-    'huevo': { precio: 1500, key: 'huevos', desc: 'Pokémon aleatorio directo' }
+    'pokebola': { p: 150, k: 'pokebolas' },
+    'superball': { p: 450, k: 'superball' },
+    'ultraball': { p: 1000, k: 'ultraball' },
+    'caramelo': { p: 800, k: 'caramelos' },
+    'huevo': { p: 2000, k: 'huevos' }
   }
 
   let item = args[0]?.toLowerCase()
+  
+  // Si no elige un item válido, mostrar catálogo
   if (!items[item]) {
-    let menu = `🛒 **TIENDA POKÉMON** 🛒\n\n`
-    for (let i in items) {
-      menu += `• *${i}*: 💰${items[i].precio}\n  _${items[i].desc}_\n\n`
-    }
-    menu += `➡️ Usa: *${usedPrefix}${command} [item]*`
+    let menu = `🛒 *TIENDA POKÉMON*\n\n`
+    menu += Object.keys(items).map(i => `• *${i}*: 💰${items[i].p}`).join('\n')
+    menu += `\n\n📌 **Ejemplo:** \`${usedPrefix}${command} caramelo 10\``
     return m.reply(menu)
   }
 
-  if (user.coin < items[item].precio) return m.reply('❌ No tienes suficientes coins.')
+  // Validar cantidad (si no se pone nada, cantidad = 1)
+  let cantidad = Math.max(1, parseInt(args[1] || 1))
+  
+  if (isNaN(cantidad)) return m.reply(`❌ La cantidad debe ser un número. Ejemplo: \`${usedPrefix}${command} ${item} 5\``)
 
-  user.coin -= items[item].precio
-  user.pkMochila[items[item].key]++
-  m.reply(`✅ Compraste 1 **${item}** con éxito.`)
+  let costoTotal = items[item].p * cantidad
+
+  // Verificar si tiene dinero suficiente
+  if (user.coin < costoTotal) {
+    return m.reply(`❌ No tienes suficiente dinero. Necesitas 💰**${costoTotal}** para comprar **${cantidad} ${item}(s)**.`)
+  }
+
+  // Procesar compra
+  user.coin -= costoTotal
+  user.pkMochila[items[item].k] += cantidad
+
+  m.reply(`✅ Compraste **${cantidad} ${item}(s)** por 💰**${costoTotal}** monedas.`)
 }
+
 handler.command = ['pktienda']
 export default handler
