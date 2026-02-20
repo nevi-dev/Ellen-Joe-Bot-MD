@@ -3,7 +3,7 @@ import fetch from 'node-fetch'
 let ligaCombates = {}
 let apiCache = {}
 
-// --- LA GRAN ENCICLOPEDIA DE LÍDERES (64 GIMNASIOS) ---
+// --- BASE DE DATOS DE LÍDERES CORREGIDA (IDs compatibles con PokéAPI) ---
 const TODOS_LOS_GYMS = [
   // KANTO
   { n: "Brock", pId: "onix", lvl: 14, med: "Roca" },
@@ -58,10 +58,10 @@ const TODOS_LOS_GYMS = [
   { n: "Lem", pId: "heliolisk", lvl: 310, med: "Voltaje" },
   { n: "Valeria", pId: "sylveon", lvl: 320, med: "Hada" },
   { n: "Ástrid", pId: "meowstic", lvl: 330, med: "Psique" },
-  { n: "Édel", pId: "avalugg", lvl: 350, med: "Iceberg-K" },
-  // ALOLA (Kahunas)
+  { n: "Édel", pId: "avalugg", lvl: 350, med: "Iceberg" },
+  // ALOLA
   { n: "Kaudan", pId: "crabominable", lvl: 370, med: "Melemele" },
-  { n: "Mayla", pId: "lycanroc", lvl: 390, med: "Akala" },
+  { n: "Mayla", pId: "lycanroc-midday", lvl: 390, med: "Akala" },
   { n: "Denio", pId: "krookodile", lvl: 410, med: "Ula-Ula" },
   { n: "Hela", pId: "mudsdale", lvl: 430, med: "Poni" },
   { n: "Gladio", pId: "silvally", lvl: 450, med: "Cero" },
@@ -73,16 +73,17 @@ const TODOS_LOS_GYMS = [
   { n: "Cathy", pId: "drednaw", lvl: 580, med: "Agua" },
   { n: "Naboru", pId: "centiskorch", lvl: 610, med: "Fuego" },
   { n: "Judith", pId: "sirfetchd", lvl: 640, med: "Lucha" },
-  { n: "Alis", pId: "alcremie", lvl: 670, med: "Hada-G" },
+  { n: "Alis", pId: "alcremie", lvl: 670, med: "Hada" },
   { n: "Mel", pId: "lapras", lvl: 700, med: "Hielo" },
-  { n: "Raihan", pId: "duraludon", lvl: 750, med: "Dragón-G" },
-  { n: "Piers", pId: "obstagoon", lvl: 800, med: "Siniestra-G" }
+  { n: "Raihan", pId: "duraludon", lvl: 750, med: "Dragón" },
+  { n: "Piers", pId: "obstagoon", lvl: 800, med: "Siniestra" }
 ]
 
 async function fetchAPI(endpoint) {
   if (apiCache[endpoint]) return apiCache[endpoint]
   try {
     const r = await fetch(`https://pokeapi.co/api/v2/${endpoint}`)
+    if (!r.ok) return null
     const data = await r.json()
     apiCache[endpoint] = data
     return data
@@ -90,21 +91,25 @@ async function fetchAPI(endpoint) {
 }
 
 async function buildPokemonObj(idOrName, level = 1) {
-  const d = await fetchAPI(`pokemon/${idOrName.toLowerCase()}`)
+  const cleanId = idOrName.toLowerCase().trim().replace(/\s+/g, '-')
+  const d = await fetchAPI(`pokemon/${cleanId}`)
   if (!d) return null
   
   let movesDisponibles = d.moves.filter(m => m.version_group_details[0].move_learn_method.name === 'level-up')
-  let shuffled = movesDisponibles.sort(() => 0.5 - Math.random())
-  let moves = []
+  let shuffled = movesDisponibles.sort(() => 0.5 - Math.random()).slice(0, 4)
   
-  for (let i = 0; i < Math.min(4, shuffled.length); i++) {
-    let moveData = await fetchAPI(`move/${shuffled[i].move.name}`)
-    if (moveData) moves.push({ 
-      nombre: moveData.name.toUpperCase(), 
-      poder: moveData.power || 50, 
-      tipo: moveData.type.name.toUpperCase() 
-    })
-  }
+  // Carga paralela de movimientos para evitar lentitud y errores
+  let moves = await Promise.all(shuffled.map(async (m) => {
+    let moveData = await fetchAPI(`move/${m.move.name}`)
+    if (moveData) {
+      return { 
+        nombre: moveData.name.toUpperCase().replace('-', ' '), 
+        poder: moveData.power || 50, 
+        tipo: moveData.type.name.toUpperCase() 
+      }
+    }
+    return { nombre: 'GOLPE', poder: 40, tipo: 'NORMAL' }
+  }))
 
   return {
     id: d.id,
@@ -122,21 +127,27 @@ async function buildPokemonObj(idOrName, level = 1) {
 let handler = async (m, { conn, args, usedPrefix, command }) => {
   let user = global.db.data.users[m.sender]
   if (!user.medallas) user.medallas = []
+  if (!user.pokemones) user.pokemones = []
 
   const subCommand = args[0]?.toLowerCase()
 
   if (command === 'pkliga') {
+    // --- LÓGICA DE ATAQUE ---
     if (subCommand === 'atacar') {
       let b = ligaCombates[m.sender]
-      if (!b) return m.reply(`❌ No hay combate. Inicia con *${usedPrefix}pkliga [ID]*`)
+      if (!b) return m.reply(`❌ No tienes un combate activo. Inicia uno con *${usedPrefix}pkliga [ID]*`)
+      
       let moveIdx = parseInt(args[1]) - 1
-      if (!b.p1.moves || !b.p1.moves[moveIdx]) return m.reply('❌ Elige ataque 1-4.')
+      if (isNaN(moveIdx) || !b.p1.moves[moveIdx]) return m.reply('❌ Elige un ataque válido (1 al 4).')
 
       let log = `⚔️ **${b.p1.nombre}** usó **${b.p1.moves[moveIdx].nombre}**`
+      
+      // Daño Jugador -> Líder
       let dmg1 = Math.floor((((2 * b.p1.nivel / 5 + 2) * b.p1.moves[moveIdx].poder * b.p1.atk / b.p2.def) / 50 + 2))
       b.p2.currentHp -= Math.max(1, dmg1)
       log += ` (-${dmg1} HP)\n`
 
+      // Turno del Líder (si sobrevive)
       if (b.p2.currentHp > 0) {
         let cpuMove = b.p2.moves[Math.floor(Math.random() * b.p2.moves.length)]
         let dmg2 = Math.floor((((2 * b.p2.nivel / 5 + 2) * cpuMove.poder * b.p2.atk / b.p1.def) / 50 + 2))
@@ -144,52 +155,58 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         log += `💥 **${b.p2.nombre}** usó **${cpuMove.nombre}** (-${dmg2} HP)`
       }
 
+      // Verificación de Ganador/Perdedor
       if (b.p1.currentHp <= 0 || b.p2.currentHp <= 0) {
         let gano = b.p1.currentHp > 0
         delete ligaCombates[m.sender]
+        
         if (gano) {
           user.medallas.push(b.dataGym.med)
           user.coin += (b.dataGym.lvl * 200)
-          return m.reply(`${log}\n\n🎊 **¡DERROTASTE AL LÍDER!**\nObtienes la **Medalla ${b.dataGym.med}** y 💰 ${b.dataGym.lvl * 200} coins.`)
-        } else { return m.reply(`${log}\n\n💀 Derrota. ¡Tu Pokémon necesita más poder!`) }
+          return m.reply(`${log}\n\n🎊 **¡HISTÓRICO!** Has derrotado a ${b.dataGym.n}.\nObtienes la **Medalla ${b.dataGym.med}** y 💰 ${b.dataGym.lvl * 200} coins.`)
+        } else {
+          return m.reply(`${log}\n\n💀 **DERROTA...** Tu Pokémon se ha debilitado. ¡Entrena más y vuelve a intentarlo!`)
+        }
       }
       return renderBattle(m, conn, b, log)
     }
 
+    // --- LÓGICA DE INICIO / INFO ---
     let nMedallas = user.medallas.length
-    if (nMedallas >= TODOS_LOS_GYMS.length) return m.reply("🏆 ¡ERES EL MAESTRO POKÉMON SUPREMO! Has ganado las 64 medallas.")
+    if (nMedallas >= TODOS_LOS_GYMS.length) return m.reply("🏆 **¡ERES EL MAESTRO POKÉMON SUPREMO!** Ya tienes las 64 medallas.")
 
     let gym = TODOS_LOS_GYMS[nMedallas]
     let miIdx = parseInt(args[0]) - 1
 
-    // 1. Mostrar info del gimnasio si no hay argumentos
+    // Si no pone ID, mostramos al líder actual
     if (isNaN(miIdx)) {
-      let poke = await buildPokemonObj(gym.pId, gym.lvl)
+      let pokeLider = await buildPokemonObj(gym.pId, gym.lvl)
+      if (!pokeLider) return m.reply("❌ Error al conectar con la PokéAPI. Reintenta en unos segundos.")
+      
       let txt = `🏟️ **GIMNASIO OFICIAL #${nMedallas + 1}**\n`
       txt += `👤 **Líder:** ${gym.n}\n`
-      txt += `🏅 **Medalla:** ${gym.med}\n`
-      txt += `👾 **Rival:** ${poke.nombre} (Nv. ${gym.lvl})\n\n`
-      txt += `*Desafiar:* ${usedPrefix}pkliga [ID de tu Pokémon]`
-      return conn.sendFile(m.chat, poke.imagen, 'l.png', txt, m)
+      txt += `🏅 **Medalla en juego:** ${gym.med}\n`
+      txt += `👾 **Pokémon Rival:** ${pokeLider.nombre} (Nv. ${gym.lvl})\n\n`
+      txt += `👉 *Para desafiarlo, usa:* \`${usedPrefix}pkliga [ID de tu Pokémon]\``
+      return conn.sendFile(m.chat, pokeLider.imagen, 'lider.png', txt, m)
     }
 
-    // 2. VALIDACIÓN CRÍTICA: ¿Existe el Pokémon en la mochila del usuario?
-    if (!user.pokemones || !user.pokemones[miIdx]) {
-      return m.reply(`❌ No tienes ningún Pokémon en el índice [${miIdx + 1}]. Revisa tu inventario.`)
-    }
+    // Validar Pokémon del usuario
+    if (!user.pokemones[miIdx]) return m.reply(`❌ No se encontró ningún Pokémon con el ID [${miIdx + 1}] en tu mochila.`)
 
     let p1 = user.pokemones[miIdx]
     let p2 = await buildPokemonObj(gym.pId, gym.lvl)
+    
+    if (!p2) return m.reply("❌ El líder no pudo presentarse (Error de API). Intenta de nuevo.")
 
-    // 3. Verificar si la API devolvió el Pokémon del líder correctamente
-    if (!p2) return m.reply("❌ Error al cargar los datos del Líder. Intenta de nuevo.")
-
+    // Iniciar combate
     ligaCombates[m.sender] = {
       p1: { ...p1, currentHp: p1.hp, maxHp: p1.hp },
       p2: { ...p2, currentHp: p2.hp, maxHp: p2.hp, nombre: `LÍDER ${gym.n.toUpperCase()}` },
       dataGym: gym
     }
-    return renderBattle(m, conn, ligaCombates[m.sender])
+    
+    return renderBattle(m, conn, ligaCombates[m.sender], `¡El combate contra **${gym.n}** ha comenzado!`)
   }
 }
 
@@ -198,12 +215,16 @@ function renderBattle(m, conn, b, log = '') {
   txt += `👤 **${b.p2.nombre}**\n💖 HP: ${Math.max(0, b.p2.currentHp)}/${b.p2.maxHp}\n`
   txt += `━━━━━━━━━━━━━━\n`
   txt += `✨ **TU ${b.p1.nombre}** (Nv. ${b.p1.nivel})\n💖 HP: ${Math.max(0, b.p1.currentHp)}/${b.p1.maxHp}\n\n`
-  if (log) txt += `${log}\n\n`
-  b.p1.moves.forEach((v, i) => { txt += `[${i + 1}] ${v.nombre}\n` })
-  txt += `\n➡️ Ataca con: *.pkliga atacar [1-4]*`
-  return conn.sendFile(m.chat, b.p2.imagen, 'b.png', txt, m)
+  if (log) txt += `💬 ${log}\n\n`
+  
+  txt += `**ATAQUES DISPONIBLES:**\n`
+  b.p1.moves.forEach((v, i) => { 
+    txt += `[${i + 1}] ${v.nombre} (${v.tipo})\n` 
+  })
+  
+  txt += `\n➡️ *Usa:* \`.pkliga atacar [1-4]\``
+  return conn.sendFile(m.chat, b.p2.imagen, 'battle.png', txt, m)
 }
 
 handler.command = ['pkliga']
 export default handler
-
