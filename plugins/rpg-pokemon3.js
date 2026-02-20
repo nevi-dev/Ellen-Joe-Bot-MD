@@ -14,12 +14,13 @@ async function fetchAPI(endpoint) {
 }
 
 async function buildPokemonObj(idOrName, level = 1) {
-  const d = await fetchAPI(`pokemon/${idOrName.toLowerCase()}`)
+  const d = await fetchAPI(`pokemon/${idOrName.toString().toLowerCase()}`)
   if (!d) return null
   
   let movesDisponibles = d.moves.filter(m => m.version_group_details[0].move_learn_method.name === 'level-up')
   let moves = []
   let shuffled = movesDisponibles.sort(() => 0.5 - Math.random())
+  
   for (let i = 0; i < Math.min(4, shuffled.length); i++) {
     let moveData = await fetchAPI(`move/${shuffled[i].move.name}`)
     if (moveData) moves.push({ 
@@ -28,16 +29,22 @@ async function buildPokemonObj(idOrName, level = 1) {
         tipo: moveData.type.name.toUpperCase() 
     })
   }
+
+  // CÁLCULO DE STATS (Evita undefined en pkinfo)
+  let baseHp = Math.floor(d.stats[0].base_stat * 3 + (level * 5))
+  
   return {
     id: d.id, 
     nombre: d.name.toUpperCase(), 
     nivel: level, 
     tipos: d.types.map(t => t.type.name.toUpperCase()),
     imagen: d.sprites.other['official-artwork'].front_default || d.sprites.front_default,
-    hp: Math.floor(d.stats[0].base_stat * 3 + (level * 5)), 
+    hp: baseHp,
+    maxHp: baseHp, // IMPORTANTE: Para que pkheal y pkinfo no den undefined
     atk: d.stats[1].base_stat + level, 
-    def: d.stats[2].base_stat + level, 
-    moves
+    def: d.stats[2].base_stat + level,
+    speed: d.stats[5].base_stat + level, // Añadido para pkinfo
+    moves: moves
   }
 }
 
@@ -54,30 +61,30 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   
   let p = user.pokemones[idx]
 
-  // --- COMANDO: PKUPGRADE (Subir a nivel X) ---
+  // --- COMANDO: PKUPGRADE ---
   if (command === 'pkupgrade') {
     let nivelObjetivo = parseInt(args[1])
     if (isNaN(nivelObjetivo) || nivelObjetivo <= p.nivel) {
-      return m.reply(`💡 Indica un nivel superior al actual (${p.nivel}).\nEjemplo: *${usedPrefix}pkupgrade 1 50*`)
+      return m.reply(`💡 Indica un nivel superior al actual (${p.nivel}).`)
     }
 
     let caramelosNecesarios = nivelObjetivo - p.nivel
     if (user.pkMochila.caramelos < caramelosNecesarios) {
-      return m.reply(`❌ No tienes suficientes caramelos. Necesitas **${caramelosNecesarios}**🍬 para llegar al nivel **${nivelObjetivo}**.`)
+      return m.reply(`❌ No tienes suficientes caramelos. Necesitas **${caramelosNecesarios}** 🍬.`)
     }
 
-    // Ejecutar mejora
     user.pkMochila.caramelos -= caramelosNecesarios
-    let newData = await buildPokemonObj(p.nombre, nivelObjetivo) // Recalcula stats con el nuevo nivel
-    Object.assign(p, newData)
-
-    return conn.sendFile(m.chat, p.imagen, 'up.png', `🍬 ¡Entrenamiento intensivo!\n**${p.nombre}** ha alcanzado el nivel **${p.nivel}** gastando ${caramelosNecesarios} caramelos.`, m)
+    let newData = await buildPokemonObj(p.id, nivelObjetivo) // Usamos ID para ser más precisos
+    if (newData) {
+      Object.assign(p, newData)
+      return conn.sendFile(m.chat, p.imagen, 'up.png', `🍬 ¡Entrenamiento intensivo!\n**${p.nombre}** subió al nivel **${p.nivel}**. Stats actualizados.`, m)
+    }
   }
 
   // --- COMANDO: PKEVOLUCIONAR ---
   if (command === 'pkevolucionar') {
     const species = await fetchAPI(`pokemon-species/${p.id}`)
-    if (!species || !species.evolution_chain) return m.reply("❌ Este Pokémon no evoluciona.")
+    if (!species || !species.evolution_chain) return m.reply("❌ Este Pokémon no tiene linaje evolutivo.")
     
     const evoData = await fetchAPI(`evolution-chain/${species.evolution_chain.url.split('/').filter(Boolean).pop()}`)
     
@@ -96,28 +103,30 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     let evo = posiblesEvos[0]
     let details = evo.evolution_details[0]
 
-    // Por Piedra
-    if (details.trigger.name === 'use-item') {
+    // Lógica de Evolución (Piedra o Nivel)
+    let evolucionar = false
+    if (details?.trigger?.name === 'use-item') {
       let piedraReq = details.item.name.replace('-stone', '')
       if (user.pkPiedras[piedraReq] > 0) {
         user.pkPiedras[piedraReq]--
-        let newData = await buildPokemonObj(evo.species.name, p.nivel)
-        Object.assign(p, newData)
-        return conn.sendFile(m.chat, p.imagen, 'evo.png', `🌟 ¡Evolución por piedra exitosa! Ahora tienes un **${p.nombre}**.`, m)
+        evolucionar = true
       } else {
-        return m.reply(`💎 Necesitas una **Piedra ${traducirPiedra(piedraReq)}** para esto.`)
+        return m.reply(`💎 Necesitas una **Piedra ${traducirPiedra(piedraReq)}**.`)
+      }
+    } else if (details?.trigger?.name === 'level-up') {
+      let nivelMin = details.min_level || 16
+      if (p.nivel >= nivelMin) {
+        evolucionar = true
+      } else {
+        return m.reply(`⏳ **${p.nombre}** requiere nivel **${nivelMin}**. (Actual: ${p.nivel})`)
       }
     }
 
-    // Por Nivel
-    if (details.trigger.name === 'level-up') {
-      let nivelMin = details.min_level || 16
-      if (p.nivel >= nivelMin) {
-        let newData = await buildPokemonObj(evo.species.name, p.nivel)
+    if (evolucionar) {
+      let newData = await buildPokemonObj(evo.species.name, p.nivel)
+      if (newData) {
         Object.assign(p, newData)
-        return conn.sendFile(m.chat, p.imagen, 'evo.png', `✨ ¡Tu Pokémon ha evolucionado a **${p.nombre}**!`, m)
-      } else {
-        return m.reply(`⏳ **${p.nombre}** requiere nivel **${nivelMin}** para evolucionar. (Nivel actual: ${p.nivel})`)
+        return conn.sendFile(m.chat, p.imagen, 'evo.png', `✨ ¡Increíble! Tu Pokémon ha evolucionado a **${p.nombre}**.\nTodos sus stats han sido mejorados.`, m)
       }
     }
   }
