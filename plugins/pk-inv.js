@@ -1,33 +1,32 @@
 let handler = async (m, { conn, usedPrefix }) => {
   let user = global.db.data.users[m.sender]
   
-  // Inicialización de seguridad para todos los objetos
-  if (!user.pkMochila) user.pkMochila = { caramelos: 0, huevos: 0, pokebolas: 5, superball: 0, ultraball: 0 }
+  // Asegurar inicialización de todas las categorías
+  if (!user.pkMochila) user.pkMochila = { caramelos: 0, huevos: 0, pokebolas: 0, superball: 0, ultraball: 0 }
   if (!user.pkPiedras) user.pkPiedras = { fuego: 0, agua: 0, trueno: 0, hoja: 0, lunar: 0, solar: 0 }
   if (!user.pokemones) user.pokemones = []
 
   let txt = `🎒 **INVENTARIO POKÉMON** 🎒\n\n`
   txt += `💰 **Coins:** ${user.coin || 0}\n`
-  txt += `🍬 **Caramelos:** ${user.pkMochila.caramelos}\n`
-  txt += `🥚 **Huevos:** ${user.pkMochila.huevos}\n\n`
+  txt += `🍬 **Caramelos:** ${user.pkMochila.caramelos || 0}\n`
+  txt += `🥚 **Huevos:** ${user.pkMochila.huevos || 0}\n\n` // Aquí se asegura de leer 'huevos'
   
   txt += `📦 **SUMINISTROS:**\n`
-  txt += `⚪ Pokébola: ${user.pkMochila.pokebolas}\n`
-  txt += `🔵 Super Ball: ${user.pkMochila.superball}\n`
-  txt += `🟡 Ultra Ball: ${user.pkMochila.ultraball}\n\n`
+  txt += `⚪ Pokébola: ${user.pkMochila.pokebolas || 0}\n`
+  txt += `🔵 Super Ball: ${user.pkMochila.superball || 0}\n`
+  txt += `🟡 Ultra Ball: ${user.pkMochila.ultraball || 0}\n\n`
 
-  // --- SECCIÓN DE PIEDRAS EVOLUTIVAS ---
   txt += `💎 **PIEDRAS EVOLUTIVAS:**\n`
-  txt += `🔥 Fuego: ${user.pkPiedras.fuego} | 💧 Agua: ${user.pkPiedras.agua}\n`
-  txt += `⚡ Trueno: ${user.pkPiedras.trueno} | 🍃 Hoja: ${user.pkPiedras.hoja}\n`
-  txt += `🌙 Lunar: ${user.pkPiedras.lunar} | ☀️ Solar: ${user.pkPiedras.solar}\n\n`
+  txt += `🔥 Fuego: ${user.pkPiedras.fuego || 0} | 💧 Agua: ${user.pkPiedras.agua || 0}\n`
+  txt += `⚡ Trueno: ${user.pkPiedras.trueno || 0} | 🍃 Hoja: ${user.pkPiedras.hoja || 0}\n`
+  txt += `🌙 Lunar: ${user.pkPiedras.lunar || 0} | ☀️ Solar: ${user.pkPiedras.solar || 0}\n\n`
   
   txt += `━━━━━━━━━━━━━━━━━━━━\n`
   txt += `👾 **TU EQUIPO POKÉMON** (${user.pokemones.length}/20)\n`
   txt += `━━━━━━━━━━━━━━━━━━━━\n\n`
 
   if (user.pokemones.length === 0) {
-    txt += `_No tienes Pokémon en tu equipo aún._\n_¡Usa .pokemon para buscar uno!_`
+    txt += `_No tienes Pokémon en tu equipo aún._`
   } else {
     user.pokemones.forEach((p, i) => {
       let health = (p.hp !== undefined) ? `${p.hp}/${p.maxHp}` : '??'
@@ -38,8 +37,7 @@ let handler = async (m, { conn, usedPrefix }) => {
   }
   
   txt += `━━━━━━━━━━━━━━━━━━━━\n`
-  txt += `🔍 Usa *${usedPrefix}pkinfo [ID]* para ver ataques.\n`
-  txt += `🌟 Usa *${usedPrefix}pkevolucionar [ID]* para usar piedras.`
+  txt += `🔍 *.pkinfo [ID]* | 🌟 *.pkevolucionar [ID]* | 🐣 *.pkincubar*`
 
   m.reply(txt)
 }
