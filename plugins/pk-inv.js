@@ -1,22 +1,18 @@
-let handler = async (m, { conn, usedPrefix }) => {
+let handler = async (m, { conn }) => {
   let user = global.db.data.users[m.sender]
-  if (!user.pokemones) user.pokemones = []
-  if (!user.pkMochila) user.pkMochila = { caramelos: 0, huevos: 0, pokebolas: 5 }
+  if (!user.pkMochila) user.pkMochila = { caramelos: 0, huevos: 0, pokebolas: 5, superball: 0, ultraball: 0 }
 
-  let txt = `🎒 *INVENTARIO POKÉMON* 🎒\n\n`
-  txt += `💰 *Monedas:* ${user.coin || 0}\n`
-  txt += `🍬 *Caramelos:* ${user.pkMochila.caramelos}\n`
-  txt += `🥚 *Huevos:* ${user.pkMochila.huevos}\n`
-  txt += `⚪ *Pokébolas:* ${user.pkMochila.pokebolas}\n\n`
+  let txt = `🎒 **INVENTARIO POKÉMON** 🎒\n\n`
+  txt += `💰 **Coins:** ${user.coin || 0}\n`
+  txt += `🍬 **Caramelos:** ${user.pkMochila.caramelos}\n`
+  txt += `🥚 **Huevos:** ${user.pkMochila.huevos}\n\n`
   
-  txt += `👾 *TU EQUIPO:* (Total: ${user.pokemones.length})\n`
-  if (user.pokemones.length === 0) txt += `_Tu equipo está vacío._\n`
-  else {
-    user.pokemones.forEach((p, i) => {
-      txt += `[${i + 1}] ${p.nombre} (Nv. ${p.nivel})\n`
-    })
-  }
-  txt += `\n🔍 Usa *${usedPrefix}pkinfo [ID]* para ver sus estadísticas.`
+  txt += `⚪ **Pokébolas:** ${user.pkMochila.pokebolas}\n`
+  txt += `🔵 **Super Balls:** ${user.pkMochila.superball}\n`
+  txt += `🟡 **Ultra Balls:** ${user.pkMochila.ultraball}\n\n`
+  
+  txt += `👾 **EQUIPO:** ${user.pokemones?.length || 0} Pokémon.\n`
+  txt += `➡️ Usa *.pkinfo [ID]* para ver detalles.`
   m.reply(txt)
 }
 handler.command = ['pkinventario', 'pkinv']
