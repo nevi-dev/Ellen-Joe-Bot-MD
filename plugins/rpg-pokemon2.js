@@ -162,6 +162,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     let gym = TODOS_LOS_GYMS[nMedallas]
     let miIdx = parseInt(args[0]) - 1
 
+    // 1. Mostrar info del gimnasio si no hay argumentos
     if (isNaN(miIdx)) {
       let poke = await buildPokemonObj(gym.pId, gym.lvl)
       let txt = `🏟️ **GIMNASIO OFICIAL #${nMedallas + 1}**\n`
@@ -172,8 +173,17 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
       return conn.sendFile(m.chat, poke.imagen, 'l.png', txt, m)
     }
 
+    // 2. VALIDACIÓN CRÍTICA: ¿Existe el Pokémon en la mochila del usuario?
+    if (!user.pokemones || !user.pokemones[miIdx]) {
+      return m.reply(`❌ No tienes ningún Pokémon en el índice [${miIdx + 1}]. Revisa tu inventario.`)
+    }
+
     let p1 = user.pokemones[miIdx]
     let p2 = await buildPokemonObj(gym.pId, gym.lvl)
+
+    // 3. Verificar si la API devolvió el Pokémon del líder correctamente
+    if (!p2) return m.reply("❌ Error al cargar los datos del Líder. Intenta de nuevo.")
+
     ligaCombates[m.sender] = {
       p1: { ...p1, currentHp: p1.hp, maxHp: p1.hp },
       p2: { ...p2, currentHp: p2.hp, maxHp: p2.hp, nombre: `LÍDER ${gym.n.toUpperCase()}` },
@@ -196,3 +206,4 @@ function renderBattle(m, conn, b, log = '') {
 
 handler.command = ['pkliga']
 export default handler
+
