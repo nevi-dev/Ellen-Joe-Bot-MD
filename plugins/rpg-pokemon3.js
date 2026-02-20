@@ -44,78 +44,89 @@ async function buildPokemonObj(idOrName, level = 1) {
 // --- HANDLER PRINCIPAL ---
 let handler = async (m, { conn, args, usedPrefix, command }) => {
   let user = global.db.data.users[m.sender]
-  
-  // Asegurar que existan las piedras en el perfil del usuario para evitar errores
   if (!user.pkPiedras) user.pkPiedras = { fuego: 0, agua: 0, trueno: 0, hoja: 0, lunar: 0, solar: 0 }
+  if (!user.pkMochila) user.pkMochila = { caramelos: 0 }
 
   let idx = parseInt(args[0]) - 1
   if (isNaN(idx) || !user.pokemones[idx]) {
-    return m.reply(`❌ Indica el ID de tu Pokémon para evolucionar.\nUso: *${usedPrefix}${command} [ID]*\nEjemplo: *${usedPrefix}${command} 1*`)
+    return m.reply(`❌ Uso correcto:\n• *${usedPrefix}pkevolucionar [ID]*\n• *${usedPrefix}pkupgrade [ID] [Nivel Objetivo]*`)
   }
   
   let p = user.pokemones[idx]
-  
-  // 1. Obtener especie y cadena evolutiva
-  const species = await fetchAPI(`pokemon-species/${p.id}`)
-  if (!species || !species.evolution_chain) return m.reply("❌ Este Pokémon no tiene registro de evolución.")
-  
-  const evoData = await fetchAPI(`evolution-chain/${species.evolution_chain.url.split('/').filter(Boolean).pop()}`)
-  
-  // 2. Función para encontrar la etapa actual y ver la siguiente
-  let findNextEvo = (node) => {
-    if (node.species.name.toUpperCase() === p.nombre) return node.evolves_to
-    for (let child of node.evolves_to) {
-      let found = findNextEvo(child)
-      if (found) return found
+
+  // --- COMANDO: PKUPGRADE (Subir a nivel X) ---
+  if (command === 'pkupgrade') {
+    let nivelObjetivo = parseInt(args[1])
+    if (isNaN(nivelObjetivo) || nivelObjetivo <= p.nivel) {
+      return m.reply(`💡 Indica un nivel superior al actual (${p.nivel}).\nEjemplo: *${usedPrefix}pkupgrade 1 50*`)
     }
-    return null
+
+    let caramelosNecesarios = nivelObjetivo - p.nivel
+    if (user.pkMochila.caramelos < caramelosNecesarios) {
+      return m.reply(`❌ No tienes suficientes caramelos. Necesitas **${caramelosNecesarios}**🍬 para llegar al nivel **${nivelObjetivo}**.`)
+    }
+
+    // Ejecutar mejora
+    user.pkMochila.caramelos -= caramelosNecesarios
+    let newData = await buildPokemonObj(p.nombre, nivelObjetivo) // Recalcula stats con el nuevo nivel
+    Object.assign(p, newData)
+
+    return conn.sendFile(m.chat, p.imagen, 'up.png', `🍬 ¡Entrenamiento intensivo!\n**${p.nombre}** ha alcanzado el nivel **${p.nivel}** gastando ${caramelosNecesarios} caramelos.`, m)
   }
 
-  let posiblesEvos = findNextEvo(evoData.chain)
+  // --- COMANDO: PKEVOLUCIONAR ---
+  if (command === 'pkevolucionar') {
+    const species = await fetchAPI(`pokemon-species/${p.id}`)
+    if (!species || !species.evolution_chain) return m.reply("❌ Este Pokémon no evoluciona.")
+    
+    const evoData = await fetchAPI(`evolution-chain/${species.evolution_chain.url.split('/').filter(Boolean).pop()}`)
+    
+    let findNextEvo = (node) => {
+      if (node.species.name.toUpperCase() === p.nombre) return node.evolves_to
+      for (let child of node.evolves_to) {
+        let found = findNextEvo(child)
+        if (found) return found
+      }
+      return null
+    }
 
-  if (!posiblesEvos || posiblesEvos.length === 0) {
-    return m.reply(`❌ **${p.nombre}** ya alcanzó su etapa evolutiva máxima.`)
-  }
+    let posiblesEvos = findNextEvo(evoData.chain)
+    if (!posiblesEvos || posiblesEvos.length === 0) return m.reply(`❌ **${p.nombre}** ya está en su etapa final.`)
 
-  // 3. Evaluar requisitos (tomamos la primera evolución posible por defecto)
-  // Nota: Para Eevee, esto se puede expandir para elegir según la piedra usada.
-  let evo = posiblesEvos[0]
-  let details = evo.evolution_details[0]
+    let evo = posiblesEvos[0]
+    let details = evo.evolution_details[0]
 
-  // --- CASO: EVOLUCIÓN POR OBJETO (PIEDRA) ---
-  if (details.trigger.name === 'use-item') {
-    let piedraReq = details.item.name.replace('-stone', '') // Ej: 'fire' de 'fire-stone'
-    let piedraTraducida = traducirPiedra(piedraReq)
+    // Por Piedra
+    if (details.trigger.name === 'use-item') {
+      let piedraReq = details.item.name.replace('-stone', '')
+      if (user.pkPiedras[piedraReq] > 0) {
+        user.pkPiedras[piedraReq]--
+        let newData = await buildPokemonObj(evo.species.name, p.nivel)
+        Object.assign(p, newData)
+        return conn.sendFile(m.chat, p.imagen, 'evo.png', `🌟 ¡Evolución por piedra exitosa! Ahora tienes un **${p.nombre}**.`, m)
+      } else {
+        return m.reply(`💎 Necesitas una **Piedra ${traducirPiedra(piedraReq)}** para esto.`)
+      }
+    }
 
-    if (user.pkPiedras[piedraReq] > 0) {
-      user.pkPiedras[piedraReq]--
-      let newData = await buildPokemonObj(evo.species.name, p.nivel)
-      Object.assign(p, newData)
-      return conn.sendFile(m.chat, p.imagen, 'evo.png', `🌟 ¡La **Piedra ${piedraTraducida}** ha hecho efecto!\nTu Pokémon ha evolucionado a **${p.nombre}**.`, m)
-    } else {
-      return m.reply(`💎 **${p.nombre}** necesita una **Piedra ${piedraTraducida}**.\nNo tienes ninguna en tu mochila.`)
+    // Por Nivel
+    if (details.trigger.name === 'level-up') {
+      let nivelMin = details.min_level || 16
+      if (p.nivel >= nivelMin) {
+        let newData = await buildPokemonObj(evo.species.name, p.nivel)
+        Object.assign(p, newData)
+        return conn.sendFile(m.chat, p.imagen, 'evo.png', `✨ ¡Tu Pokémon ha evolucionado a **${p.nombre}**!`, m)
+      } else {
+        return m.reply(`⏳ **${p.nombre}** requiere nivel **${nivelMin}** para evolucionar. (Nivel actual: ${p.nivel})`)
+      }
     }
   }
-
-  // --- CASO: EVOLUCIÓN POR NIVEL ---
-  if (details.trigger.name === 'level-up') {
-    let nivelMinimo = details.min_level || 16
-    if (p.nivel >= nivelMinimo) {
-      let newData = await buildPokemonObj(evo.species.name, p.nivel)
-      Object.assign(p, newData)
-      return conn.sendFile(m.chat, p.imagen, 'evo.png', `✨ ¡Increíble! **${p.nombre}** ha evolucionado por pura experiencia.`, m)
-    } else {
-      return m.reply(`⏳ **${p.nombre}** aún no tiene suficiente nivel.\nRequiere nivel: **${nivelMinimo}** (Nivel actual: ${p.nivel}).`)
-    }
-  }
-
-  return m.reply("❌ Este Pokémon requiere condiciones especiales (amistad, lugar o intercambio) que aún no están implementadas.")
 }
 
 function traducirPiedra(p) {
-    const traducciones = { fire: "FUEGO", water: "AGUA", thunder: "TRUENO", leaf: "HOJA", moon: "LUNAR", sun: "SOLAR", shiny: "RELUCIENTE", dusk: "OCASO", dawn: "ALBA" }
+    const traducciones = { fire: "FUEGO", water: "AGUA", thunder: "TRUENO", leaf: "HOJA", moon: "LUNAR", sun: "SOLAR" }
     return traducciones[p] || p.toUpperCase()
 }
 
-handler.command = ['pkevolucionar']
+handler.command = ['pkevolucionar', 'pkupgrade']
 export default handler
