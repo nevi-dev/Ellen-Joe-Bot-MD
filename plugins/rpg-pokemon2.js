@@ -3,7 +3,7 @@ import fetch from 'node-fetch'
 let ligaCombates = {}
 let apiCache = {}
 
-// --- LÍDERES CON IDs COMPATIBLES ---
+// --- BASE DE DATOS DE LÍDERES ---
 const TODOS_LOS_GYMS = [
   { n: "Brock", pId: "onix", lvl: 14, med: "Roca" },
   { n: "Misty", pId: "starmie", lvl: 20, med: "Cascada" },
@@ -71,6 +71,7 @@ const TODOS_LOS_GYMS = [
   { n: "Piers", pId: "obstagoon", lvl: 800, med: "Siniestra" }
 ]
 
+// --- UTILIDADES ---
 async function fetchAPI(endpoint) {
   if (apiCache[endpoint]) return apiCache[endpoint]
   try {
@@ -112,22 +113,30 @@ async function buildPokemonObj(idOrName, level = 1) {
   }
 }
 
+// --- HANDLER PRINCIPAL ---
 let handler = async (m, { conn, args, usedPrefix, command }) => {
+  // 1. Asegurar que el usuario existe en la DB
+  if (!global.db.data.users[m.sender]) global.db.data.users[m.sender] = {}
   let user = global.db.data.users[m.sender]
-  if (!user) return 
-  if (!user.medallas) user.medallas = []
-  if (!user.pokemones) user.pokemones = []
+
+  // 2. RESET AUTOMÁTICO SI FALTAN DATOS CRÍTICOS (Aquí está la magia)
+  if (!user.medallas || !Array.isArray(user.medallas) || !user.pokemones) {
+    user.medallas = []
+    user.pokemones = []
+    console.log(`[PKLIGA] Datos reseteados para ${m.sender} por incompatibilidad.`)
+  }
 
   const subCommand = args[0]?.toLowerCase()
 
   if (command === 'pkliga') {
-    // --- LÓGICA DE ATAQUE ---
+    
+    // COMANDO: ATACAR
     if (subCommand === 'atacar') {
       let b = ligaCombates[m.sender]
-      if (!b) return m.reply(`❌ No tienes un combate activo.`)
+      if (!b) return m.reply(`❌ No hay combate activo.`)
       
       let moveIdx = parseInt(args[1]) - 1
-      if (isNaN(moveIdx) || !b.p1.moves[moveIdx]) return m.reply('❌ Elige un ataque válido (1-4).')
+      if (isNaN(moveIdx) || !b.p1.moves[moveIdx]) return m.reply('❌ Elige ataque 1-4.')
 
       let log = `⚔️ **${b.p1.nombre}** usó **${b.p1.moves[moveIdx].nombre}**`
       let dmg1 = Math.floor((((2 * b.p1.nivel / 5 + 2) * b.p1.moves[moveIdx].poder * b.p1.atk / b.p2.def) / 50 + 2))
@@ -147,47 +156,53 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         if (gano) {
           user.medallas.push(b.dataGym.med)
           user.coin = (user.coin || 0) + (b.dataGym.lvl * 200)
-          return m.reply(`${log}\n\n🎊 **¡DERROTASTE AL LÍDER!**\nObtienes la Medalla ${b.dataGym.med}.`)
+          return m.reply(`${log}\n\n🎊 **¡DERROTASTE AL LÍDER!**\nObtienes la Medalla **${b.dataGym.med}**.`)
         } else {
-          return m.reply(`${log}\n\n💀 **DERROTA.** Entrena a tus Pokémon.`)
+          return m.reply(`${log}\n\n💀 **DERROTA.** Tu Pokémon se ha debilitado.`)
         }
       }
       return renderBattle(m, conn, b, log)
     }
 
-    // --- LÓGICA DE GIMNASIOS ---
+    // COMANDO: INFO GIMNASIO / DESAFÍO
     let nMedallas = user.medallas.length
-    if (nMedallas >= TODOS_LOS_GYMS.length) return m.reply("🏆 ¡YA ERES EL MAESTRO SUPREMO!")
+    if (nMedallas >= TODOS_LOS_GYMS.length) return m.reply("🏆 ¡ERES EL MAESTRO POKÉMON SUPREMO! Has ganado las 64 medallas.")
 
     let gym = TODOS_LOS_GYMS[nMedallas]
     let miIdx = parseInt(args[0]) - 1
 
+    // Si no puso ID de Pokémon, mostrar al líder
     if (isNaN(miIdx)) {
       let pokeLider = await buildPokemonObj(gym.pId, gym.lvl)
-      if (!pokeLider) return m.reply("❌ Error en PokéAPI.")
-      let txt = `🏟️ **GIMNASIO #${nMedallas + 1}**\n👤 **Líder:** ${gym.n}\n🏅 **Medalla:** ${gym.med}\n👾 **Rival:** ${pokeLider.nombre} (Nv. ${gym.lvl})\n\n👉 *Desafiar:* \`${usedPrefix}pkliga [ID Pokémon]\``
+      if (!pokeLider) return m.reply("❌ Error al conectar con PokéAPI. Intenta de nuevo.")
+      
+      let txt = `🏟️ **GIMNASIO OFICIAL #${nMedallas + 1}**\n`
+      txt += `👤 **Líder:** ${gym.n}\n`
+      txt += `🏅 **Medalla:** ${gym.med}\n`
+      txt += `👾 **Rival:** ${pokeLider.nombre} (Nv. ${gym.lvl})\n\n`
+      txt += `👉 *Para luchar, usa:* \`${usedPrefix}pkliga [ID de tu Pokémon]\``
       return conn.sendFile(m.chat, pokeLider.imagen, 'l.png', txt, m)
     }
 
-    // --- VALIDACIÓN DE TU POKÉMON ---
+    // VALIDACIÓN DE POKÉMON DEL USUARIO
     let miPokeDb = user.pokemones[miIdx]
     if (!miPokeDb) return m.reply(`❌ No tienes el Pokémon #${miIdx + 1}.`)
 
-    // Si tu Pokémon existe pero tiene datos null, esto lo salva:
-    let miPokeSeguro = {
-      nombre: miPokeDb.nombre || "POKÉMON",
+    // Clonamos el Pokémon con valores de seguridad para evitar 'null'
+    let p1Safe = {
+      nombre: miPokeDb.nombre || "Pokémon",
       nivel: miPokeDb.nivel || 1,
-      hp: miPokeDb.hp || 100, // <--- Evita el error de null
+      hp: miPokeDb.hp || 100,
       atk: miPokeDb.atk || 50,
       def: miPokeDb.def || 50,
-      moves: miPokeDb.moves && miPokeDb.moves.length > 0 ? miPokeDb.moves : [{ nombre: 'PLACAJE', poder: 40 }]
+      moves: (miPokeDb.moves && miPokeDb.moves.length > 0) ? miPokeDb.moves : [{ nombre: 'PLACAJE', poder: 40, tipo: 'NORMAL' }]
     }
 
     let p2 = await buildPokemonObj(gym.pId, gym.lvl)
-    if (!p2) return m.reply("❌ Error al cargar líder.")
+    if (!p2) return m.reply("❌ El líder no está disponible ahora.")
 
     ligaCombates[m.sender] = {
-      p1: { ...miPokeSeguro, currentHp: miPokeSeguro.hp, maxHp: miPokeSeguro.hp },
+      p1: { ...p1Safe, currentHp: p1Safe.hp, maxHp: p1Safe.hp },
       p2: { ...p2, currentHp: p2.hp, maxHp: p2.hp, nombre: `LÍDER ${gym.n.toUpperCase()}` },
       dataGym: gym
     }
@@ -197,16 +212,17 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 }
 
 function renderBattle(m, conn, b, log = '') {
-  let txt = `🏟️ **LIGA POKÉMON**\n\n👤 **${b.p2.nombre}**\n💖 HP: ${Math.max(0, b.p2.currentHp)}/${b.p2.maxHp}\n`
-  txt += `━━━━━━━━━━━━━━\n✨ **TU ${b.p1.nombre}**\n💖 HP: ${Math.max(0, b.p1.currentHp)}/${b.p1.maxHp}\n\n`
+  let txt = `🏟️ **LIGA POKÉMON - DUELO**\n\n`
+  txt += `👤 **${b.p2.nombre}**\n💖 HP: ${Math.max(0, b.p2.currentHp)}/${b.p2.maxHp}\n`
+  txt += `━━━━━━━━━━━━━━\n`
+  txt += `✨ **TU ${b.p1.nombre}**\n💖 HP: ${Math.max(0, b.p1.currentHp)}/${b.p1.maxHp}\n\n`
   if (log) txt += `💬 ${log}\n\n`
   
-  // Listar ataques del jugador
   b.p1.moves.forEach((v, i) => { 
-    txt += `[${i + 1}] ${v.nombre}\n` 
+    txt += `[${i + 1}] ${v.nombre} (${v.tipo})\n` 
   })
   
-  txt += `\n➡️ Ataca con: *.pkliga atacar [1-4]*`
+  txt += `\n➡️ *Ataca con:* \`.pkliga atacar [1-4]\``
   return conn.sendFile(m.chat, b.p2.imagen, 'b.png', txt, m)
 }
 
