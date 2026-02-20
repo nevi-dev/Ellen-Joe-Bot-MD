@@ -1,8 +1,9 @@
 let handler = async (m, { conn, usedPrefix }) => {
   let user = global.db.data.users[m.sender]
   
-  // Inicialización de seguridad
+  // Inicialización de seguridad para todos los objetos
   if (!user.pkMochila) user.pkMochila = { caramelos: 0, huevos: 0, pokebolas: 5, superball: 0, ultraball: 0 }
+  if (!user.pkPiedras) user.pkPiedras = { fuego: 0, agua: 0, trueno: 0, hoja: 0, lunar: 0, solar: 0 }
   if (!user.pokemones) user.pokemones = []
 
   let txt = `🎒 **INVENTARIO POKÉMON** 🎒\n\n`
@@ -10,9 +11,16 @@ let handler = async (m, { conn, usedPrefix }) => {
   txt += `🍬 **Caramelos:** ${user.pkMochila.caramelos}\n`
   txt += `🥚 **Huevos:** ${user.pkMochila.huevos}\n\n`
   
-  txt += `⚪ **Pokébolas:** ${user.pkMochila.pokebolas}\n`
-  txt += `🔵 **Super Balls:** ${user.pkMochila.superball}\n`
-  txt += `🟡 **Ultra Balls:** ${user.pkMochila.ultraball}\n\n`
+  txt += `📦 **SUMINISTROS:**\n`
+  txt += `⚪ Pokébola: ${user.pkMochila.pokebolas}\n`
+  txt += `🔵 Super Ball: ${user.pkMochila.superball}\n`
+  txt += `🟡 Ultra Ball: ${user.pkMochila.ultraball}\n\n`
+
+  // --- SECCIÓN DE PIEDRAS EVOLUTIVAS ---
+  txt += `💎 **PIEDRAS EVOLUTIVAS:**\n`
+  txt += `🔥 Fuego: ${user.pkPiedras.fuego} | 💧 Agua: ${user.pkPiedras.agua}\n`
+  txt += `⚡ Trueno: ${user.pkPiedras.trueno} | 🍃 Hoja: ${user.pkPiedras.hoja}\n`
+  txt += `🌙 Lunar: ${user.pkPiedras.lunar} | ☀️ Solar: ${user.pkPiedras.solar}\n\n`
   
   txt += `━━━━━━━━━━━━━━━━━━━━\n`
   txt += `👾 **TU EQUIPO POKÉMON** (${user.pokemones.length}/20)\n`
@@ -22,7 +30,6 @@ let handler = async (m, { conn, usedPrefix }) => {
     txt += `_No tienes Pokémon en tu equipo aún._\n_¡Usa .pokemon para buscar uno!_`
   } else {
     user.pokemones.forEach((p, i) => {
-      // Si por algún error no tiene HP definido, ponemos un valor por defecto o '??'
       let health = (p.hp !== undefined) ? `${p.hp}/${p.maxHp}` : '??'
       txt += `**[${i + 1}]** ${p.nombre}\n`
       txt += `   ⭐ Nivel: ${p.nivel} | 💖 HP: ${health}\n`
@@ -32,7 +39,7 @@ let handler = async (m, { conn, usedPrefix }) => {
   
   txt += `━━━━━━━━━━━━━━━━━━━━\n`
   txt += `🔍 Usa *${usedPrefix}pkinfo [ID]* para ver ataques.\n`
-  txt += `🏥 Usa *${usedPrefix}pkheal [ID]* para curar.`
+  txt += `🌟 Usa *${usedPrefix}pkevolucionar [ID]* para usar piedras.`
 
   m.reply(txt)
 }
