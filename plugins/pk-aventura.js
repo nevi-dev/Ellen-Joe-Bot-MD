@@ -53,7 +53,7 @@ let handler = async (m, { conn, usedPrefix }) => {
   m.reply(txt)
 }
 
-handler.command = ['pkaventura', 'aventura']
+handler.command = ['pkaventura']
 export default handler
 
 function msToTime(duration) {
