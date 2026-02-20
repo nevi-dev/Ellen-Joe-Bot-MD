@@ -49,5 +49,5 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   return m.reply(healMsg)
 }
 
-handler.command = ['pkheal', 'curar']
+handler.command = ['pkheal', 'pkcurar']
 export default handler
