@@ -4,6 +4,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     let mentionedJid = await m.mentionedJid
     let userId = mentionedJid.length > 0 ? mentionedJid[0] : (m.quoted ? await m.quoted.sender : m.sender)
     
+    // Nombres de usuario
     let from = await (async () => global.db.data.users[m.sender]?.name || (async () => { try { const n = await conn.getName(m.sender); return typeof n === 'string' && n.trim() ? n : m.sender.split('@')[0] } catch { return m.sender.split('@')[0] } })())()
     let who = await (async () => global.db.data.users[userId]?.name || (async () => { try { const n = await conn.getName(userId); return typeof n === 'string' && n.trim() ? n : userId.split('@')[0] } catch { return userId.split('@')[0] } })())()
 
@@ -59,35 +60,31 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     try {
         const response = await fetch(`https://rest.apicausas.xyz/api/v1/anime?action=${interaction.action}&type=sfw&apikey=${apiKey}`)
         const json = await response.json()
-        if (!json.status) return m.reply('❌ Error en la API')
+        
+        if (!json.status || !json.data) return m.reply('❌ Error en la API')
 
         const mediaUrl = json.data.url
         const text = interaction.str(from, who)
-        
-        // DESCARGAMOS EL ARCHIVO COMO BUFFER PARA EVITAR ERRORES DE REPRODUCCIÓN
-        const resMedia = await fetch(mediaUrl)
-        const buffer = await resMedia.buffer()
         const mime = json.data.mimetype
 
-        if (mime.includes('gif')) {
+        // Descargamos el buffer del archivo procesado por tu servidor
+        const resMedia = await fetch(mediaUrl)
+        const buffer = await resMedia.buffer()
+
+        if (mime.includes('video') || mime.includes('gif')) {
+            // Si el servidor mandó MP4 o GIF, lo enviamos como animación de WhatsApp
             await conn.sendMessage(m.chat, { 
                 video: buffer, 
                 caption: text, 
                 gifPlayback: true,
-                mimetype: 'video/mp4', // Clave para que WhatsApp lo abra como GIF
-                mentions: [userId] 
-            }, { quoted: m })
-        } else if (mime.includes('image')) {
-            await conn.sendMessage(m.chat, { 
-                image: buffer, 
-                caption: text, 
+                mimetype: 'video/mp4',
                 mentions: [userId] 
             }, { quoted: m })
         } else {
+            // Si es imagen estática (JPG/PNG)
             await conn.sendMessage(m.chat, { 
-                video: buffer, 
+                image: buffer, 
                 caption: text, 
-                gifPlayback: true,
                 mentions: [userId] 
             }, { quoted: m })
         }
@@ -97,6 +94,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         m.reply('⚠︎ Error al procesar el comando.')
     }
 }
+
 handler.help = ['waifu', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink', 'poke', 'dance', 'cringe']
 handler.tags = ['anime']
 handler.command = ['waifu', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink', 'poke', 'dance', 'cringe', 'abrazar', 'beso', 'muak', 'lamer', 'palmada', 'palmadita', 'picar', 'bailar', 'feliz', 'matar', 'patear', 'bofetada', 'comer', 'morder', 'mano', '5', 'ola', 'saludar', 'sonreir', 'sonrojarse', 'presumir', 'acurrucarse', 'llorar', 'bullying']
