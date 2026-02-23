@@ -417,8 +417,8 @@
         "value": "1800",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pikachu/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pikachu/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pikachu/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pikachu/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pikachu/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pikachu/img_3.jpg"
         ],
@@ -7383,7 +7383,7 @@
         "value": "2600",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eevee/img_0.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eevee/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eevee/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eevee/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eevee/img_3.jpg"
@@ -7400,10 +7400,10 @@
         "value": "1970",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_1.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leafeon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7417,10 +7417,10 @@
         "value": "1865",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/umbreon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7434,10 +7434,10 @@
         "value": "2435",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_1.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/espeon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7451,10 +7451,10 @@
         "value": "2094",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_1.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vaporeon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7468,10 +7468,10 @@
         "value": "2636",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_1.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_2.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sylveon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7485,10 +7485,10 @@
         "value": "1975",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_1.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/flareon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7502,10 +7502,10 @@
         "value": "1834",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glaceon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7519,10 +7519,10 @@
         "value": "1727",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zorua/img_0.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zorua/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zorua/img_1.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zorua/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zorua/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zorua/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zorua/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7538,6 +7538,7 @@
         "img": [
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zoroark/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zoroark/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zoroark/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zoroark/img_3.jpg"
         ],
         "vid": [],
@@ -7586,9 +7587,9 @@
         "value": "1806",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternatus/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternatus/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternatus/img_2.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternatus/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternatus/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternatus/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternatus/img_3.jpg"
         ],
         "vid": [],
@@ -7603,9 +7604,9 @@
         "value": "2567",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lucario/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lucario/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lucario/img_2.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lucario/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lucario/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lucario/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lucario/img_3.jpg"
         ],
         "vid": [],
@@ -7620,8 +7621,8 @@
         "value": "1656",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/greninja/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/greninja/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/greninja/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/greninja/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/greninja/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/greninja/img_3.jpg"
         ],
@@ -7637,10 +7638,10 @@
         "value": "2539",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/psyduck/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/psyduck/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/psyduck/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/psyduck/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/psyduck/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/psyduck/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/psyduck/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7654,10 +7655,10 @@
         "value": "2062",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/squirtle/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7672,8 +7673,8 @@
         "source": "Pokemon",
         "img": [
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmander/img_0.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmander/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmander/img_2.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmander/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmander/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmander/img_3.jpg"
         ],
         "vid": [],
@@ -7688,10 +7689,10 @@
         "value": "2242",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmeleon/img_0.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmeleon/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmeleon/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmeleon/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmeleon/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charmeleon/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7705,10 +7706,10 @@
         "value": "1595",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charizard/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charizard/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charizard/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charizard/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charizard/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charizard/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charizard/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7722,10 +7723,10 @@
         "value": "2163",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blastoise/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7741,6 +7742,7 @@
         "img": [
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/litten/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/litten/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/litten/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/litten/img_3.jpg"
         ],
         "vid": [],
@@ -7755,10 +7757,10 @@
         "value": "1549",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sprigatito/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sprigatito/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sprigatito/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sprigatito/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sprigatito/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sprigatito/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sprigatito/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7772,7 +7774,7 @@
         "value": "1916",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scorbunny/img_0.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scorbunny/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scorbunny/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scorbunny/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scorbunny/img_3.jpg"
@@ -7789,10 +7791,10 @@
         "value": "1954",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raboot/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raboot/img_1.webp",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raboot/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raboot/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raboot/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raboot/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raboot/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7806,10 +7808,10 @@
         "value": "1785",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cinderace/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7840,10 +7842,10 @@
         "value": "1583",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mew/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7857,10 +7859,10 @@
         "value": "2761",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arceus/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arceus/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arceus/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arceus/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arceus/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arceus/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arceus/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7890,10 +7892,10 @@
         "value": "2129",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/piplup/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/piplup/img_1.webp",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/piplup/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/piplup/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/piplup/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/piplup/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/piplup/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7907,10 +7909,10 @@
         "value": "2042",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snorlax/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snorlax/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snorlax/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snorlax/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snorlax/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snorlax/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snorlax/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7924,10 +7926,10 @@
         "value": "2397",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snivy/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7941,10 +7943,10 @@
         "value": "1875",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blaziken/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7960,6 +7962,7 @@
         "img": [
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chimchar/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chimchar/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chimchar/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chimchar/img_3.jpg"
         ],
         "vid": [],
@@ -7974,10 +7977,10 @@
         "value": "2610",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chandelure/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -7991,8 +7994,8 @@
         "value": "1792",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gengar/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gengar/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gengar/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gengar/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gengar/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gengar/img_3.jpg"
         ],
@@ -8008,10 +8011,10 @@
         "value": "2291",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haunter/img_0.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haunter/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haunter/img_1.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haunter/img_2.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haunter/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haunter/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haunter/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8025,8 +8028,8 @@
         "value": "2342",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gastly/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gastly/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gastly/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gastly/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gastly/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gastly/img_3.jpg"
         ],
@@ -8042,9 +8045,9 @@
         "value": "1655",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raichu/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raichu/img_1.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raichu/img_2.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raichu/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raichu/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raichu/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/raichu/img_3.jpg"
         ],
         "vid": [],
@@ -8075,10 +8078,10 @@
         "value": "1604",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_2.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/oshawott/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8092,10 +8095,10 @@
         "value": "2427",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serperior/img_0.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serperior/img_0.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serperior/img_1.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serperior/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serperior/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serperior/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serperior/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8109,10 +8112,10 @@
         "value": "2758",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/purrloin/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8126,10 +8129,10 @@
         "value": "1907",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_2.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arcanine/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8143,10 +8146,10 @@
         "value": "2370",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venusaur/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8160,10 +8163,10 @@
         "value": "1712",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_2.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arbok/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8177,10 +8180,10 @@
         "value": "1900",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abra/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abra/img_1.png",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abra/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abra/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abra/img_2.jpg",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abra/img_3.webp"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abra/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8194,10 +8197,10 @@
         "value": "2328",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_1.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_2.webp",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kadabra/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -8211,10 +8214,10 @@
         "value": "2707",
         "source": "Pokemon",
         "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_3.png"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alakazam/img_3.jpg"
         ],
         "vid": [],
         "user": null,
@@ -9320,7 +9323,7 @@
         "value": "1674",
         "source": "Vocaloid",
         "img": [
-            "https://i.pinimg.com/736x/e1/28/fe/e128fe7980b74ed320da2bfeaeadd0e2.jpg"
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miku_brasile_a/img_1.jpg"
         ],
         "vid": [],
         "user": null,
@@ -9523,6 +9526,2147 @@
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yasuri/img_1.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yasuri/img_2.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yasuri/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tohru Honda",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "547",
+        "value": "1137",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tohru_honda/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tohru_honda/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tohru_honda/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tohru_honda/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tohru_honda/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kyo Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "548",
+        "value": "1640",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyo_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyo_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyo_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyo_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyo_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Yuki Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "549",
+        "value": "1398",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Shigure Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "550",
+        "value": "916",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shigure_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shigure_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shigure_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shigure_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ayame Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "551",
+        "value": "1466",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayame_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayame_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayame_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayame_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayame_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Akito Sohma",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "552",
+        "value": "1063",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akito_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akito_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akito_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akito_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akito_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Momiji Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "553",
+        "value": "1233",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/momiji_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/momiji_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/momiji_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/momiji_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/momiji_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hatsuharu Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "554",
+        "value": "1425",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatsuharu_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatsuharu_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatsuharu_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatsuharu_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatsuharu_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hiro Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "555",
+        "value": "1754",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiro_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiro_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiro_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiro_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiro_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kagura Sohma",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "556",
+        "value": "1335",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagura_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagura_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagura_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagura_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagura_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kisa Sohma",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "557",
+        "value": "1460",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kisa_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kisa_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kisa_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kisa_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kisa_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Rin Sohma",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "558",
+        "value": "1563",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hatori Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "559",
+        "value": "1629",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatori_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatori_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatori_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatori_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hatori_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kureno Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "560",
+        "value": "1640",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kureno_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kureno_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kureno_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kureno_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kureno_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ritsu Sohma",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "561",
+        "value": "1130",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ritsu_sohma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ritsu_sohma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ritsu_sohma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ritsu_sohma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ritsu_sohma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Arisa Uotani",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "562",
+        "value": "1179",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arisa_uotani/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arisa_uotani/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arisa_uotani/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arisa_uotani/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arisa_uotani/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Saki Hanajima",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "563",
+        "value": "1653",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/saki_hanajima/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/saki_hanajima/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/saki_hanajima/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/saki_hanajima/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Machi Kuragi",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "564",
+        "value": "1536",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/machi_kuragi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/machi_kuragi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/machi_kuragi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/machi_kuragi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/machi_kuragi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kakeru Manabe",
+        "gender": "Hombre",
+        "source": "Fruits Basket",
+        "id": "565",
+        "value": "1508",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kakeru_manabe/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kakeru_manabe/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kakeru_manabe/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kakeru_manabe/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kakeru_manabe/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kyoko Honda",
+        "gender": "Mujer",
+        "source": "Fruits Basket",
+        "id": "566",
+        "value": "1132",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoko_honda/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoko_honda/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoko_honda/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoko_honda/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoko_honda/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Enterprise",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "567",
+        "value": "1421",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/enterprise/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/enterprise/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/enterprise/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/enterprise/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/enterprise/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Belfast",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "568",
+        "value": "1074",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/belfast/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/belfast/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/belfast/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/belfast/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/belfast/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Atago",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "569",
+        "value": "1436",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/atago/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/atago/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/atago/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/atago/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Takao",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "570",
+        "value": "1047",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/takao/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/takao/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/takao/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/takao/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Akagi",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "571",
+        "value": "1686",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akagi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akagi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/akagi/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kaga",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "572",
+        "value": "1444",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaga/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaga/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaga/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaga/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaga/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Amagi",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "573",
+        "value": "1310",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/amagi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/amagi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/amagi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/amagi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/amagi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Laffey",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "574",
+        "value": "1131",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/laffey/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/laffey/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/laffey/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/laffey/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Javelin",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "575",
+        "value": "1885",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/javelin/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/javelin/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/javelin/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/javelin/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/javelin/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ayanami",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "576",
+        "value": "1470",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayanami/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayanami/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayanami/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayanami/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayanami/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Z23",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "577",
+        "value": "1886",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/z23/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/z23/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/z23/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/z23/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/z23/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Prinz Eugen",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "578",
+        "value": "1747",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prinz_eugen/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prinz_eugen/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prinz_eugen/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prinz_eugen/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Taihou",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "579",
+        "value": "1204",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/taihou/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/taihou/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/taihou/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/taihou/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/taihou/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Formidable",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "580",
+        "value": "1847",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/formidable/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/formidable/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/formidable/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Sirius",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "581",
+        "value": "935",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sirius/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sirius/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sirius/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sirius/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sirius/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Bremerton",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "582",
+        "value": "1001",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bremerton/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bremerton/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bremerton/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bremerton/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bremerton/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Shinano",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "583",
+        "value": "1707",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shinano/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shinano/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shinano/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shinano/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shinano/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "New Jersey",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "584",
+        "value": "1397",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/new_jersey/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/new_jersey/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/new_jersey/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/new_jersey/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Illustrious",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "585",
+        "value": "1108",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/illustrious/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/illustrious/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/illustrious/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/illustrious/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/illustrious/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Unicorn",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "586",
+        "value": "1589",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/unicorn/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/unicorn/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/unicorn/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/unicorn/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/unicorn/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Noshiro",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "587",
+        "value": "1219",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noshiro/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noshiro/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noshiro/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noshiro/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noshiro/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Baltimore",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "588",
+        "value": "1209",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baltimore/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baltimore/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baltimore/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baltimore/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Bismarck",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "589",
+        "value": "1317",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bismarck/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bismarck/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bismarck/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bismarck/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tirpitz",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "590",
+        "value": "1892",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tirpitz/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tirpitz/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tirpitz/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tirpitz/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tirpitz/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Graf Zeppelin",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "591",
+        "value": "1355",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/graf_zeppelin/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/graf_zeppelin/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/graf_zeppelin/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/graf_zeppelin/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/graf_zeppelin/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Roon",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "592",
+        "value": "1565",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roon/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roon/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Friedrich der Grosse",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "593",
+        "value": "1556",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/friedrich_der_grosse/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/friedrich_der_grosse/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/friedrich_der_grosse/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/friedrich_der_grosse/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/friedrich_der_grosse/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "San Diego",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "594",
+        "value": "1172",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/san_diego/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/san_diego/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/san_diego/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/san_diego/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/san_diego/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Helena",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "595",
+        "value": "1723",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helena/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helena/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helena/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helena/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Warspite",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "596",
+        "value": "1301",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/warspite/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/warspite/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/warspite/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/warspite/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/warspite/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Queen Elizabeth",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "597",
+        "value": "912",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/queen_elizabeth/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/queen_elizabeth/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/queen_elizabeth/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/queen_elizabeth/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/queen_elizabeth/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hood",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "598",
+        "value": "1306",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hood/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hood/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hood/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hood/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hood/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Zuikaku",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "599",
+        "value": "1734",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zuikaku/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zuikaku/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zuikaku/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zuikaku/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/zuikaku/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Shoukaku",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "600",
+        "value": "1128",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shoukaku/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shoukaku/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shoukaku/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shoukaku/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shoukaku/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nagato",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "601",
+        "value": "1189",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nagato/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nagato/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nagato/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nagato/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nagato/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Yukikaze",
+        "source": "Azur Lane",
+        "gender": "Mujer",
+        "id": "602",
+        "value": "1447",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yukikaze/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yukikaze/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yukikaze/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yukikaze/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yukikaze/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Shizuka",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "603",
+        "value": "1123",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shizuka/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shizuka/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shizuka/img_2.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kanna",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "604",
+        "value": "1585",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kanna/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kanna/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kanna/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kanna/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kanna/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Haruka",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "605",
+        "value": "1332",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haruka/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haruka/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haruka/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haruka/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/haruka/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Sona",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "606",
+        "value": "1726",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sona/img_2.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Emilia",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "607",
+        "value": "1329",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emilia/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emilia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emilia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emilia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ariel",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "608",
+        "value": "1213",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ariel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ariel/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ariel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Discordia",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "609",
+        "value": "1046",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/discordia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/discordia/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/discordia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/discordia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Freya",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "610",
+        "value": "1343",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freya/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freya/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freya/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freya/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freya/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Gigi",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "611",
+        "value": "1332",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gigi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gigi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gigi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gigi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kelly",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "612",
+        "value": "1812",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelly/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelly/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelly/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelly/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Celine",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "613",
+        "value": "1021",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/celine/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/celine/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/celine/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/celine/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Luna",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "614",
+        "value": "1104",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/luna/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/luna/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/luna/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/luna/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/luna/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mia",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "615",
+        "value": "1329",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mia/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nia",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "616",
+        "value": "1060",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nia/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nia/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tina",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "617",
+        "value": "1696",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tina/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tina/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tina/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tina/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Geneva",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "618",
+        "value": "1710",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/geneva/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/geneva/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/geneva/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/geneva/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/geneva/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Clara",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "619",
+        "value": "1544",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/clara/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/clara/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/clara/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/clara/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ellen",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "620",
+        "value": "1511",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ellen/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ellen/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ellen/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Elva",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "621",
+        "value": "1704",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elva/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elva/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elva/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elva/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elva/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Erica",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "622",
+        "value": "961",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/erica/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/erica/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/erica/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/erica/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hazel",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "623",
+        "value": "909",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hazel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hazel/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hazel/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hazel/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hazel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Iris",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "624",
+        "value": "996",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/iris/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/iris/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/iris/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/iris/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/iris/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Pamela",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "625",
+        "value": "1634",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pamela/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pamela/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pamela/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pamela/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Rachel",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "626",
+        "value": "1323",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rachel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rachel/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rachel/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rachel/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rachel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Rayna",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "627",
+        "value": "1189",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rayna/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rayna/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rayna/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rayna/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rayna/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Scarlett",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "628",
+        "value": "1002",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlett/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlett/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlett/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlett/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlett/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Una",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "629",
+        "value": "1627",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/una/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Venus",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "630",
+        "value": "1440",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venus/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venus/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venus/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venus/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/venus/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Winni",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "631",
+        "value": "985",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/winni/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/winni/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/winni/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/winni/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/winni/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Abby",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "632",
+        "value": "1281",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby/img_2.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Alberta",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "633",
+        "value": "1270",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alberta/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alberta/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alberta/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alberta/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alberta/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Alice",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "634",
+        "value": "1493",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alice/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alice/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alice/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alice/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alice/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Alina",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "635",
+        "value": "1723",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alina/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alina/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alina/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alina/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Alizee",
+        "source": "Project QT",
+        "gender": "Mujer",
+        "id": "636",
+        "value": "1468",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alizee/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alizee/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alizee/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alizee/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/alizee/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Aria",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "637",
+        "value": "1178",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aria/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aria/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aria/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aria/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Linn",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "638",
+        "value": "1898",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/linn/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/linn/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/linn/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/linn/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/linn/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Freyja",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "639",
+        "value": "1867",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freyja/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freyja/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freyja/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freyja/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/freyja/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Elara",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "640",
+        "value": "1768",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elara/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elara/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elara/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elara/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Seraphina",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "641",
+        "value": "1754",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/seraphina/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/seraphina/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/seraphina/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/seraphina/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kaelia",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "642",
+        "value": "1894",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaelia/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaelia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaelia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kaelia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Thalassa",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "643",
+        "value": "1731",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thalassa/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thalassa/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thalassa/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thalassa/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thalassa/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nyx",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "644",
+        "value": "1478",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nyx/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nyx/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nyx/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nyx/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Aura",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "645",
+        "value": "1186",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aura/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aura/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aura/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aura/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aura/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Lyra",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "646",
+        "value": "1543",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lyra/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lyra/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lyra/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lyra/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Vex",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "647",
+        "value": "1786",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vex/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vex/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vex/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vex/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vex/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nova",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "648",
+        "value": "1519",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nova/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nova/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nova/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nova/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nova/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Stella",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "649",
+        "value": "1808",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stella/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stella/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stella/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stella/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stella/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Rin",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "650",
+        "value": "1279",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rin/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kelis",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "651",
+        "value": "1053",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelis/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelis/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelis/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelis/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kelis/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ruka",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "652",
+        "value": "981",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ruka/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ruka/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ruka/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ruka/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ruka/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Janna",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "653",
+        "value": "979",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/janna/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/janna/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/janna/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/janna/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/janna/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mamsa",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "654",
+        "value": "1217",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mamsa/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mamsa/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mamsa/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mamsa/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mamsa/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hestia",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "655",
+        "value": "1695",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hestia/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hestia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hestia/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hestia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hestia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Biscuit",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "656",
+        "value": "1365",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/biscuit/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/biscuit/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/biscuit/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/biscuit/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/biscuit/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Demeter",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "657",
+        "value": "1108",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/demeter/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/demeter/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/demeter/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/demeter/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/demeter/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Areka",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "658",
+        "value": "1347",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/areka/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/areka/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/areka/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/areka/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/areka/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Moana",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "659",
+        "value": "1543",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/moana/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/moana/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/moana/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/moana/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/moana/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Apollo",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "660",
+        "value": "1519",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/apollo/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/apollo/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/apollo/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/apollo/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/apollo/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Heracles",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "661",
+        "value": "1646",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/heracles/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/heracles/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/heracles/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/heracles/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/heracles/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Prometheus",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "662",
+        "value": "1602",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prometheus/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prometheus/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prometheus/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/prometheus/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tammy",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "663",
+        "value": "1639",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tammy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tammy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tammy/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tammy/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Cyrene",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "664",
+        "value": "1093",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyrene/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyrene/img_2.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Athena",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "665",
+        "value": "928",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/athena/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/athena/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/athena/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/athena/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/athena/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Aphrodite",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "666",
+        "value": "1551",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aphrodite/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aphrodite/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aphrodite/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hera",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "667",
+        "value": "1460",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hera/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hera/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hera/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hera/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hera/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Artemis",
+        "source": "Aeons Echo",
+        "gender": "Mujer",
+        "id": "668",
+        "value": "968",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/artemis/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/artemis/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/artemis/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/artemis/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/artemis/img_4.jpg"
         ],
         "vid": [],
         "user": null,
