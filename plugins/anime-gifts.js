@@ -10,8 +10,13 @@ let handler = async (m, { conn, command, usedPrefix }) => {
 
     const apiKey = "causa-ee5ee31dcfc79da4"
     
+    // Definimos si es contenido NSFW o SFW
+    const isNsfw = command === 'waifuh'
+    const type = isNsfw ? 'nsfw' : 'sfw'
+    
     const interactions = {
         'waifu': { action: 'waifu', str: (f) => `✨ Waifu para \`${f}\`` },
+        'waifuh': { action: 'waifu', str: (f) => `🔥 Waifu H para \`${f}\`` }, // Modo H
         'neko': { action: 'neko', str: (f) => `🐾 Neko para \`${f}\`` },
         'shinobu': { action: 'shinobu', str: (f) => `🦋 Shinobu para \`${f}\`` },
         'megumin': { action: 'megumin', str: (f) => `💥 Megumin para \`${f}\`` },
@@ -36,7 +41,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         'glomp': { action: 'glomp', str: (f, w) => `\`${f}\` se lanzó sobre \`${w}\`` },
         'slap': { action: 'slap', str: (f, w) => `\`${f}\` le dio una bofetada a \`${w}\` 🖐️` },
         'kill': { action: 'kill', str: (f, w) => `\`${f}\` mató a \`${w}\` 💀` },
-        'kick': { action: 'kick', str: (f, w) => `\`${f}\` pateó a \`${w}\`` },
+        'patada': { action: 'kick', str: (f, w) => `\`${f}\` le metió una patada a \`${w}\` 🦵` },
         'happy': { action: 'happy', str: (f) => `\`${f}\` está feliz ✨` },
         'wink': { action: 'wink', str: (f, w) => `\`${f}\` le guiñó el ojo a \`${w}\`` },
         'poke': { action: 'poke', str: (f, w) => `\`${f}\` picó a \`${w}\`` },
@@ -46,7 +51,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
 
     const aliases = {
         'abrazar': 'hug', 'beso': 'kiss', 'muak': 'kiss', 'lamer': 'lick', 'palmada': 'bonk', 'palmadita': 'pat',
-        'picar': 'poke', 'bailar': 'dance', 'feliz': 'happy', 'matar': 'kill', 'patear': 'kick', 'bofetada': 'slap',
+        'picar': 'poke', 'bailar': 'dance', 'feliz': 'happy', 'matar': 'kill', 'patear': 'patada', 'bofetada': 'slap',
         'comer': 'nom', 'morder': 'bite', 'mano': 'handhold', '5': 'highfive', 'ola': 'wave', 'saludar': 'wave',
         'sonreir': 'smile', 'sonrojarse': 'blush', 'presumir': 'smug', 'acurrucarse': 'cuddle', 'llorar': 'cry',
         'bullying': 'bully'
@@ -58,7 +63,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     if (!interaction) return
 
     try {
-        const response = await fetch(`https://rest.apicausas.xyz/api/v1/anime?action=${interaction.action}&type=sfw&apikey=${apiKey}`)
+        const response = await fetch(`https://rest.apicausas.xyz/api/v1/anime?action=${interaction.action}&type=${type}&apikey=${apiKey}`)
         const json = await response.json()
         
         if (!json.status || !json.data) return m.reply('❌ Error en la API')
@@ -67,12 +72,10 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         const text = interaction.str(from, who)
         const mime = json.data.mimetype
 
-        // Descargamos el buffer del archivo procesado por tu servidor
         const resMedia = await fetch(mediaUrl)
         const buffer = await resMedia.buffer()
 
         if (mime.includes('video') || mime.includes('gif')) {
-            // Si el servidor mandó MP4 o GIF, lo enviamos como animación de WhatsApp
             await conn.sendMessage(m.chat, { 
                 video: buffer, 
                 caption: text, 
@@ -81,7 +84,6 @@ let handler = async (m, { conn, command, usedPrefix }) => {
                 mentions: [userId] 
             }, { quoted: m })
         } else {
-            // Si es imagen estática (JPG/PNG)
             await conn.sendMessage(m.chat, { 
                 image: buffer, 
                 caption: text, 
@@ -95,9 +97,9 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     }
 }
 
-handler.help = ['waifu', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink', 'poke', 'dance', 'cringe']
+handler.help = ['waifu', 'waifuh', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'patada', 'happy', 'wink', 'poke', 'dance', 'cringe']
 handler.tags = ['anime']
-handler.command = ['waifu', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink', 'poke', 'dance', 'cringe', 'abrazar', 'beso', 'muak', 'lamer', 'palmada', 'palmadita', 'picar', 'bailar', 'feliz', 'matar', 'patear', 'bofetada', 'comer', 'morder', 'mano', '5', 'ola', 'saludar', 'sonreir', 'sonrojarse', 'presumir', 'acurrucarse', 'llorar', 'bullying']
+handler.command = ['waifu', 'waifuh', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'patada', 'happy', 'wink', 'poke', 'dance', 'cringe', 'abrazar', 'beso', 'muak', 'lamer', 'palmada', 'palmadita', 'picar', 'bailar', 'feliz', 'matar', 'patear', 'bofetada', 'comer', 'morder', 'mano', '5', 'ola', 'saludar', 'sonreir', 'sonrojarse', 'presumir', 'acurrucarse', 'llorar', 'bullying']
 handler.group = true
 
 export default handler
