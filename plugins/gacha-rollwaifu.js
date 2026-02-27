@@ -13,6 +13,11 @@ async function loadCharacters() {
 }
 
 let handler = async (m, { conn }) => {
+    // --- BLOQUEO POR EVENTO ADMIN ABUSE ---
+    if (global.adminAbuse) {
+        return await conn.reply(m.chat, `⚠️ **¡𝘼𝘿𝙈𝙄𝙉 𝘼𝘽𝙐𝙎𝙀 𝘼𝘾𝙏𝙄𝙑𝙊!**\n\nNo puedes usar **#rw** manualmente ahora mismo. ¡Espera a que el bot lance personajes y usa **#c** para reclamar!`, m)
+    }
+
     const userId = m.sender
     const now = Date.now()
     const COOLDOWN_TIME = 15 * 60 * 1000 
@@ -44,9 +49,7 @@ let handler = async (m, { conn }) => {
         let resourceURL
         let resourceType 
 
-        // --- LÓGICA DE SELECCIÓN CORREGIDA ---
         if (hasVideos && hasImages) {
-            // Si tiene ambos, 70% probabilidad de video
             if (Math.random() < 0.7) {
                 resourceURL = randomCharacter.vid[Math.floor(Math.random() * randomCharacter.vid.length)]
                 resourceType = 'video'
@@ -64,8 +67,6 @@ let handler = async (m, { conn }) => {
             return await conn.reply(m.chat, '✘ Este personaje no tiene imágenes ni videos configurados.', m)
         }
 
-        // --- VALIDACIÓN EXTRA DE EXTENSIÓN ---
-        // Si por error una imagen está en la lista de videos, esto lo corrige al vuelo
         if (resourceURL.match(/\.(jpg|jpeg|png|webp|gif)$/i)) resourceType = 'image'
         if (resourceURL.match(/\.(mp4|mov|avi)$/i)) resourceType = 'video'
 
@@ -73,18 +74,7 @@ let handler = async (m, { conn }) => {
             ? `Reclamado por @${randomCharacter.user.split('@')[0]}`
             : '✨ ¡𝗟𝗶𝗯𝗿𝗲! ¡𝗨𝘀𝗮 #claim para reclamar!'
 
-        const message = `╔◡╍┅•.⊹︵ࣾ᷼ ׁ𖥓┅╲۪ ⦙᷼͝🧸᷼͝⦙ ׅ╱ׅ╍𖥓 ︵ࣾ᷼︵ׄׄ᷼⊹┅╍◡╗
-┋  ⣿̶ֻ㪝ׅ⃕݊⃧🐚⃚̶̸͝ᤢ֠◌ִ̲ 𝑪𝑯𝑨𝑹𝑨𝑪𝑻𝑬𝑹 𝑹𝑨𝑵𝑫𝑶𝑴 🐸ꨪ̸⃙ׅᮬֺ๋֢᳟  ┋
-╚◠┅┅˙•⊹.⁀𖥓 ׅ╍╲۪ ⦙᷼͝🎠᷼͝⦙ ׅ╱ׅ╍𖥓 ◠˙⁀۪ׄ⊹˙╍┅◠╝
-
-꥓໋╭࣭۬═ֽ̥࣪━᜔๋݈═𑂺ׄ︵ິּ֙᷼⌒݈᳹᪾̯ ⋮꥓ּ࣭ׄ🌹㪝ິ᜔ּ໋࣭ׄ⋮⌒ໍּ֣ׄ═ᮣໍ࣭ׄ━𑂺᜔꥓໋┉꥓ׂ᷼━᜔࣭֙━๋݈═̥࣭۬╮
-> 𝙉𝙊𝙈𝘽𝙍𝙀: *${randomCharacter.name}*
-> 𝙂𝙀𝙉𝙀𝙍𝙊: *${randomCharacter.gender}*
-> 𝙑𝘼𝙇𝙊𝙍: *${randomCharacter.value}*
-> 𝙀𝙎𝙏𝘼𝘿𝙊: ${statusMessage}
-> 𝙁𝙐𝙀𝙉𝙏𝙀: *${randomCharacter.source}*
-> 𝙄𝘿: *${randomCharacter.id}*
-꥓໋╰ׅ۬═ֽ̥࣪━᜔๋݈═𑂺ׄ︵ິּ֙᷼⌒݈᳹᪾̯ ⋮꥓ּ࣭ׄ🐦‍🔥⋮⌒ໍּ֣ׄ═ᮣໍ࣭ׄ━𑂺᜔꥓໋┉꥓ׂ᷼━᜔࣭֙━๋݈═̥࣭۬╯`
+        const message = `╔◡╍┅•.⊹︵ࣾ᷼ ׁ𖥓┅╲۪ ⦙᷼͝🧸᷼͝⦙ ׅ╱ׅ╍𖥓 ︵ࣾ᷼︵ׄׄ᷼⊹┅╍◡╗\n┋  ⣿̶ֻ㪝ׅ⃕݊⃧🐚⃚̶̸͝ᤢ֠◌ִ̲ 𝑪𝑯𝑨𝑹𝑨𝑪𝑻𝑬𝑹 𝑹𝑨𝑵𝑫𝑶𝑴 🐸ꨪ̸⃙ׅᮬֺ๋֢᳟  ┋\n╚◠┅┅˙•⊹.⁀𖥓 ׅ╍╲۪ ⦙᷼͝🎠᷼͝⦙ ׅ╱ׅ╍𖥓 ◠˙⁀۪ׄ⊹˙╍┅◠╝\n\n꥓໋╭࣭۬═ֽ̥࣪━᜔๋݈═𑂺ׄ︵ິּ֙᷼⌒݈᳹᪾̯ ⋮꥓ּ࣭ׄ🌹㪝ິ᜔ּ໋࣭ׄ⋮⌒ໍּ֣ׄ═ᮣໍ࣭ׄ━𑂺᜔꥓໋┉꥓ׂ᷼━᜔࣭֙━๋݈═̥࣭۬╮\n> 𝙉𝙊𝙈𝘽𝙍𝙀: *${randomCharacter.name}*\n> 𝙂𝙀𝙉𝙀𝙍𝙊: *${randomCharacter.gender}*\n> 𝙑𝘼𝙇𝙊𝙍: *${randomCharacter.value}*\n> 𝙀𝙎𝙏𝘼𝘿𝙊: ${statusMessage}\n> 𝙁𝙐𝙀𝙉𝙏𝙀: *${randomCharacter.source}*\n> 𝙄𝘿: *${randomCharacter.id}*\n꥓໋╰ׅ۬═ֽ̥࣪━᜔๋݈═𑂺ׄ︵ິּ֙᷼⌒݈᳹᪾̯ ⋮꥓ּ࣭ׄ🐦‍🔥⋮⌒ໍּ֣ׄ═ᮣໍ࣭ׄ━𑂺᜔꥓໋┉꥓ׂ᷼━᜔࣭֙━๋݈═̥࣭۬╯`
 
         const mentions = randomCharacter.user ? [randomCharacter.user] : []
 
