@@ -30,7 +30,7 @@ async function buildPokemonObj(idOrName, level = 1) {
   let misMovimientos = []
   let movesDisponibles = d.moves.filter(m => m.version_group_details[0].move_learn_method.name === 'level-up')
   let shuffled = movesDisponibles.sort(() => 0.5 - Math.random())
-  
+
   for (let i = 0; i < Math.min(4, shuffled.length); i++) {
     let moveData = await fetchAPI(`move/${shuffled[i].move.name}`)
     if (moveData) {
@@ -73,13 +73,16 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
     let miIdx = parseInt(args[0]) - 1
     if (!user.pokemones[miIdx]) return m.reply(`❌ Selecciona tu Pokémon: *${usedPrefix}pktorre [ID]*\nEjemplo: .pktorre 1`)
-    
+
     let p1 = user.pokemones[miIdx]
-    
-    // Parche por si el Pokémon no tiene ataques o stats
-    if (!p1.moves || p1.moves.length === 0 || !p1.atk) {
+
+    // PARCHE: Si el Pokémon de la DB no tiene stats, lo reparamos y GUARDAMOS en la DB
+    if (!p1.statsBase || !p1.moves || p1.moves.length === 0) {
       let temp = await buildPokemonObj(p1.id, p1.nivel)
-      Object.assign(p1, temp)
+      if (temp) {
+        Object.assign(p1, temp)
+        user.pokemones[miIdx] = p1 // Guardar permanentemente
+      }
     }
 
     // Generar rival según el piso de la torre
@@ -106,7 +109,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
     // Turno Jugador
     let log = ejecutarAtaque(b.p1, b.p2, b.p1.moves[moveIdx])
-    
+
     // Turno Enemigo (si sigue vivo)
     if (b.p2.currentHp > 0) {
       let cpuMove = b.p2.moves[Math.floor(Math.random() * b.p2.moves.length)]
@@ -116,12 +119,14 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     // Verificar Final
     if (b.p1.currentHp <= 0 || b.p2.currentHp <= 0) {
       let gano = b.p1.currentHp > 0
+      let idx = b.idxLocal
       delete combates[combatId]
-      
+
       if (gano) {
         user.pkTorre++
         user.coin += 500
-        await subirNivel(user.pokemones[b.idxLocal], user, m, conn)
+        // Pasamos el pokemon directo de la DB para que se actualice
+        await subirNivel(user.pokemones[idx], user, m, conn)
         return m.reply(`${log}\n\n🏆 **¡VICTORIA!**\nSubes al piso ${user.pkTorre} y ganas 💰 500 coins.`)
       } else {
         return m.reply(`${log}\n\n💀 **DERROTA.** Tu Pokémon ha caído. Inténtalo de nuevo.`)
@@ -138,11 +143,10 @@ function ejecutarAtaque(at, df, mv) {
   let power = mv.poder || 40
   let atk = at.atk || 10
   let def = df.def || 10
-  
-  // Cálculo de daño protegido contra NaN
+
   let dano = Math.floor((((2 * level / 5 + 2) * power * atk / def) / 50 + 2))
   dano = Math.max(1, dano) 
-  
+
   df.currentHp = Math.max(0, df.currentHp - dano)
   return `💥 **${at.nombre}** usó **${mv.nombre}** (-${dano} HP)`
 }
@@ -152,9 +156,9 @@ function renderBattle(m, conn, b, log = '') {
   txt += `👾 **${b.p2.nombre}** (Nv. ${b.p2.nivel})\n💖 HP: ${b.p2.currentHp}/${b.p2.maxHp}\n`
   txt += `━━━━━━━━━━━━━━━\n`
   txt += `👤 **${b.p1.nombre}** (Nv. ${b.p1.nivel})\n💖 HP: ${b.p1.currentHp}/${b.p1.maxHp}\n\n`
-  
+
   if (log) txt += `📝 **Registro:**\n${log}\n\n`
-  
+
   txt += `⚔️ **MOVIMIENTOS:**\n`
   b.p1.moves.forEach((v, i) => {
     txt += `*[ ${i + 1} ]* ${v.nombre} (${v.tipo})\n`
@@ -166,29 +170,44 @@ function renderBattle(m, conn, b, log = '') {
 
 // --- SISTEMA DE NIVEL/EVOLUCIÓN ---
 async function subirNivel(p, user, m, conn) {
+  // Verificación de seguridad para evitar el error de "hp" de undefined
+  if (!p.statsBase) {
+    let data = await buildPokemonObj(p.id, p.nivel)
+    if (data) Object.assign(p, data)
+    else return
+  }
+
   p.nivel++
   p.hp = calcStat(p.statsBase.hp, p.iv, p.nivel, true)
   p.atk = calcStat(p.statsBase.atk, p.iv, p.nivel)
   p.def = calcStat(p.statsBase.def, p.iv, p.nivel)
-  
-  // Revisar Evolución (PokeAPI)
-  const spec = await fetchAPI(`pokemon-species/${p.id}`)
-  if (spec?.evolution_chain) {
-    const chain = await fetchAPI(`evolution-chain/${spec.evolution_chain.url.split('/').filter(Boolean).pop()}`)
-    let curr = chain.chain
-    while (curr && curr.species.name.toUpperCase() !== p.nombre) {
-      curr = curr.evolves_to[0]
-    }
-    if (curr?.evolves_to[0]) {
-      let next = curr.evolves_to[0]
-      let minLvl = next.evolution_details[0]?.min_level || 16
-      if (p.nivel >= minLvl) {
-        let newData = await buildPokemonObj(next.species.name, p.nivel)
-        Object.assign(p, newData)
-        conn.reply(m.chat, `🌟 ¡Increíble! Tu Pokémon evolucionó a **${p.nombre}**`, m)
+
+  // Revisar Evolución
+  try {
+    const spec = await fetchAPI(`pokemon-species/${p.id}`)
+    if (spec?.evolution_chain) {
+      const chainId = spec.evolution_chain.url.split('/').filter(Boolean).pop()
+      const chain = await fetchAPI(`evolution-chain/${chainId}`)
+      let curr = chain.chain
+      
+      while (curr && curr.species.name.toUpperCase() !== p.nombre) {
+        if (curr.evolves_to.length > 0) curr = curr.evolves_to[0]
+        else break
+      }
+      
+      if (curr?.evolves_to && curr.evolves_to[0]) {
+        let next = curr.evolves_to[0]
+        let minLvl = next.evolution_details[0]?.min_level || 16
+        if (p.nivel >= minLvl) {
+          let newData = await buildPokemonObj(next.species.name, p.nivel)
+          if (newData) {
+            Object.assign(p, newData)
+            conn.reply(m.chat, `🌟 ¡Increíble! Tu Pokémon evolucionó a **${p.nombre}**`, m)
+          }
+        }
       }
     }
-  }
+  } catch (e) { console.error(e) }
 }
 
 handler.command = ['pktorre', 'pkatacar']
