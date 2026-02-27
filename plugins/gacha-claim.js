@@ -36,7 +36,8 @@ let handler = async (m, { conn }) => {
     const userId = m.sender;
     const now = Date.now();
 
-    if (cooldowns[userId] && now < cooldowns[userId]) {
+    // --- LÓGICA DE COOLDOWN (Se salta si Admin Abuse está activo) ---
+    if (!global.adminAbuse && cooldowns[userId] && now < cooldowns[userId]) {
         const remaining = cooldowns[userId] - now;
         const minutes = Math.floor(remaining / 60000);
         const seconds = Math.floor((remaining % 60000) / 1000);
@@ -50,6 +51,7 @@ let handler = async (m, { conn }) => {
     try {
         const characters = await loadCharacters();
 
+        // Extraer ID del mensaje citado
         const match = m.quoted.text.match(/𝙄𝘿:\s*\*([^\*]+)\*/i);
         if (!match) return conn.reply(m.chat, '《✧》No se pudo detectar el ID del personaje.', m);
 
@@ -58,13 +60,17 @@ let handler = async (m, { conn }) => {
 
         if (!character) return conn.reply(m.chat, '《✧》Personaje no encontrado.', m);
 
-        if (character.user && character.user !== userId) {
+        // --- VALIDACIÓN DE DUEÑO ---
+        // Si el Admin Abuse está activo, permitimos que el personaje sea reclamado 
+        // aunque diga que tiene dueño (para permitir "robos" en el evento)
+        if (!global.adminAbuse && character.user && character.user !== userId) {
             return conn.reply(m.chat,
                 `✧ El personaje *${character.name}* ya fue reclamado por @${character.user.split('@')[0]}.`,
                 m,
                 { mentions: [character.user] });
         }
 
+        // Actualizar datos del personaje
         character.user = userId;
         character.status = 'Reclamado';
         await saveCharacters(characters);
@@ -74,7 +80,10 @@ let handler = async (m, { conn }) => {
 
         await conn.reply(m.chat, mensajeFinal, m);
 
-        cooldowns[userId] = now + 30 * 60 * 1000; // 30 minutos
+        // --- APLICAR COOLDOWN (Solo si NO hay evento) ---
+        if (!global.adminAbuse) {
+            cooldowns[userId] = now + 30 * 60 * 1000; // 30 minutos
+        }
 
     } catch (e) {
         conn.reply(m.chat, `✘ Error al reclamar waifu:\n${e.message}`, m);
