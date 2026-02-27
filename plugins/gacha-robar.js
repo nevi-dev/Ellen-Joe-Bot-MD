@@ -1,92 +1,51 @@
 import { promises as fs } from 'fs'
 
-// --- RUTAS DE ARCHIVOS ---
 const charactersFilePath = './src/database/characters.json'
-const usersFilePath = './src/database/database.json' 
-
-// --- CONFIGURACIÓN DEL SISTEMA ---
 const stealCooldowns = {} 
-const STEAL_COOLDOWN_TIME = 5 * 60 * 60 * 1000 // 5 horas
+const STEAL_COOLDOWN_TIME = 5 * 60 * 60 * 1000 
 const HEALTH_REQUIRED = 50 
 const HEALTH_LOSS_ON_FAIL = 20 
-const XP_LOSS_PERCENT = 0.03 
 
-// Configuración del Newsletter/Canal
 const newsletterJid = '120363418071540900@newsletter'
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice'
 
-// ==========================================================
-//                   FUNCIONES DE BASE DE DATOS
-// ==========================================================
-
 async function loadCharacters() {
-    try {
-        const data = await fs.readFile(charactersFilePath, 'utf-8')
-        return JSON.parse(data)
-    } catch (error) {
-        throw new Error('❀ Error al cargar characters.json.')
-    }
+    const data = await fs.readFile(charactersFilePath, 'utf-8')
+    return JSON.parse(data)
 }
 
 async function saveCharacters(characters) {
-    try {
-        await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
-    } catch (error) {
-        throw new Error('❀ Error al guardar characters.json.')
-    }
+    await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
 }
-
-async function loadUsersData() {
-    try {
-        const data = await fs.readFile(usersFilePath, 'utf-8')
-        const parsed = JSON.parse(data)
-        return parsed.users || {} 
-    } catch (error) {
-        return {}
-    }
-}
-
-// ==========================================================
-//                HANDLER #ROBARWAIFU (ELLEN JOE)
-// ==========================================================
 
 let handler = async (m, { conn, args }) => {
     const thiefId = m.sender
     const name = conn.getName(thiefId)
     const now = Date.now()
+    const isAdminAbuse = global.adminAbuse // Verificamos si el evento está activo
 
-    // ContextInfo estético de Victoria Housekeeping
     const contextInfo = {
         mentionedJid: [thiefId],
         isForwarded: true,
         forwardingScore: 999,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid,
-            newsletterName,
-            serverMessageId: -1
-        },
+        forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
         externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+            title: isAdminAbuse ? '🦈 𝘼𝘿𝙈𝙄𝙉 𝘼𝘽𝙐𝙎𝙀: 𝙍𝙊𝘽𝙊 𝙄𝙇𝙄𝙈𝙄𝙏𝘼𝘿𝙊' : '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
             body: `— Operación de Extracción para ${name}`,
-            thumbnail: icons, // Variable global de tu bot
-            sourceUrl: redes, // Variable global de tu bot
+            thumbnail: global.icons,
+            sourceUrl: global.redes,
             mediaType: 1,
             renderLargerThumbnail: false
         }
     }
 
-    // 1. Verificar Cooldown
-    if (stealCooldowns[thiefId] && now < stealCooldowns[thiefId]) {
+    // 1. VERIFICAR COOLDOWN (Se salta si hay Admin Abuse)
+    if (!isAdminAbuse && stealCooldowns[thiefId] && now < stealCooldowns[thiefId]) {
         const remainingTime = Math.ceil((stealCooldowns[thiefId] - now) / 1000)
-        const hours = Math.floor(remainingTime / 3600)
-        const minutes = Math.floor((remainingTime % 3600) / 60)
-        return await conn.reply(m.chat, `*— Oye, relájate.* Estás demasiado agotado para pelear. Ve a descansar **${hours}h y ${minutes}m** más o no podré ayudarte.`, m, { contextInfo })
+        return await conn.reply(m.chat, `*— Oye, relájate.* Ve a descansar **${Math.floor(remainingTime / 3600)}h** más.`, m, { contextInfo })
     }
 
-    if (!args[0]) {
-        return await conn.reply(m.chat, `*— (Bostezo)*... Si quieres que asalte a alguien, dime el ID o nombre. No voy a buscarlo yo.`, m, { contextInfo })
-    }
-
+    if (!args[0]) return await conn.reply(m.chat, `*— (Bostezo)*... Dime el ID o nombre.`, m, { contextInfo })
     const input = args.join(' ').toLowerCase().trim()
 
     try {
@@ -94,74 +53,59 @@ let handler = async (m, { conn, args }) => {
         const targetIndex = characters.findIndex(c => c.id == input || c.name.toLowerCase() === input)
         const waifu = characters[targetIndex]
 
-        if (!waifu) {
-            return await conn.reply(m.chat, `*— ¿Eh?* Esa waifu no existe. Deja de inventar nombres, qué pereza.`, m, { contextInfo })
-        }
-
-        if (!waifu.user) {
-            return await conn.reply(m.chat, `*— Escucha...* **${waifu.name}** no tiene dueño. No puedo robar algo que es libre. Usa *#rw* y deja de molestar.`, m, { contextInfo })
-        }
-
+        if (!waifu) return await conn.reply(m.chat, `*— ¿Eh?* Esa waifu no existe.`, m, { contextInfo })
+        if (!waifu.user) return await conn.reply(m.chat, `*— Escucha...* No tiene dueño. Usa #rw.`, m, { contextInfo })
+        
         const ownerId = waifu.user
-        if (thiefId === ownerId) {
-            return await conn.reply(m.chat, `*— ¿Estás bien de la cabeza?* Esa waifu ya es tuya. No me hagas perder el tiempo con bromas.`, m, { contextInfo })
-        }
+        if (thiefId === ownerId) return await conn.reply(m.chat, `*— ¿Estás bien?* Ya es tuya.`, m, { contextInfo })
 
-        // --- VALIDACIÓN: TOKEN DE PROTECCIÓN ---
+        // 2. VERIFICAR ESCUDO (ESTO NUNCA SE SALTA, NI EN ADMIN ABUSE)
         if (waifu.protectionUntil && waifu.protectionUntil > now) {
-            return await conn.reply(m.chat, `*— Tsk, olvídalo.* **${waifu.name}** tiene un escudo de Victoria Housekeeping activo. No pienso pelear contra mis propios colegas. Inténtalo cuando expire.`, m, { contextInfo })
+            const timeLeft = waifu.protectionUntil - now
+            const h = Math.floor(timeLeft / 3600000)
+            const min = Math.floor((timeLeft % 3600000) / 60000)
+            return await conn.reply(m.chat, `*— Tsk, tiene un escudo activo.* Faltan **${h}h ${min}m** para que expire. Ni con Admin Abuse puedo tocarla.`, m, { contextInfo })
         }
 
-        // Datos del Ladrón y Dueño
-        const uThief = global.db.data.users[thiefId] || { level: 1, exp: 0, health: 100 }
-        const uOwner = global.db.data.users[ownerId] || { level: 1, exp: 0 }
+        const uThief = global.db.data.users[thiefId] || { level: 1, health: 100 }
+        const uOwner = global.db.data.users[ownerId] || { level: 1 }
 
-        // 2. Verificar Salud del Ladrón
+        // 3. VERIFICAR SALUD (Se salta si hay Admin Abuse)
         const currentHealth = uThief.health ?? 100
-        if (currentHealth < HEALTH_REQUIRED) {
-            return await conn.reply(m.chat, `*— Estás hecho un desastre.* Tienes **${currentHealth} HP** y para este trabajo exijo que tengas al menos **${HEALTH_REQUIRED} HP**. Ve a curarte.`, m, { contextInfo })
+        if (!isAdminAbuse && currentHealth < HEALTH_REQUIRED) {
+            return await conn.reply(m.chat, `*— Estás hecho un desastre.* Tienes **${currentHealth} HP**.`, m, { contextInfo })
         }
 
-        // 3. Lógica de Probabilidad
-        let successChance = 35 
+        // 4. PROBABILIDAD (En Admin Abuse la probabilidad es MAYOR)
+        let successChance = isAdminAbuse ? 70 : 35 
         const levelDiff = (uThief.level || 1) - (uOwner.level || 1)
         successChance += (levelDiff * 5)
-        successChance = Math.max(5, Math.min(85, successChance)) 
+        successChance = Math.max(5, Math.min(95, successChance)) 
 
         const isSuccessful = Math.random() * 100 < successChance
-        stealCooldowns[thiefId] = now + STEAL_COOLDOWN_TIME
+        
+        // Solo aplicamos cooldown si NO es admin abuse
+        if (!isAdminAbuse) stealCooldowns[thiefId] = now + STEAL_COOLDOWN_TIME
 
         if (isSuccessful) {
-            // --- ÉXITO ---
             characters[targetIndex].user = thiefId
             delete characters[targetIndex].protectionUntil 
-
             await saveCharacters(characters)
 
-            const successMsg = `🦈 **𝐎𝐏𝐄𝐑𝐀𝐂𝐈𝐎́𝐍 𝐄𝐗𝐈𝐓𝐎𝐒𝐀**\n\n*— Fue más fácil de lo que pensé.* He sacado a **${waifu.name}** de las manos de @${ownerId.split('@')[0]}. Ahora es tuya, no me pidas nada más.\n\n📊 **Probabilidad:** ${successChance.toFixed(1)}%\n❤️ **Salud:** ${currentHealth} HP`
-            
             contextInfo.mentionedJid.push(ownerId)
-            await conn.reply(m.chat, successMsg, m, { contextInfo })
-
+            await conn.reply(m.chat, `🦈 **¡ROBO EXITOSO!**\n\n*— Aproveché el caos del Admin Abuse.* He sacado a **${waifu.name}** de las manos de @${ownerId.split('@')[0]}.`, m, { contextInfo })
         } else {
-            // --- FRACASO ---
-            uThief.health = Math.max(0, currentHealth - HEALTH_LOSS_ON_FAIL)
-            const xpLost = Math.floor((uThief.exp || 0) * XP_LOSS_PERCENT)
-            uThief.exp = Math.max(0, (uThief.exp || 0) - xpLost)
-
-            const failMsg = `🚑 **¡𝐀𝐔𝐂𝐇! 𝐍𝐎𝐒 𝐏𝐈𝐋𝐋𝐀𝐑𝐎𝐍...**\n\n*— Tsk, el dueño de **${waifu.name}** se defendió mejor de lo esperado.* Tuve que retirarme porque esto se puso molesto.\n\n🔻 **Salud:** -${HEALTH_LOSS_ON_FAIL} HP (Te queda: ${uThief.health})\n🔻 **Experiencia:** -${xpLost}\n\n*— Me voy a mi descanso. No me busques en un rato.*`
+            // En Admin Abuse NO pierdes salud al fallar
+            if (!isAdminAbuse) uThief.health = Math.max(0, currentHealth - HEALTH_LOSS_ON_FAIL)
             
-            await conn.reply(m.chat, failMsg, m, { contextInfo })
+            await conn.reply(m.chat, `🚑 **FALLASTE...**\n\n*— El dueño se defendió.* ${isAdminAbuse ? 'Pero como hay Admin Abuse, no te dolió tanto. ¡Sigue intentando!' : 'Me voy a descansar.'}`, m, { contextInfo })
         }
 
-    } catch (error) {
-        await conn.reply(m.chat, `*— Suspiro...* Algo salió mal: ${error.message}. Qué problemático.`, m, { contextInfo })
-    }
+    } catch (e) { console.error(e) }
 }
 
-handler.help = ['robarwaifu <ID/Nombre>']
+handler.help = ['robarwaifu']
 handler.tags = ['gacha']
 handler.command = ['robarwaifu']
 handler.group = true
-
 export default handler
