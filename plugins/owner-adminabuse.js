@@ -5,7 +5,7 @@ const charactersFilePath = './src/database/characters.json'
 let handler = async (m, { conn, isROwner, text }) => {
     if (!isROwner) return 
 
-    const grupos = ['123456789@g.us', '987654321@g.us'] // <--- Tus IDs aquí
+    const grupos = ['120363401983111842@g.us', '120363420169896189@g.us'] // <--- Tus IDs aquí
 
     // --- INVOCACIÓN MANUAL POR ID ---
     if (text) {
