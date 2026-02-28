@@ -14727,7 +14727,332 @@
         "gender": "mujel",
         "id": "844",
         "value": "1500",
-        "img": ["https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elliot_fem/imagen1.jpeg],
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elliot_fem/imagen1.jpeg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Miyako Saitō",
+        "source": "Oshi no Ko",
+        "gender": "Mujer",
+        "id": "845",
+        "value": "2154",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyako_sait_/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyako_sait_/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyako_sait_/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyako_sait_/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyako_sait_/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mem-cho",
+        "source": "Oshi no Ko",
+        "gender": "Mujer",
+        "id": "846",
+        "value": "2424",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mem_cho/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mem_cho/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mem_cho/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mem_cho/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mem_cho/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Frill Shiranui",
+        "source": "Oshi no Ko",
+        "gender": "Mujer",
+        "id": "847",
+        "value": "1657",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frill_shiranui/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frill_shiranui/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frill_shiranui/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frill_shiranui/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frill_shiranui/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Minami Kotobuki",
+        "source": "Oshi no Ko",
+        "gender": "Mujer",
+        "id": "848",
+        "value": "1648",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_kotobuki/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_kotobuki/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_kotobuki/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_kotobuki/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_kotobuki/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Yuki Sumi",
+        "source": "Oshi no Ko",
+        "gender": "Mujer",
+        "id": "849",
+        "value": "2245",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sumi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sumi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sumi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sumi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yuki_sumi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Abiko Samejima",
+        "source": "Oshi no Ko",
+        "gender": "Mujer",
+        "id": "850",
+        "value": "2686",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abiko_samejima/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abiko_samejima/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abiko_samejima/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abiko_samejima/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abiko_samejima/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Yoriko Kichijōji",
+        "source": "Oshi no Ko",
+        "gender": "Mujer",
+        "id": "851",
+        "value": "1734",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yoriko_kichij_ji/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yoriko_kichij_ji/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yoriko_kichij_ji/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yoriko_kichij_ji/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yoriko_kichij_ji/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Melt Narushima",
+        "source": "Oshi no Ko",
+        "gender": "Hombre",
+        "id": "852",
+        "value": "1417",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melt_narushima/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melt_narushima/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melt_narushima/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melt_narushima/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Aqua Hoshino",
+        "source": "Oshi no Ko",
+        "gender": "Hombre",
+        "id": "853",
+        "value": "2013",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aqua_hoshino/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aqua_hoshino/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aqua_hoshino/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aqua_hoshino/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aqua_hoshino/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Uzi Doorman",
+        "source": "Murder Drones",
+        "gender": "Mujer",
+        "id": "854",
+        "value": "2240",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/uzi_doorman/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/uzi_doorman/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/uzi_doorman/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/uzi_doorman/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/uzi_doorman/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Serial Designation N",
+        "source": "Murder Drones",
+        "gender": "Hombre",
+        "id": "855",
+        "value": "2846",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_n/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_n/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_n/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_n/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_n/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Serial Designation V",
+        "source": "Murder Drones",
+        "gender": "Mujer",
+        "id": "856",
+        "value": "1500",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_v/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_v/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_v/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_v/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_v/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Serial Designation J",
+        "source": "Murder Drones",
+        "gender": "Mujer",
+        "id": "857",
+        "value": "1412",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_j/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_j/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_j/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_j/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/serial_designation_j/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Cyn",
+        "source": "Murder Drones",
+        "gender": "Mujer",
+        "id": "858",
+        "value": "2375",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyn/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyn/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyn/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyn/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyn/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tessa Elliott",
+        "source": "Murder Drones",
+        "gender": "Mujer",
+        "id": "859",
+        "value": "2664",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tessa_elliott/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tessa_elliott/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tessa_elliott/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tessa_elliott/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tessa_elliott/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Thad",
+        "source": "Murder Drones",
+        "gender": "Hombre",
+        "id": "860",
+        "value": "2231",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thad/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thad/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thad/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thad/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/thad/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Lizzy",
+        "source": "Murder Drones",
+        "gender": "Mujer",
+        "id": "861",
+        "value": "2258",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lizzy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lizzy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lizzy/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lizzy/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lizzy/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Doll",
+        "source": "Murder Drones",
+        "gender": "Mujer",
+        "id": "862",
+        "value": "1519",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/doll/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/doll/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/doll/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/doll/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/doll/img_4.jpg"
+        ],
         "vid": [],
         "user": null,
         "status": "Libre",
