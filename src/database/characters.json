@@ -1,6 +1,6 @@
 [
     {
-        "id": "0",
+        "id": "56",
         "name": "sophie rain",
         "gender": "Mujer",
         "value": "2200",
@@ -1026,26 +1026,6 @@
         "vid": [
             "https://files.catbox.moe/12kmnd.gif",
             "https://files.catbox.moe/yv4aoe.gif"
-        ],
-        "user": null,
-        "status": "Libre",
-        "votes": 0
-    },
-    {
-        "id": "56",
-        "name": "Bakugou Katsuki",
-        "gender": "Hombre",
-        "value": "1780",
-        "source": "Boku no hero",
-        "img": [
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bakugou_katsuki/img_0.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bakugou_katsuki/img_1.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bakugou_katsuki/img_2.png",
-            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bakugou_katsuki/img_3.jpg"
-        ],
-        "vid": [
-            "https://files.catbox.moe/71zp61.webp",
-            "https://files.catbox.moe/lv7dzr.webp"
         ],
         "user": null,
         "status": "Libre",
@@ -11668,6 +11648,3086 @@
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/artemis/img_3.jpg",
             "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/artemis/img_4.jpg"
         ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Konata Izumi",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "669",
+        "value": "2705",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/konata_izumi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/konata_izumi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/konata_izumi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/konata_izumi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/konata_izumi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kagami Hiiragi",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "670",
+        "value": "2312",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagami_hiiragi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagami_hiiragi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagami_hiiragi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagami_hiiragi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kagami_hiiragi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tsukasa Hiiragi",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "671",
+        "value": "2321",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsukasa_hiiragi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsukasa_hiiragi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsukasa_hiiragi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsukasa_hiiragi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsukasa_hiiragi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Miyuki Takara",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "672",
+        "value": "2499",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyuki_takara/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyuki_takara/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyuki_takara/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyuki_takara/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miyuki_takara/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Yutaka Kobayakawa",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "673",
+        "value": "2593",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yutaka_kobayakawa/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yutaka_kobayakawa/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yutaka_kobayakawa/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yutaka_kobayakawa/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yutaka_kobayakawa/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Minami Iwasaki",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "674",
+        "value": "2405",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_iwasaki/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_iwasaki/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_iwasaki/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_iwasaki/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/minami_iwasaki/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hiyori Tamura",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "675",
+        "value": "2893",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiyori_tamura/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiyori_tamura/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiyori_tamura/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiyori_tamura/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hiyori_tamura/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Patricia Martin",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "676",
+        "value": "2009",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/patricia_martin/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/patricia_martin/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/patricia_martin/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/patricia_martin/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/patricia_martin/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Misao Kusakabe",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "677",
+        "value": "1514",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/misao_kusakabe/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/misao_kusakabe/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/misao_kusakabe/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/misao_kusakabe/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/misao_kusakabe/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ayano Minegishi",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "678",
+        "value": "1775",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayano_minegishi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayano_minegishi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayano_minegishi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayano_minegishi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ayano_minegishi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nanako Kuroi",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "679",
+        "value": "2376",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nanako_kuroi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nanako_kuroi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nanako_kuroi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nanako_kuroi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nanako_kuroi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Yui Narumi",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "680",
+        "value": "2882",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yui_narumi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yui_narumi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yui_narumi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yui_narumi/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Sohjiroh Izumi",
+        "source": "Lucky Star",
+        "gender": "Mujer",
+        "id": "681",
+        "value": "2188",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sohjiroh_izumi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sohjiroh_izumi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sohjiroh_izumi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sohjiroh_izumi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sohjiroh_izumi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Rapi",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "682",
+        "value": "2385",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rapi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rapi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rapi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rapi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Anis",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "683",
+        "value": "2582",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anis/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anis/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anis/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anis/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Neon",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "684",
+        "value": "2507",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/neon/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/neon/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/neon/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/neon/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/neon/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Marian",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "685",
+        "value": "2052",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marian/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marian/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marian/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marian/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marian/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Modernia",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "686",
+        "value": "1585",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/modernia/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/modernia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/modernia/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/modernia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/modernia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Snow White",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "687",
+        "value": "1278",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snow_white/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snow_white/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snow_white/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snow_white/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/snow_white/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Scarlet",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "688",
+        "value": "1776",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlet/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlet/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlet/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/scarlet/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Dorothy",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "689",
+        "value": "2859",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dorothy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dorothy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dorothy/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dorothy/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Privaty",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "690",
+        "value": "2639",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/privaty/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/privaty/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/privaty/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/privaty/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Diesel",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "691",
+        "value": "1677",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/diesel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/diesel/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/diesel/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/diesel/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/diesel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Rupee",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "692",
+        "value": "2077",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rupee/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rupee/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rupee/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rupee/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rupee/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Volume",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "693",
+        "value": "2890",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/volume/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/volume/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/volume/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Emma",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "694",
+        "value": "1888",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emma/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emma/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emma/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emma/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/emma/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Viper",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "695",
+        "value": "2025",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/viper/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/viper/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/viper/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/viper/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Blanc",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "696",
+        "value": "2098",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blanc/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blanc/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blanc/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blanc/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/blanc/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Noir",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "697",
+        "value": "2009",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noir/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noir/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noir/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/noir/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Maxwell",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "698",
+        "value": "1704",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maxwell/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maxwell/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maxwell/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maxwell/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maxwell/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Drake",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "699",
+        "value": "1637",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/drake/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/drake/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/drake/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/drake/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Helm",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "700",
+        "value": "1471",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helm/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helm/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helm/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helm/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Sugar",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "701",
+        "value": "2792",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sugar/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sugar/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sugar/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sugar/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sugar/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Exia",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "702",
+        "value": "1835",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/exia/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/exia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/exia/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/exia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/exia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Novel",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "703",
+        "value": "2784",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/novel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/novel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Guillotine",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "704",
+        "value": "1779",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/guillotine/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/guillotine/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/guillotine/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/guillotine/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Maiden",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "705",
+        "value": "1490",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maiden/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maiden/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maiden/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/maiden/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Brid",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "706",
+        "value": "1267",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brid/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brid/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brid/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brid/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Poli",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "707",
+        "value": "2536",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/poli/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/poli/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/poli/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/poli/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/poli/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Miranda",
+        "source": "Goddess of Victory: Nikke",
+        "gender": "Mujer",
+        "id": "708",
+        "value": "1432",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miranda/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miranda/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miranda/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miranda/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/miranda/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Subaru Natsuki",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "709",
+        "value": "1651",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/subaru_natsuki/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/subaru_natsuki/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/subaru_natsuki/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/subaru_natsuki/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Rem",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "710",
+        "value": "2641",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rem/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rem/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rem/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rem/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/rem/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ram",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "711",
+        "value": "2276",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ram/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ram/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ram/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ram/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ram/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Beatrice",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "712",
+        "value": "2558",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beatrice/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beatrice/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beatrice/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beatrice/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beatrice/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Roswaal L. Mathers",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "713",
+        "value": "2429",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roswaal_l__mathers/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roswaal_l__mathers/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roswaal_l__mathers/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roswaal_l__mathers/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roswaal_l__mathers/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Echidna",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "714",
+        "value": "1904",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/echidna/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/echidna/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/echidna/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/echidna/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Satella",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "715",
+        "value": "2014",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/satella/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/satella/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/satella/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/satella/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/satella/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Garfiel Tinsel",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "716",
+        "value": "2079",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/garfiel_tinsel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/garfiel_tinsel/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/garfiel_tinsel/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/garfiel_tinsel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Otto Suwen",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "717",
+        "value": "2699",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/otto_suwen/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/otto_suwen/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/otto_suwen/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/otto_suwen/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/otto_suwen/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Crusch Karsten",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "718",
+        "value": "2200",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/crusch_karsten/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/crusch_karsten/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/crusch_karsten/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/crusch_karsten/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/crusch_karsten/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Felix Argyle",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "719",
+        "value": "1464",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felix_argyle/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felix_argyle/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felix_argyle/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felix_argyle/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Reinhard van Astrea",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "720",
+        "value": "2560",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/reinhard_van_astrea/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/reinhard_van_astrea/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/reinhard_van_astrea/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/reinhard_van_astrea/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Julius Juukulius",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "721",
+        "value": "2872",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/julius_juukulius/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/julius_juukulius/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/julius_juukulius/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Wilhelm van Astrea",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "722",
+        "value": "2107",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/wilhelm_van_astrea/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/wilhelm_van_astrea/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/wilhelm_van_astrea/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/wilhelm_van_astrea/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/wilhelm_van_astrea/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Felt",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "723",
+        "value": "2715",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felt/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felt/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felt/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/felt/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Priscilla Barielle",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "724",
+        "value": "2420",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/priscilla_barielle/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/priscilla_barielle/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/priscilla_barielle/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/priscilla_barielle/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/priscilla_barielle/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Anastasia Hoshin",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "725",
+        "value": "2330",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anastasia_hoshin/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anastasia_hoshin/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anastasia_hoshin/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/anastasia_hoshin/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Frederica Baumann",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "726",
+        "value": "1359",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frederica_baumann/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frederica_baumann/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frederica_baumann/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frederica_baumann/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/frederica_baumann/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Petra Leyte",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "727",
+        "value": "1452",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petra_leyte/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petra_leyte/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petra_leyte/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petra_leyte/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petra_leyte/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Meili Portroute",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "728",
+        "value": "2701",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/meili_portroute/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/meili_portroute/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/meili_portroute/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/meili_portroute/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/meili_portroute/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Elsa Granhiert",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Mujer",
+        "id": "729",
+        "value": "1507",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elsa_granhiert/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elsa_granhiert/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elsa_granhiert/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elsa_granhiert/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elsa_granhiert/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Petelgeuse Romanee-Conti",
+        "source": "Re:ZERO -Starting Life in Another World-",
+        "gender": "Hombre",
+        "id": "730",
+        "value": "1664",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petelgeuse_romanee_conti/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petelgeuse_romanee_conti/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petelgeuse_romanee_conti/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petelgeuse_romanee_conti/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/petelgeuse_romanee_conti/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Denji",
+        "source": "Chainsaw Man",
+        "gender": "Hombre",
+        "id": "731",
+        "value": "2549",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/denji/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/denji/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/denji/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/denji/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/denji/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Aki Hayakawa",
+        "source": "Chainsaw Man",
+        "gender": "Hombre",
+        "id": "732",
+        "value": "1973",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aki_hayakawa/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aki_hayakawa/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aki_hayakawa/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aki_hayakawa/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/aki_hayakawa/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Pochita",
+        "source": "Chainsaw Man",
+        "gender": "Hombre",
+        "id": "733",
+        "value": "2033",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pochita/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pochita/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pochita/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/pochita/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kobeni Higashiyama",
+        "source": "Chainsaw Man",
+        "gender": "Mujer",
+        "id": "734",
+        "value": "1357",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kobeni_higashiyama/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kobeni_higashiyama/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kobeni_higashiyama/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kobeni_higashiyama/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kobeni_higashiyama/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Himeno",
+        "source": "Chainsaw Man",
+        "gender": "Mujer",
+        "id": "735",
+        "value": "1223",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/himeno/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/himeno/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/himeno/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/himeno/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/himeno/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kishibe",
+        "source": "Chainsaw Man",
+        "gender": "Hombre",
+        "id": "736",
+        "value": "1526",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kishibe/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kishibe/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kishibe/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kishibe/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Quanxi",
+        "source": "Chainsaw Man",
+        "gender": "Mujer",
+        "id": "737",
+        "value": "1234",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/quanxi/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/quanxi/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/quanxi/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/quanxi/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/quanxi/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Beam",
+        "source": "Chainsaw Man",
+        "gender": "Hombre",
+        "id": "738",
+        "value": "2545",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beam/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beam/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beam/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/beam/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Galgali",
+        "source": "Chainsaw Man",
+        "gender": "Hombre",
+        "id": "739",
+        "value": "1791",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/galgali/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/galgali/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/galgali/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/galgali/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Princesa",
+        "source": "Chainsaw Man",
+        "gender": "Mujer",
+        "id": "740",
+        "value": "1651",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/princesa/img_1.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Katana Man",
+        "source": "Chainsaw Man",
+        "gender": "Hombre",
+        "id": "741",
+        "value": "2252",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katana_man/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katana_man/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katana_man/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katana_man/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katana_man/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Joel Miller",
+        "source": "The Last of Us",
+        "gender": "Hombre",
+        "id": "742",
+        "value": "1764",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/joel_miller/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/joel_miller/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/joel_miller/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ellie",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "743",
+        "value": "2444",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ellie/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ellie/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ellie/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tommy Miller",
+        "source": "The Last of Us",
+        "gender": "Hombre",
+        "id": "744",
+        "value": "2865",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tommy_miller/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tommy_miller/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tommy_miller/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tommy_miller/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tess",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "745",
+        "value": "2633",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tess/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tess/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tess/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tess/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tess/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Bill",
+        "source": "The Last of Us",
+        "gender": "Hombre",
+        "id": "746",
+        "value": "2559",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bill/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bill/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bill/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bill/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Abby Anderson",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "747",
+        "value": "1431",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby_anderson/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby_anderson/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby_anderson/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby_anderson/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/abby_anderson/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Dina",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "748",
+        "value": "2805",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dina/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dina/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dina/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dina/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/dina/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Jesse",
+        "source": "The Last of Us",
+        "gender": "Hombre",
+        "id": "749",
+        "value": "2821",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/jesse/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/jesse/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/jesse/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Lev",
+        "source": "The Last of Us",
+        "gender": "Hombre",
+        "id": "750",
+        "value": "2892",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lev/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lev/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lev/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lev/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Yara",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "751",
+        "value": "2405",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yara/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yara/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/yara/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Marlene",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "752",
+        "value": "1627",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marlene/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marlene/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marlene/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marlene/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marlene/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "David",
+        "source": "The Last of Us",
+        "gender": "Hombre",
+        "id": "753",
+        "value": "2424",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/david/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/david/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/david/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/david/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Riley Abel",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "754",
+        "value": "1684",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/riley_abel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/riley_abel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Owen Moore",
+        "source": "The Last of Us",
+        "gender": "Hombre",
+        "id": "755",
+        "value": "2055",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/owen_moore/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/owen_moore/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/owen_moore/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/owen_moore/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/owen_moore/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mel",
+        "source": "The Last of Us",
+        "gender": "Mujer",
+        "id": "756",
+        "value": "2579",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mel/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mel/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Arsene Lupin III",
+        "source": "Lupin III",
+        "gender": "Hombre",
+        "id": "757",
+        "value": "2406",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arsene_lupin_iii/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arsene_lupin_iii/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arsene_lupin_iii/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arsene_lupin_iii/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/arsene_lupin_iii/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Daisuke Jigen",
+        "source": "Lupin III",
+        "gender": "Hombre",
+        "id": "758",
+        "value": "1771",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daisuke_jigen/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daisuke_jigen/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daisuke_jigen/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daisuke_jigen/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daisuke_jigen/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Goemon Ishikawa XIII",
+        "source": "Lupin III",
+        "gender": "Hombre",
+        "id": "759",
+        "value": "2002",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/goemon_ishikawa_xiii/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/goemon_ishikawa_xiii/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/goemon_ishikawa_xiii/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/goemon_ishikawa_xiii/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/goemon_ishikawa_xiii/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Fujiko Mine",
+        "source": "Lupin III",
+        "gender": "Mujer",
+        "id": "760",
+        "value": "1243",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fujiko_mine/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fujiko_mine/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fujiko_mine/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fujiko_mine/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Inspector Koichi Zenigata",
+        "source": "Lupin III",
+        "gender": "Hombre",
+        "id": "761",
+        "value": "1407",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/inspector_koichi_zenigata/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/inspector_koichi_zenigata/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/inspector_koichi_zenigata/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/inspector_koichi_zenigata/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/inspector_koichi_zenigata/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Springtrap",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "762",
+        "value": "1203",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mangle",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "763",
+        "value": "2046",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "The Puppet",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "764",
+        "value": "2795",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/the_puppet/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/the_puppet/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/the_puppet/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/the_puppet/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Balloon Boy",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "765",
+        "value": "2816",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/balloon_boy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/balloon_boy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/balloon_boy/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/balloon_boy/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/balloon_boy/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Circus Baby",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "766",
+        "value": "1560",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/circus_baby/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/circus_baby/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/circus_baby/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/circus_baby/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/circus_baby/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ballora",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "767",
+        "value": "2492",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ballora/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ballora/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ballora/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ballora/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ballora/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ennard",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "768",
+        "value": "2361",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ennard/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ennard/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ennard/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ennard/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ennard/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Funtime Freddy",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "769",
+        "value": "1340",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_freddy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_freddy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_freddy/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_freddy/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_freddy/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Funtime Foxy",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "770",
+        "value": "1755",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_foxy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_foxy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_foxy/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_foxy/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/funtime_foxy/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Lefty",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "771",
+        "value": "2373",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lefty/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lefty/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lefty/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lefty/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lefty/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Helpy",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "772",
+        "value": "1350",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helpy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helpy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helpy/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helpy/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/helpy/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Roxanne Wolf",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "773",
+        "value": "2816",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roxanne_wolf/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roxanne_wolf/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roxanne_wolf/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/roxanne_wolf/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Glamrock Chica",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "774",
+        "value": "1422",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glamrock_chica/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glamrock_chica/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glamrock_chica/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glamrock_chica/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glamrock_chica/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Montgomery Gator",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "775",
+        "value": "1864",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/montgomery_gator/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/montgomery_gator/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/montgomery_gator/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/montgomery_gator/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/montgomery_gator/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Vanny",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "776",
+        "value": "2491",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vanny/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vanny/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vanny/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/vanny/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Golden Freddy",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "777",
+        "value": "2368",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_freddy/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_freddy/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_freddy/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_freddy/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nightmare",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "778",
+        "value": "2598",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nightmare/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nightmare/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nightmare/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nightmare/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nightmare/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Plushtrap",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "779",
+        "value": "2284",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/plushtrap/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/plushtrap/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/plushtrap/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/plushtrap/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/plushtrap/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Glitchtrap",
+        "source": "Five Nights at Freddy's",
+        "gender": "Animatrónico",
+        "id": "780",
+        "value": "1399",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glitchtrap/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glitchtrap/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glitchtrap/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glitchtrap/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/glitchtrap/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Fredina",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "781",
+        "value": "1329",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fredina/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fredina/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fredina/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fredina/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fredina/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Bonnie (FNIA)",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "782",
+        "value": "2615",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bonnie__fnia_/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bonnie__fnia_/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bonnie__fnia_/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bonnie__fnia_/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bonnie__fnia_/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Chicky",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "783",
+        "value": "1444",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chicky/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chicky/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/chicky/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Foxy (FNIA)",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "784",
+        "value": "2641",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/foxy__fnia_/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/foxy__fnia_/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/foxy__fnia_/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/foxy__fnia_/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/foxy__fnia_/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mangle (FNIA)",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "785",
+        "value": "1864",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle__fnia_/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle__fnia_/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle__fnia_/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle__fnia_/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mangle__fnia_/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Puppet (FNIA)",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "786",
+        "value": "1588",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/puppet__fnia_/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/puppet__fnia_/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/puppet__fnia_/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/puppet__fnia_/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Springtrap (FNIA)",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "787",
+        "value": "1473",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap__fnia_/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap__fnia_/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap__fnia_/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap__fnia_/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/springtrap__fnia_/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Golden Fredina",
+        "source": "Five Nights in Anime",
+        "gender": "Mujer",
+        "id": "788",
+        "value": "1972",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_fredina/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_fredina/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_fredina/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_fredina/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/golden_fredina/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Bruja Madre",
+        "source": "Clash Royale",
+        "gender": "Mujer",
+        "id": "789",
+        "value": "2372",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bruja_madre__mother_witch_/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bruja_madre__mother_witch_/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bruja_madre__mother_witch_/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bruja_madre__mother_witch_/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/bruja_madre__mother_witch_/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Daphne",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "790",
+        "value": "1325",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daphne/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daphne/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daphne/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/daphne/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Constantine S2",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "791",
+        "value": "1808",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/constantine_s2/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/constantine_s2/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/constantine_s2/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/constantine_s2/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/constantine_s2/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "LRL",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "792",
+        "value": "2842",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lrl/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lrl/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lrl/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lrl/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/lrl/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Marie",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "793",
+        "value": "2022",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marie/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marie/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marie/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marie/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/marie/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "B-11 Night Angel",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "794",
+        "value": "2044",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/b_11_night_angel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/b_11_night_angel/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/b_11_night_angel/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/b_11_night_angel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "P-24 Pin-up",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "795",
+        "value": "1507",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_24_pin_up/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_24_pin_up/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_24_pin_up/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_24_pin_up/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_24_pin_up/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Cerberus",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "796",
+        "value": "1560",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cerberus/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cerberus/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cerberus/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cerberus/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cerberus/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Azazel",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "797",
+        "value": "2682",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/azazel/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/azazel/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/azazel/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/azazel/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Charlotte",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "798",
+        "value": "1805",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charlotte/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charlotte/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charlotte/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charlotte/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/charlotte/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Fenrir",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "799",
+        "value": "1296",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fenrir/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fenrir/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fenrir/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fenrir/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "P-18 Silvia",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "800",
+        "value": "2535",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_18_silvia/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_18_silvia/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_18_silvia/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_18_silvia/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/p_18_silvia/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "T-14 Miho",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "801",
+        "value": "2806",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/t_14_miho/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/t_14_miho/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/t_14_miho/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/t_14_miho/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "A-1 Bomber Inherent",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "802",
+        "value": "1245",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/a_1_bomber_inherent/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "CS Perrault",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "803",
+        "value": "1961",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cs_perrault/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cs_perrault/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cs_perrault/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cs_perrault/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cs_perrault/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Soverign",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "804",
+        "value": "1207",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/soverign/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/soverign/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/soverign/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/soverign/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/soverign/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Leona",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "805",
+        "value": "2545",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leona/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leona/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leona/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leona/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leona/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Valery",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "806",
+        "value": "2233",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/valery/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/valery/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/valery/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/valery/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/valery/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Eternity",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "807",
+        "value": "2341",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternity/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternity/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternity/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternity/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eternity/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "May",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "808",
+        "value": "2363",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/may/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/may/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/may/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/may/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Baek-to",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "809",
+        "value": "2244",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baek_to/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baek_to/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baek_to/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baek_to/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/baek_to/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nimue",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "810",
+        "value": "1934",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nimue/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nimue/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nimue/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nimue/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Siren",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "811",
+        "value": "2081",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/siren/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/siren/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/siren/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/siren/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/siren/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tiamat",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "812",
+        "value": "2167",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tiamat/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tiamat/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tiamat/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tiamat/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tiamat/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Cyclops Princess",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "813",
+        "value": "2210",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyclops_princess/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyclops_princess/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyclops_princess/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyclops_princess/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/cyclops_princess/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Habetrot",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "814",
+        "value": "2105",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/habetrot/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/habetrot/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/habetrot/img_2.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Gargoyle",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "815",
+        "value": "2822",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gargoyle/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gargoyle/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gargoyle/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/gargoyle/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mighty R",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "816",
+        "value": "2671",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mighty_r/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mighty_r/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mighty_r/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mighty_r/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mighty_r/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Brownie",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "817",
+        "value": "2136",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brownie/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brownie/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brownie/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/brownie/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Leprechaun",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "818",
+        "value": "1898",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leprechaun/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leprechaun/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leprechaun/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/leprechaun/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Sowan",
+        "source": "Last Origin",
+        "gender": "Mujer",
+        "id": "819",
+        "value": "1209",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sowan/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sowan/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sowan/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sowan/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/sowan/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Katsuki Bakugo",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "820",
+        "value": "2221",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katsuki_bakugo/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katsuki_bakugo/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katsuki_bakugo/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/katsuki_bakugo/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Ochaco Uraraka",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "821",
+        "value": "1504",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ochaco_uraraka/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ochaco_uraraka/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ochaco_uraraka/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ochaco_uraraka/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/ochaco_uraraka/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tenya Iida",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "822",
+        "value": "2573",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tenya_iida/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tenya_iida/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tenya_iida/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tenya_iida/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tenya_iida/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tsuyu Asui",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "823",
+        "value": "2599",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsuyu_asui/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsuyu_asui/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsuyu_asui/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsuyu_asui/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tsuyu_asui/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Eijiro Kirishima",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "824",
+        "value": "1657",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eijiro_kirishima/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eijiro_kirishima/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eijiro_kirishima/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eijiro_kirishima/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eijiro_kirishima/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Kyoka Jiro",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "825",
+        "value": "2874",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoka_jiro/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoka_jiro/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoka_jiro/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/kyoka_jiro/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mina Ashido",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "826",
+        "value": "1278",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mina_ashido/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mina_ashido/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mina_ashido/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mina_ashido/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mina_ashido/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Fumikage Tokoyami",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "827",
+        "value": "2152",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fumikage_tokoyami/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fumikage_tokoyami/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fumikage_tokoyami/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fumikage_tokoyami/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/fumikage_tokoyami/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Shota Aizawa",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "828",
+        "value": "1813",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shota_aizawa/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shota_aizawa/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shota_aizawa/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shota_aizawa/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/shota_aizawa/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "All Might",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "829",
+        "value": "2675",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/all_might/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/all_might/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/all_might/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/all_might/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/all_might/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Endeavor",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "830",
+        "value": "1814",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/endeavor/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/endeavor/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/endeavor/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/endeavor/img_3.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Hawks",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "831",
+        "value": "1658",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hawks/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hawks/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hawks/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hawks/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/hawks/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tomura Shigaraki",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "832",
+        "value": "2341",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tomura_shigaraki/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tomura_shigaraki/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tomura_shigaraki/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tomura_shigaraki/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tomura_shigaraki/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Twice",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "833",
+        "value": "2255",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/twice/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/twice/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/twice/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/twice/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/twice/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Overhaul",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "834",
+        "value": "2768",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/overhaul/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/overhaul/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/overhaul/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/overhaul/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/overhaul/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Eri",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "835",
+        "value": "2864",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eri/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eri/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eri/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eri/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/eri/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mirio Togata",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "836",
+        "value": "1454",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mirio_togata/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mirio_togata/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mirio_togata/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mirio_togata/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Tamaki Amajiki",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "837",
+        "value": "1751",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tamaki_amajiki/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tamaki_amajiki/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tamaki_amajiki/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tamaki_amajiki/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/tamaki_amajiki/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Nejire Hado",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "838",
+        "value": "1861",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nejire_hado/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nejire_hado/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nejire_hado/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nejire_hado/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/nejire_hado/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mount Lady",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "839",
+        "value": "1526",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mount_lady/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mount_lady/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mount_lady/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mount_lady/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Midnight",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "840",
+        "value": "2134",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/midnight/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/midnight/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/midnight/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/midnight/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/midnight/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Mirko",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "841",
+        "value": "2839",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mirko/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mirko/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/mirko/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Stain",
+        "source": "My Hero Academia",
+        "gender": "Hombre",
+        "id": "842",
+        "value": "1510",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stain/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stain/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stain/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stain/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/stain/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "Melissa Shield",
+        "source": "My Hero Academia",
+        "gender": "Mujer",
+        "id": "843",
+        "value": "1805",
+        "img": [
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melissa_shield/img_0.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melissa_shield/img_1.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melissa_shield/img_2.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melissa_shield/img_3.jpg",
+            "https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/melissa_shield/img_4.jpg"
+        ],
+        "vid": [],
+        "user": null,
+        "status": "Libre",
+        "votes": 0
+    },
+    {
+        "name": "elliot fem",
+        "source": "forsaken",
+        "gender": "mujel",
+        "id": "844",
+        "value": "1500",
+        "img": ["https://raw.githubusercontent.com/nevi-dev/nevi-dev/main/fotos/elliot_fem/imagen1.jpeg],
         "vid": [],
         "user": null,
         "status": "Libre",
