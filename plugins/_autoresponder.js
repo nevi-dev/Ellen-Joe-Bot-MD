@@ -29,10 +29,6 @@ function cleanUrlCandidate(s, { stripSpaces = false } = {}) {
     return t
 }
 
-function looksLikeImageUrl(u) {
-    return /\.(png|jpe?g|webp|gif)(\?|$)/i.test(u) || /googleusercontent\.com|ggpht\.com/i.test(u)
-}
-
 function extractImageUrlsFromText(text) {
     const out = new Set()
     const regex = /https:\/\/[\w\-\.]+(?:googleusercontent\.com|ggpht\.com)[^\s"'<>)]+|https:\/\/[^\s"'<>)]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>)]*)?/gi
@@ -99,7 +95,6 @@ async function getXsrfToken(cookieHeader) {
 
 async function askGemini(prompt, sender = '', botNumber = '', botLid = '', history = []) {
     const historialTexto = history.length > 1 ? '\n\nHistorial:\n' + history.slice(0, -1).map(h => `${h.role === 'user' ? 'Usuario' : 'Ellen'}: ${h.text}`).join('\n') : ''
-    // Inyectamos el remitente actual para que la IA sepa si es Nevi por número o por LID
     const fullPrompt = `${SYSTEM_PROMPT}${historialTexto}\n\n[INFO TÉCNICA: El remitente actual es ${sender}]\nUsuario: ${prompt.trim()}`
     const cookie = await getAnonCookie()
     const xsrf = await getXsrfToken(cookie)
@@ -140,8 +135,14 @@ handler.all = async function (m) {
         const history = chatHistory.get(m.chat)
         history.push({ role: 'user', text: m.text })
 
-        // Enviamos m.sender para que la IA verifique si coincide con los datos de Nevi
         const res = await askGemini(m.text, m.sender, botJid.split('@')[0], botLid, history)
+
+        // --- BLOQUEO ESTRICTO DE MAPAS Y URL ESPECÍFICA ---
+        const blockedUrl = 'http://googleusercontent.com/maps.google.com/'
+        if (res.text.toLowerCase().includes('maps/') || res.text.includes(blockedUrl)) {
+            console.log('[Ellen-Security] Enlace de mapa o URL bloqueada detectada. Respuesta cancelada.')
+            return 
+        }
 
         let cleanText = res.text
             .replace(/Para desbloquear.*?Gemini|https?:\/\/myactivity\.google\.com|habilita la \[.*?\]\(.*?\)/gi, '')
@@ -151,7 +152,12 @@ handler.all = async function (m) {
         if (history.length > 20) history.shift()
 
         if (res.images?.length) {
-            await conn.sendMessage(m.chat, { image: { url: res.images[0] }, caption: cleanText }, { quoted: m })
+            const filteredImages = res.images.filter(img => !img.toLowerCase().includes('maps/') && !img.includes(blockedUrl))
+            if (filteredImages.length) {
+                await conn.sendMessage(m.chat, { image: { url: filteredImages[0] }, caption: cleanText }, { quoted: m })
+            } else {
+                await conn.reply(m.chat, cleanText || '...', m)
+            }
         } else {
             await conn.reply(m.chat, cleanText || '...', m)
         }
