@@ -1,78 +1,85 @@
 import fetch from 'node-fetch'
 
+// --- CONFIGURACIÓN ---
 const API_URL = 'https://rest.apicausas.xyz/api/v1/ai?apikey=causa-ee5ee31dcfc79da4'; 
 const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minutos
 
+// Esta variable almacenará TODO el historial de todos los grupos mientras el bot esté encendido
+const chatMemory = {}; 
+
 var handler = async (m, { conn, text, usedPrefix, command }) => {
     
-    // 1. Identificadores y Metadatos
-    const chatId = m.chat; // ID del grupo o chat
-    const userName = m.pushName || 'Usuario Desconocido';
-    const userJid = m.sender.split('@')[0]; // Número de teléfono sin el @s.whatsapp.net
+    const chatId = m.chat;
+    const userName = m.pushName || 'Usuario';
+    const userJid = m.sender.split('@')[0];
 
-    // 2. Inicializar almacenamiento en la DB del Bot (global.db)
-    if (!global.db.data.chats[chatId]) global.db.data.chats[chatId] = {};
-    let chatData = global.db.data.chats[chatId];
+    // 1. INICIALIZAR MEMORIA PARA ESTE CHAT ESPECÍFICO
+    if (!chatMemory[chatId]) {
+        chatMemory[chatId] = {
+            history: [],
+            lastInteraction: Date.now()
+        };
+    }
 
-    if (!chatData.gemini_history) chatData.gemini_history = [];
-    if (!chatData.last_interaction) chatData.last_interaction = Date.now();
-
-    // 3. Sistema de Auto-Reset por Inactividad
+    const memory = chatMemory[chatId];
     const now = Date.now();
-    if (now - chatData.last_interaction > INACTIVITY_LIMIT) {
-        chatData.gemini_history = []; // Borramos historial si pasaron > 10 min
-    }
-    chatData.last_interaction = now; // Actualizamos el marcador de tiempo
 
-    // Comando manual para limpiar
+    // 2. LÓGICA DE AUTO-RESET (10 MINUTOS)
+    if (now - memory.lastInteraction > INACTIVITY_LIMIT) {
+        memory.history = [];
+        console.log(`[Memory] Reset por inactividad en: ${chatId}`);
+    }
+    memory.lastInteraction = now;
+
+    // Comando Reset Manual
     if (text === 'reset' || text === 'borrar') {
-        chatData.gemini_history = [];
-        return conn.reply(m.chat, '✅ Memoria del grupo reseteada.', m);
+        memory.history = [];
+        return conn.reply(m.chat, '✅ Memoria local del grupo reseteada.', m);
     }
 
-    if (!text) return conn.reply(m.chat, `¡Hola *${userName}*! Escribe algo para que el grupo y yo hablemos.`, m);
+    if (!text) return conn.reply(m.chat, `¡Hola *${userName}*! Soy Gemini. ¿De qué quiere hablar el grupo hoy?`, m);
 
     try {
         await m.react('🧠');
-        conn.sendPresenceUpdate('composing', m.chat);
 
-        // 4. FORMATEO DE IDENTIDAD (El "Truco" para que la IA sepa quién es quién)
-        // Enviamos el mensaje estructurado para que Gemini entienda el contexto del grupo
+        // 3. FORMATEO DE IDENTIDAD
+        // Enviamos quién escribe para que la IA distinga en el grupo
         const promptConIdentidad = `[MENSAJE DE: ${userName} | JID: ${userJid}]: ${text}`;
-
-        const payload = {
-            model: "google/gemini-1.5-flash", 
-            history: chatData.gemini_history,
-            q: promptConIdentidad 
-        };
 
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                model: "google/gemini-1.5-flash",
+                history: memory.history,
+                q: promptConIdentidad
+            })
         });
+
+        if (!response.ok) throw new Error(`Error de conexión: ${response.status}`);
 
         const res = await response.json();
 
         if (res.status && res.reply) {
-            // 5. Guardar el historial actualizado devuelto por la API
-            chatData.gemini_history = res.history;
+            // 4. ACTUALIZAR HISTORIAL EN LA CONSTANTE
+            // Guardamos lo que devuelve tu API (que ya incluye la nueva interacción)
+            memory.history = res.history || [];
 
-            // Mantener un historial manejable (últimos 12 mensajes)
-            if (chatData.gemini_history.length > 12) {
-                chatData.gemini_history = chatData.gemini_history.slice(-12);
+            // Limitar tamaño para no saturar la RAM del VPS (últimos 12 mensajes)
+            if (memory.history.length > 12) {
+                memory.history = memory.history.slice(-12);
             }
 
             await m.react('✅');
             await m.reply(res.reply);
         } else {
-            throw new Error('No hubo respuesta de la IA.');
+            throw new Error('La API no devolvió una respuesta válida.');
         }
 
     } catch (error) {
-        console.error(error);
+        console.error("ERROR EN MEMORIA LOCAL:", error);
         await m.react('❌');
-        conn.reply(m.chat, `❌ Error: ${error.message}`, m);
+        conn.reply(m.chat, `❌ *Error:* ${error.message}`, m);
     }
 }
 
