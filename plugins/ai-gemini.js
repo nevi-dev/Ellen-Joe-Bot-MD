@@ -1,84 +1,80 @@
 import fetch from 'node-fetch'
 
-// --- CONFIGURACIÓN ---
 const API_URL = 'https://rest.apicausas.xyz/api/v1/ai?apikey=causa-ee5ee31dcfc79da4'; 
-const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minutos
+const INACTIVITY_LIMIT = 10 * 60 * 1000; 
 
-// Esta variable almacenará TODO el historial de todos los grupos mientras el bot esté encendido
+// Memoria volátil (se borra si el bot se reinicia)
 const chatMemory = {}; 
 
 var handler = async (m, { conn, text, usedPrefix, command }) => {
-    
     const chatId = m.chat;
     const userName = m.pushName || 'Usuario';
     const userJid = m.sender.split('@')[0];
 
-    // 1. INICIALIZAR MEMORIA PARA ESTE CHAT ESPECÍFICO
-    if (!chatMemory[chatId]) {
-        chatMemory[chatId] = {
-            history: [],
-            lastInteraction: Date.now()
-        };
-    }
-
+    // 1. Inicializar o Resetear memoria por inactividad
+    if (!chatMemory[chatId]) chatMemory[chatId] = { history: [], lastInteraction: Date.now() };
+    
     const memory = chatMemory[chatId];
     const now = Date.now();
 
-    // 2. LÓGICA DE AUTO-RESET (10 MINUTOS)
     if (now - memory.lastInteraction > INACTIVITY_LIMIT) {
         memory.history = [];
-        console.log(`[Memory] Reset por inactividad en: ${chatId}`);
     }
     memory.lastInteraction = now;
 
-    // Comando Reset Manual
+    // Comandos de limpieza
     if (text === 'reset' || text === 'borrar') {
         memory.history = [];
-        return conn.reply(m.chat, '✅ Memoria local del grupo reseteada.', m);
+        return conn.reply(m.chat, '✅ Memoria del chat limpiada.', m);
     }
 
-    if (!text) return conn.reply(m.chat, `¡Hola *${userName}*! Soy Gemini. ¿De qué quiere hablar el grupo hoy?`, m);
+    if (!text) return conn.reply(m.chat, `¡Hola *${userName}*! Dime algo para responderte.`, m);
 
     try {
         await m.react('🧠');
 
-        // 3. FORMATEO DE IDENTIDAD
-        // Enviamos quién escribe para que la IA distinga en el grupo
-        const promptConIdentidad = `[MENSAJE DE: ${userName} | JID: ${userJid}]: ${text}`;
+        // 2. Construir el prompt con identidad para grupos
+        const promptConIdentidad = `[${userName} | ${userJid}]: ${text}`;
 
+        // 3. Petición a tu API
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: "google/gemini-1.5-flash",
-                history: memory.history,
-                q: promptConIdentidad
+                model: "google/gemini-2.0-flash-001", // Usando el Flash que es más barato
+                q: promptConIdentidad,
+                history: memory.history // Enviamos el array acumulado
             })
         });
-
-        if (!response.ok) throw new Error(`Error de conexión: ${response.status}`);
 
         const res = await response.json();
 
         if (res.status && res.reply) {
-            // 4. ACTUALIZAR HISTORIAL EN LA CONSTANTE
-            // Guardamos lo que devuelve tu API (que ya incluye la nueva interacción)
-            memory.history = res.history || [];
+            // 4. GUARDAR EL HISTORIAL ACTUALIZADO
+            // Importante: Guardamos el historial que la API ya procesó y devolvió
+            memory.history = res.history;
 
-            // Limitar tamaño para no saturar la RAM del VPS (últimos 12 mensajes)
-            if (memory.history.length > 12) {
-                memory.history = memory.history.slice(-12);
+            // Limitar para no saturar tokens ni RAM
+            if (memory.history.length > 10) {
+                memory.history = memory.history.slice(-10);
             }
 
             await m.react('✅');
             await m.reply(res.reply);
         } else {
-            throw new Error('La API no devolvió una respuesta válida.');
+            // Si la API devuelve un error de créditos o de otro tipo
+            throw new Error(res.error || 'Error desconocido en la API');
         }
 
     } catch (error) {
-        console.error("ERROR EN MEMORIA LOCAL:", error);
+        console.error("DEBUG BOT ERROR:", error.message);
         await m.react('❌');
+        
+        // Si el error es por falta de créditos, informamos al usuario
+        if (error.message.includes('credits')) {
+            return conn.reply(m.chat, `⚠️ *Sin saldo:* La API se quedó sin créditos.`, m);
+        }
+        
         conn.reply(m.chat, `❌ *Error:* ${error.message}`, m);
     }
 }
