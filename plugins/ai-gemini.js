@@ -1,98 +1,82 @@
 import fetch from 'node-fetch'
 
-const FLASK_API_URL = 'http://neviapi.ddns.net:5000/ia/gemini'; 
-const FLASK_API_KEY = 'ellen'; 
+const API_URL = 'https://rest.apicausas.xyz/api/v1/ai?apikey=causa-ee5ee31dcfc79da4'; 
+const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minutos
 
 var handler = async (m, { conn, text, usedPrefix, command }) => {
     
-    // --- LÓGICA DE ENTRADA MÍNIMA ---
-    if (!text) {
-        return conn.reply(m.chat, `${emoji} Ingrese una petición para que Gemini lo responda.`, m);
+    // 1. Identificadores y Metadatos
+    const chatId = m.chat; // ID del grupo o chat
+    const userName = m.pushName || 'Usuario Desconocido';
+    const userJid = m.sender.split('@')[0]; // Número de teléfono sin el @s.whatsapp.net
+
+    // 2. Inicializar almacenamiento en la DB del Bot (global.db)
+    if (!global.db.data.chats[chatId]) global.db.data.chats[chatId] = {};
+    let chatData = global.db.data.chats[chatId];
+
+    if (!chatData.gemini_history) chatData.gemini_history = [];
+    if (!chatData.last_interaction) chatData.last_interaction = Date.now();
+
+    // 3. Sistema de Auto-Reset por Inactividad
+    const now = Date.now();
+    if (now - chatData.last_interaction > INACTIVITY_LIMIT) {
+        chatData.gemini_history = []; // Borramos historial si pasaron > 10 min
     }
-    // --------------------------------
+    chatData.last_interaction = now; // Actualizamos el marcador de tiempo
+
+    // Comando manual para limpiar
+    if (text === 'reset' || text === 'borrar') {
+        chatData.gemini_history = [];
+        return conn.reply(m.chat, '✅ Memoria del grupo reseteada.', m);
+    }
+
+    if (!text) return conn.reply(m.chat, `¡Hola *${userName}*! Escribe algo para que el grupo y yo hablemos.`, m);
 
     try {
-        await m.react(rwait);
+        await m.react('🧠');
         conn.sendPresenceUpdate('composing', m.chat);
-        
-        const chatStorageKey = m.isGroup ? m.chat : m.sender;
-        let userData = global.db.data.users[chatStorageKey] || {};
-        const chatID = userData.gemini_chat_id; 
+
+        // 4. FORMATEO DE IDENTIDAD (El "Truco" para que la IA sepa quién es quién)
+        // Enviamos el mensaje estructurado para que Gemini entienda el contexto del grupo
+        const promptConIdentidad = `[MENSAJE DE: ${userName} | JID: ${userJid}]: ${text}`;
 
         const payload = {
-             message: text,
-             id_chat: chatID || null
+            model: "google/gemini-1.5-flash", 
+            history: chatData.gemini_history,
+            q: promptConIdentidad 
         };
 
-        const apii = await fetch(FLASK_API_URL, {
-             method: 'POST',
-             headers: {
-                 'Content-Type': 'application/json',
-                 'X-API-KEY': FLASK_API_KEY 
-             },
-             body: JSON.stringify(payload)
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
 
-        if (!apii.ok) {
-             await m.react('❌');
-             let errorResponse;
-             try {
-                 errorResponse = await apii.json();
-             } catch {
-                 throw new Error(`Fallo HTTP: ${apii.status} ${apii.statusText}`);
-             }
-             throw new Error(errorResponse.message || 'Error desconocido del servidor Flask.');
+        const res = await response.json();
+
+        if (res.status && res.reply) {
+            // 5. Guardar el historial actualizado devuelto por la API
+            chatData.gemini_history = res.history;
+
+            // Mantener un historial manejable (últimos 12 mensajes)
+            if (chatData.gemini_history.length > 12) {
+                chatData.gemini_history = chatData.gemini_history.slice(-12);
+            }
+
+            await m.react('✅');
+            await m.reply(res.reply);
+        } else {
+            throw new Error('No hubo respuesta de la IA.');
         }
-
-        const res = await apii.json();
-        const geminiResponse = res.message;
-        const newChatID = res.id_chat;
-        const expiryTime = res.expires_in;
-
-        if (!geminiResponse) {
-             await m.react('❌');
-             throw new Error('La API de Gemini no devolvió una respuesta válida.');
-        }
-
-        // ==========================================================
-        // 🚨 CAPA DE SEGURIDAD 3: FILTRO DE RESPUESTA DE GEMINI
-        // ==========================================================
-        
-        // RegEx para buscar cualquiera de estos caracteres en la respuesta:
-        // /, \, ., $, >, #
-        // NOTA: Los caracteres . $ \ / necesitan ser escapados dentro de una RegEx
-        const forbiddenPattern = /[/\.>$#\\]/g; 
-        
-        // Ejecutamos la prueba en la respuesta completa de Gemini
-        if (forbiddenPattern.test(geminiResponse)) {
-            const safeResponse = "gemini no puede responder a eso"; 
-            console.warn(`[SEGURIDAD BLOQUEADA] Respuesta de Gemini bloqueada por un carácter sensible: /, \\, ., $, >, o #.`);
-            
-            await m.react('❌'); 
-            await conn.reply(m.chat, safeResponse, m);
-            return; // Bloquea la respuesta y sale del handler.
-        }
-        // ==========================================================
-
-        // 4. Guardar el nuevo ID de sesión
-        if (newChatID) {
-             const storage = global.db.data.users[chatStorageKey] || (global.db.data.users[chatStorageKey] = {});
-             storage.gemini_chat_id = newChatID;
-        }
-        
-        // 5. CONCATENAR la respuesta con el ID de chat
-        const finalResponse = `${geminiResponse}\n\n---\n💬 ID de Sesión: ${newChatID}\n(Expira en ${expiryTime / 60} minutos de inactividad)`;
-
-        await m.reply(finalResponse);
 
     } catch (error) {
+        console.error(error);
         await m.react('❌');
-        console.error('Error en el chat de Gemini:', error.message);
-        await conn.reply(m.chat, `${msm} Error: ${error.message}`, m);
+        conn.reply(m.chat, `❌ Error: ${error.message}`, m);
     }
 }
 
-handler.command = ['gemini']
+handler.command = ['gemini', 'ia']
 handler.help = ['gemini']
 handler.tags = ['ai']
 
