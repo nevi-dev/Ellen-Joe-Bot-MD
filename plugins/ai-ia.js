@@ -83,6 +83,6 @@ let handler = async (m, { conn, text, usedPrefix, command, participants }) => {
 handler.help = ['ellen']
 handler.tags = ['ai']
 handler.register = true
-handler.command = ['ellen'']
+handler.command = ['ellen']
 
 export default handler
