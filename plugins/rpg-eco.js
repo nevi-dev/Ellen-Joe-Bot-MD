@@ -15,10 +15,13 @@ let handler = async (m, { conn }) => {
     let arrow = current > last ? '🔺' : (current < last ? '🔻' : '🔹')
     let trend = current > last ? 'SUBIDA' : (current < last ? 'BAJADA' : 'ESTABLE')
 
-    // 2. Precio de la "Moneda" (Simulamos un valor de divisa)
-    // Supongamos que 1 "Crédito Ellen" base vale 1.00 USD
-    let precioAyer = (1 / last).toFixed(4)
-    let precioHoy = (1 / current).toFixed(4)
+// 2. Precio de la "Moneda" (Corregido para Hiperinflación)
+    // Usamos un condicional: si el precio es menor a 0.0001, mostrar "Casi 0"
+    let calculoHoy = (1 / current)
+    let precioHoy = calculoHoy < 0.0001 ? calculoHoy.toExponential(2) : calculoHoy.toFixed(4)
+    
+    let calculoAyer = (1 / last)
+    let precioAyer = calculoAyer < 0.0001 ? calculoAyer.toExponential(2) : calculoAyer.toFixed(4)
 
     // 3. Diseño del Mensaje
     let em = '✅'
