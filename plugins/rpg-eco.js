@@ -17,12 +17,13 @@ let handler = async (m, { conn }) => {
 
 // 2. Precio de la "Moneda" (Corregido para Hiperinflación)
     // Usamos un condicional: si el precio es menor a 0.0001, mostrar "Casi 0"
-    let calculoHoy = (1 / current)
-    let precioHoy = calculoHoy < 0.0001 ? calculoHoy.toExponential(2) : calculoHoy.toFixed(4)
-    
-    let calculoAyer = (1 / last)
-    let precioAyer = calculoAyer < 0.0001 ? calculoAyer.toExponential(2) : calculoAyer.toFixed(4)
+// 1. Cálculo del valor del Denique (1 / Inflación)
+    let valHoy = 1 / current
+    let valAyer = 1 / last
 
+    // 2. Formateo inteligente: Si el valor es menor a 0.0001, usamos notación científica
+    let precioHoy = valHoy < 0.0001 ? valHoy.toExponential(2) : valHoy.toFixed(4)
+    let precioAyer = valAyer < 0.0001 ? valAyer.toExponential(2) : valAyer.toFixed(4)
     // 3. Diseño del Mensaje
     let em = '✅'
     if (eco.state === 'HIPERINFLACIÓN') em = '🚨'
