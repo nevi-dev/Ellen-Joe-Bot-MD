@@ -3,7 +3,7 @@ import path from 'path'
 
 const charactersFilePath = path.join(process.cwd(), './src/database/characters.json');
 
-// --- CONFIGURACIÓN DE JEFES (SUPER ADMINS) ---
+// --- CONFIGURACIÓN DE JEFES (SUPER ADMIN) ---
 // Añade aquí los números que quieres que tengan poder total (sin @s.whatsapp.net)
 const SUPER_ADMINS = ['18493873691', '16028790660']; 
 
