@@ -1,19 +1,12 @@
-import { exec } from 'child_process';
-import fs from 'fs';
+import fetch from "node-fetch";
 import axios from 'axios';
-import yts from "yt-search";
-import { promisify } from 'util';
-import path from 'path';
 
-const execPromise = promisify(exec);
-const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
-const API_KEY = 'causa-ee5ee31dcfc79da4';
+const CAUSA_API_KEY = 'causa-ee5ee31dcfc79da4';
+const CAUSA_ENDPOINT = 'https://rest.apicausas.xyz/api/v1/descargas/tiktok';
+const SIZE_LIMIT_MB = 100;
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
-  const tmpDir = './tmp';
-  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
-
   args = args.filter(v => v?.trim());
 
   const contextInfo = {
@@ -23,103 +16,90 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     externalAdReply: {
       title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
       body: `— Suspiro... ¿Qué quieres ahora, ${name}?`,
-      thumbnail: icons, 
-      sourceUrl: redes,
+      thumbnail: icons, // Usando tu Buffer definido
+      sourceUrl: redes, // Usando tu variable definida
       mediaType: 1,
       renderLargerThumbnail: false
     }
   };
 
   if (!args[0]) {
-    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger*`, m, { contextInfo });
+    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin saber qué?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} https://vt.tiktok.com/ZSmrDCvrS/`, m, { contextInfo });
   }
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
-  const type = isMode ? args[0].toLowerCase() : null;
-  const query = isMode ? args.slice(1).join(" ") : args.join(" ");
+  const type = isMode ? (args[0].toLowerCase() === "audio" ? "mp3" : "mp4") : "info";
+  const queryOrUrl = isMode ? args[1] : args[0];
 
-  if (isMode) {
-    await m.react(type === 'audio' ? "🎧" : "🎬");
-    
-    try {
-      const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
-      const res = response.data;
+  await m.react("🔎");
 
-      if (res.status && res.data.download.url) {
-        const { title, download: { url: downloadUrl } } = res.data;
+  try {
+    const apiUrl = `${CAUSA_ENDPOINT}?apikey=${CAUSA_API_KEY}&url=${encodeURIComponent(queryOrUrl)}&type=${type}`;
+    const res = await fetch(apiUrl);
+    const json = await res.json();
+
+    if (!json.status) throw new Error(json.msg || 'No se pudo obtener el contenido.');
+
+    const data = json.data;
+
+    if (isMode) {
+      // --- MODO DESCARGA ---
+      const downloadUrl = data.download?.url;
+      if (!downloadUrl) throw new Error("No se encontró el enlace de descarga.");
+
+      const response = await axios.head(downloadUrl);
+      const fileSizeMb = (parseInt(response.headers['content-length']) || 0) / (1024 * 1024);
+
+      if (fileSizeMb > SIZE_LIMIT_MB) {
+        await conn.sendMessage(m.chat, {
+          document: { url: downloadUrl },
+          fileName: `${data.titulo || 'tiktok'}.${type === 'mp3' ? 'mp3' : 'mp4'}`,
+          mimetype: type === 'mp3' ? 'audio/mpeg' : 'video/mp4',
+          caption: `⚠️ *Archivo pesado (${fileSizeMb.toFixed(2)} MB)*.\n\n> *Título:* ${data.titulo}`
+        }, { quoted: m });
+      } else {
+        const media = type === 'mp3' 
+          ? { audio: { url: downloadUrl }, mimetype: "audio/mpeg", fileName: `tiktok.mp3` }
+          : { video: { url: downloadUrl }, caption: `🎬 *Aquí tienes.*\n\n> *Título:* ${data.titulo}`, mimetype: "video/mp4" };
         
-        // Búsqueda rápida para obtener el nombre del canal (uploader)
-        const search = await yts(query);
-        const uploader = search.videos?.[0]?.author?.name;
-        const albumName = "Ellen Joe Service";
-
-        const fileName = `${Date.now()}`;
-        const inputPath = path.join(tmpDir, `${fileName}_input`);
-        const outputPath = path.join(tmpDir, `${fileName}.${type === 'audio' ? 'mp3' : 'mp4'}`);
-
-        // Descarga directa (Stream)
-        const fileRes = await axios({ url: downloadUrl, method: 'GET', responseType: 'stream' });
-        const writer = fs.createWriteStream(inputPath);
-        fileRes.data.pipe(writer);
-        await new Promise((resolve) => writer.on('finish', resolve));
-
-        if (type === 'audio') {
-          // Comando FFmpeg ultra rápido: Solo texto, sin procesar imagen
-          await execPromise(`ffmpeg -i "${inputPath}" -c copy -metadata title="${title}" -metadata artist="${uploader} // ${albumName}" -metadata album="${albumName}" "${outputPath}"`);
-
-          await conn.sendMessage(m.chat, { 
-            audio: fs.readFileSync(outputPath), 
-            mimetype: "audio/mpeg", 
-            fileName: `${title}.mp3` 
-          }, { quoted: m });
-          
-        } else {
-          // Envío de video
-          await conn.sendMessage(m.chat, { 
-            video: { url: downloadUrl }, 
-            caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}\n> *Uploader:* ${uploader}`, 
-            mimetype: "video/mp4" 
-          }, { quoted: m });
-        }
-
-        // Limpieza rápida
-        if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
-        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-
-        await m.react("✅");
+        await conn.sendMessage(m.chat, media, { quoted: m });
       }
-    } catch (error) {
-      console.error(error);
-      await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Falló el servicio.`, m);
+      await m.react("✅");
+
+    } else {
+      // --- MODO INFO (VISTA PREVIA) ---
+      // Manejo seguro de 'vistas' para evitar el error de toString/toLocaleString
+      const vistasStr = (data.vistas !== undefined && data.vistas !== null) 
+                        ? data.vistas.toLocaleString() 
+                        : '0';
+      
+      const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙏𝙄𝙆𝙏𝙊𝙆\n\n> *Autor:* ${data.autor || 'Desconocido'}\n> *Título:* ${data.titulo || 'Sin título'}\n> *Duración:* ${data.duracion || '---'}\n> *Vistas:* ${vistasStr}\n\n*— Elige si quieres audio o video.*`;
+
+      const buttons = [
+        { buttonId: `${usedPrefix}${command} video ${queryOrUrl}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 },
+        { buttonId: `${usedPrefix}${command} audio ${queryOrUrl}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 }
+      ];
+
+      await conn.sendMessage(m.chat, {
+        image: icons, // Usamos tu Buffer de Ellen Joe
+        caption,
+        footer: 'Victoria Housekeeping Service',
+        buttons,
+        headerType: 4,
+        contextInfo
+      }, { quoted: m });
     }
-    return;
+
+  } catch (e) {
+    console.error(e);
+    await m.react("❌");
+    return conn.reply(m.chat, `*— Tsk...* Falló el servicio: ${e.message}`, m);
   }
-
-  // --- BÚSQUEDA ---
-  await m.react("🔍");
-  const searchResult = await yts(query);
-  const video = searchResult.videos?.[0];
-  if (!video) return conn.reply(m.chat, `*— No encontré nada.*`, m);
-
-  const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
-
-  await conn.sendMessage(m.chat, {
-    image: { url: video.thumbnail },
-    caption,
-    footer: 'Victoria Housekeeping Service',
-    buttons: [
-      { buttonId: `${usedPrefix}play audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
-      { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
-    ],
-    headerType: 4,
-    contextInfo
-  }, { quoted: m });
 };
 
-handler.help = ['play <búsqueda>'];
+handler.help = ['tiktok <URL>'];
 handler.tags = ['descargas'];
-handler.command = ['play'];
+handler.command = ['tiktok', 'tt'];
 handler.register = true;
 
 export default handler;
