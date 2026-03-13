@@ -12,7 +12,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   const name = conn.getName(m.sender);
   args = args.filter(v => v?.trim());
 
-  const contextInfo = {
+  const globalContext = {
     mentionedJid: [m.sender],
     isForwarded: true,
     forwardingScore: 999,
@@ -20,19 +20,11 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       newsletterJid,
       newsletterName,
       serverMessageId: -1
-    },
-    externalAdReply: {
-      title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-      body: `— Suspiro... ¿Qué quieres ahora, ${name}?`,
-      thumbnail: icons, 
-      sourceUrl: redes, 
-      mediaType: 1,
-      renderLargerThumbnail: false
     }
   };
 
   if (!args[0]) {
-    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué? No soy adivina.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger - The Cranberries*`, m, { contextInfo });
+    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué?\n\n🎧 Ejemplo:\n${usedPrefix}play *Linger*`, m, { contextInfo: globalContext });
   }
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
@@ -42,11 +34,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   if (isMode) {
     await m.react(type === 'audio' ? "🎧" : "📽️");
     try {
-      // Sacamos los datos de yt-search primero para asegurar la foto y autor
       const search = await yts(query);
       const vid = search.videos[0];
       const title = vid?.title || 'Audio';
-      const author = vid?.author?.name || 'YouTube Music';
+      const author = vid?.author?.name || 'Desconocido';
       const thumbUrl = vid?.thumbnail;
 
       const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
@@ -66,26 +57,18 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             audio: { url: downloadUrl }, 
             mimetype: "audio/mpeg", 
             fileName: `${title}.mp3`,
+            title: title, 
+            body: author,
             jpegThumbnail: thumbBuffer,
-            contextInfo: {
-              externalAdReply: {
-                title: title,
-                body: author,
-                thumbnail: thumbBuffer,
-                mediaType: 2,
-                mediaUrl: query,
-                sourceUrl: query,
-                showAdAttribution: false,
-                renderLargerThumbnail: false
-              }
-            }
+            contextInfo: globalContext // Solo info de reenvío/newsletter, sin AdReply
           }, { quoted: m });
           await m.react("🎧");
         } else {
           await conn.sendMessage(m.chat, { 
             video: { url: downloadUrl }, 
             caption: `🎬 *Aquí tienes.*\n\n🦈 *Contenido:* ${title}`, 
-            mimetype: "video/mp4" 
+            mimetype: "video/mp4",
+            contextInfo: globalContext
           }, { quoted: m });
           await m.react("📽️");
         }
@@ -95,7 +78,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       return;
     } catch (error) {
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* El servidor de descargas respondió con error. Intenta de nuevo.`, m);
+      return conn.reply(m.chat, `*— Tsk...* Hubo un error con el servidor.`, m);
     }
   }
 
@@ -113,25 +96,13 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
   ];
 
-  const caption = `
-┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪۪۪۪۪ٜ݊᷼⁔᮫ּׅ̫ׄ࣪︵᮫ּ๋ׅׅ۪۪۪۪ׅ࣪࣪͡⌒🌀𔗨⃪̤̤̤ٜ۫۫۫҈҈҈҈҉҉᷒ᰰ꤬۫۫۫𔗨̤̤̤𐇽─۪۪۪۪ٜ᷼┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪݊᷼
-₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀 — 𝘿𝘼𝙏𝙊𝙎 ✧˖°
-︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶    ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶    ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶
-
-> ૢ⃘꒰🍭⃝︩֟፝ *Título:* ${video.title}
-> ૢ⃘꒰⏱️⃝︩֟፝ *Tiempo:* ${video.timestamp}
-> ૢ⃘꒰👤⃝︩֟፝ *Canal:* ${video.author.name}
-
-*— Elige rápido abajo. Mi hora de descanso es sagrada.*
-⌣᮫ֶุ࣪ᷭ⌣〫᪲꒡᳝۪︶᮫໋࣭〭〫𝆬࣪࣪𝆬࣪꒡ֶ〪࣪ ׅ۫ெ᮫〪⃨〫〫᪲࣪˚̥ׅ੭ֶ֟ৎ᮫໋ׅ̣𝆬  ּ֢̊࣪⡠᮫ ໋🦈᮫ุ〪〪〫〫ᷭ ݄࣪⢄ꠋּ֢ ࣪ ֶׅ੭ֶ̣֟ৎ᮫˚̥࣪ெ᮫〪〪⃨〫᪲ ࣪꒡᮫໋〭࣪𝆬࣪︶〪᳝۪ꠋּ꒡ׅ⌣᮫ֶ࣪᪲⌣᮫ุ᳝〫֩ᷭ`;
-
   await conn.sendMessage(m.chat, {
     image: { url: video.thumbnail },
-    caption,
+    caption: `> ૢ⃘꒰🍭⃝︩֟፝ *Título:* ${video.title}\n> ૢ⃘꒰👤⃝︩֟፝ *Canal:* ${video.author.name}\n\n*— Elige rápido.*`,
     footer: 'Victoria Housekeeping Service',
     buttons,
     headerType: 4,
-    contextInfo
+    contextInfo: globalContext
   }, { quoted: m });
 };
 
