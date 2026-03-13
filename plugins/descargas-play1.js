@@ -22,16 +22,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     mentionedJid: [m.sender],
     isForwarded: true,
     forwardingScore: 999,
-    forwardedNewsletterMessageInfo: {
-      newsletterJid,
-      newsletterName,
-      serverMessageId: -1
-    }
+    forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 }
   };
 
-  if (!args[0]) {
-    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué?\n\n🎧 Ejemplo:\n${usedPrefix}play *Linger*`, m, { contextInfo: globalContext });
-  }
+  if (!args[0]) return conn.reply(m.chat, `*— (Bostezo)*... ¿Qué quieres?`, m, { contextInfo: globalContext });
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
   const type = isMode ? args[0].toLowerCase() : null;
@@ -39,114 +33,115 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
   if (isMode) {
     await m.react(type === 'audio' ? "🎧" : "📽️");
+    console.log(`[DEBUG] Modo detectado: ${type} | Query: ${query}`);
+    
     try {
       const search = await yts(query);
       const vid = search.videos[0];
-      if (!vid) throw new Error("Video no encontrado");
+      if (!vid) throw new Error("Video no encontrado en YouTube");
 
-      const title = vid.title;
-      const author = vid.author.name;
-      const thumbUrl = vid.thumbnail;
+      console.log(`[DEBUG] Video hallado: ${vid.title}`);
 
       const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(vid.url)}&type=${type}&apikey=${API_KEY}`);
       const res = response.data;
 
       if (res.status && res.data.download.url) {
         const downloadUrl = res.data.download.url;
+        console.log(`[DEBUG] URL de descarga obtenida de la API`);
 
         if (type === 'audio') {
           const tmpDir = path.join(process.cwd(), 'tmp');
-          if (!existsSync(tmpDir)) mkdirSync(tmpDir);
+          if (!existsSync(tmpDir)) {
+            console.log(`[DEBUG] Creando carpeta tmp...`);
+            mkdirSync(tmpDir);
+          }
 
           const timestamp = Date.now();
           const inputPath = path.join(tmpDir, `in_${timestamp}.mp3`);
           const thumbPath = path.join(tmpDir, `img_${timestamp}.jpg`);
           const outputPath = path.join(tmpDir, `out_${timestamp}.mp3`);
 
-          // Descarga de archivos
+          console.log(`[DEBUG] Iniciando descarga de archivos a: ${tmpDir}`);
+          
           const audioRes = await fetch(downloadUrl);
+          if (!audioRes.ok) throw new Error(`Fallo descarga audio: ${audioRes.statusText}`);
           await streamPipeline(audioRes.body, createWriteStream(inputPath));
-          const thumbRes = await fetch(thumbUrl);
-          await streamPipeline(thumbRes.body, createWriteStream(thumbPath));
+          console.log(`[DEBUG] Audio guardado: ${inputPath}`);
 
-          // FFmpeg con Promesa robusta
+          const thumbRes = await fetch(vid.thumbnail);
+          if (!thumbRes.ok) throw new Error(`Fallo descarga imagen: ${thumbRes.statusText}`);
+          await streamPipeline(thumbRes.body, createWriteStream(thumbPath));
+          console.log(`[DEBUG] Miniatura guardada: ${thumbPath}`);
+
+          console.log(`[DEBUG] Iniciando FFmpeg...`);
           await new Promise((resolve, reject) => {
             ffmpeg(inputPath)
               .input(thumbPath)
               .outputOptions([
-                '-map', '0:0',
-                '-map', '1:0',
-                '-c', 'copy',
-                '-id3v2_version', '3',
-                '-metadata', `title=${title}`,
-                '-metadata', `artist=${author}`
+                '-map', '0:0', '-map', '1:0', '-c', 'copy', '-id3v2_version', '3',
+                '-metadata', `title=${vid.title}`,
+                '-metadata', `artist=${vid.author.name}`
               ])
+              .on('start', (cmd) => console.log(`[DEBUG] Comando FFmpeg: ${cmd}`))
               .on('error', (err) => {
-                console.error('Error FFmpeg:', err);
+                console.error('[DEBUG ERROR FFmpeg]:', err);
                 reject(err);
               })
-              .on('end', () => resolve())
+              .on('end', () => {
+                console.log(`[DEBUG] FFmpeg finalizado con éxito.`);
+                resolve();
+              })
               .save(outputPath);
           });
 
+          console.log(`[DEBUG] Leyendo archivo final para enviar...`);
           const audioBuffer = await fs.readFile(outputPath);
+          
           await conn.sendMessage(m.chat, { 
             audio: audioBuffer, 
             mimetype: "audio/mpeg", 
-            fileName: `${title}.mp3`
+            fileName: `${vid.title}.mp3`
           }, { quoted: m });
 
-          // Limpieza garantizada
+          console.log(`[DEBUG] Mensaje enviado. Limpiando archivos...`);
           await Promise.all([
             fs.unlink(inputPath).catch(() => {}),
             fs.unlink(thumbPath).catch(() => {}),
             fs.unlink(outputPath).catch(() => {})
           ]);
+          
           await m.react("✅");
         } else {
-          await conn.sendMessage(m.chat, { 
-            video: { url: downloadUrl }, 
-            caption: `🎬 *Aquí tienes.*\n\n🦈 *Contenido:* ${title}`, 
-            mimetype: "video/mp4" 
-          }, { quoted: m });
+          // Lógica de video simplificada para debug
+          console.log(`[DEBUG] Enviando video directo...`);
+          await conn.sendMessage(m.chat, { video: { url: downloadUrl }, caption: `🎬 ${vid.title}`, mimetype: "video/mp4" }, { quoted: m });
           await m.react("📽️");
         }
       } else {
-        throw new Error("Respuesta de API inválida");
+        throw new Error("La API respondió status false o no mandó URL");
       }
-      return;
     } catch (error) {
-      console.error(error);
+      console.error(`[FATAL ERROR]:`, error);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Algo falló al procesar el archivo.`, m);
+      return conn.reply(m.chat, `*— Tsk...* Mira la consola, algo se rompió: ${error.message}`, m);
     }
+    return;
   }
 
+  // Búsqueda inicial
   await m.react("🔍");
-  let searchResult = await yts(query);
-  let video = searchResult.videos?.[0];
-  if (!video) return conn.reply(m.chat, `*— No hay nada.*`, m);
+  const res = await yts(query);
+  const video = res.videos[0];
+  if (!video) return m.react("❌");
 
   const buttons = [
     { buttonId: `${usedPrefix}play audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
     { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
   ];
 
-  const caption = `
-┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪۪۪۪۪ٜ݊᷼⁔᮫ּׅ̫ׄ࣪︵᮫ּ๋ׅׅ۪۪۪۪ׅ࣪࣪͡⌒🌀𔗨⃪̤̤̤ٜ۫۫۫҈҈҈҈҉҉᷒ᰰ꤬۫۫۫𔗨̤̤̤𐇽─۪۪۪۪ٜ᷼┈۪۪۪۪۪۪۪۪ٜ̈᷼─۪۪۪۪ٜ࣪᷼┈۪۪۪۪݊᷼
-₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀 — 𝘿𝘼𝙏𝙊𝙎 ✧˖°
-︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶    ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶    ︶֟፝ᰳ࡛۪۪۪۪۪⏝̣ ͜͝ ۫۫۫۫۫۫︶
-
-> ૢ⃘꒰🍭⃝︩֟፝ *Título:* ${video.title}
-> ૢ⃘꒰⏱️⃝︩֟፝ *Tiempo:* ${video.timestamp}
-> ૢ⃘꒰👤⃝︩֟፝ *Canal:* ${video.author.name}
-
-*— Elige rápido abajo. Mi hora de descanso es sagrada.*
-⌣᮫ֶุ࣪ᷭ⌣〫᪲꒡᳝۪︶᮫໋࣭〭〫𝆬࣪࣪𝆬࣪꒡ֶ〪࣪ ׅ۫ெ᮫〪⃨〫〫᪲࣪˚̥ׅ੭ֶ֟ৎ᮫໋ׅ̣𝆬  ּ֢̊࣪⡠᮫ ໋🦈᮫ุ〪〪〫〫ᷭ ݄࣪⢄ꠋּ֢ ࣪ ֶׅ੭ֶ̣֟ৎ᮫˚̥࣪ெ᮫〪〪⃨〫᪲ ࣪꒡᮫໋〭࣪𝆬࣪︶〪᳝۪ꠋּ꒡ׅ⌣᮫ֶ࣪᪲⌣᮫ุ᳝〫֩ᷭ`;
-
   await conn.sendMessage(m.chat, {
     image: { url: video.thumbnail },
-    caption,
+    caption: `> *Título:* ${video.title}\n> *Canal:* ${video.author.name}`,
     footer: 'Victoria Housekeeping Service',
     buttons,
     headerType: 4,
