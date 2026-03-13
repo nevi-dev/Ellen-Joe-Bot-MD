@@ -65,23 +65,30 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             streamPipeline(thumbRes.body, createWriteStream(thumbPath))
           ]);
 
-          // FFmpeg con metadatos limpios
+          // FFmpeg con argumentos ultra-seguros para Windows
           await new Promise((resolve, reject) => {
             ffmpeg(inputPath)
               .input(thumbPath)
               .outputOptions([
-                '-map', '0:0', 
-                '-map', '1:0', 
-                '-c', 'copy', 
+                '-map', '0:0',
+                '-map', '1:0',
+                '-c', 'copy',
                 '-id3v2_version', '3',
                 '-metadata', `title=${cleanTitle}`,
                 '-metadata', `artist=${cleanAuthor}`
               ])
-              .on('error', (err) => {
-                console.error('[FFMPEG ERROR]:', err);
+              .on('start', (commandLine) => {
+                console.log('[DEBUG] Comando ejecutado: ' + commandLine);
+              })
+              .on('error', (err, stdout, stderr) => {
+                console.error('[FFMPEG ERROR]:', err.message);
+                console.error('[FFMPEG STDERR]:', stderr);
                 reject(err);
               })
-              .on('end', resolve)
+              .on('end', () => {
+                console.log('[DEBUG] Procesamiento completado.');
+                resolve();
+              })
               .save(outputPath);
           });
 
