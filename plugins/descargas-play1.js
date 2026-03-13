@@ -33,77 +33,65 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
   if (isMode) {
     await m.react(type === 'audio' ? "🎧" : "📽️");
-    console.log(`[DEBUG] Modo detectado: ${type} | Query: ${query}`);
     
     try {
       const search = await yts(query);
       const vid = search.videos[0];
-      if (!vid) throw new Error("Video no encontrado en YouTube");
+      if (!vid) throw new Error("Video no encontrado");
 
-      console.log(`[DEBUG] Video hallado: ${vid.title}`);
+      // LIMPIEZA DE CARACTERES PARA WINDOWS
+      const cleanTitle = vid.title.replace(/[\\/:*?"<>|]/g, "");
+      const cleanAuthor = vid.author.name.replace(/[\\/:*?"<>|]/g, "");
 
       const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(vid.url)}&type=${type}&apikey=${API_KEY}`);
       const res = response.data;
 
       if (res.status && res.data.download.url) {
         const downloadUrl = res.data.download.url;
-        console.log(`[DEBUG] URL de descarga obtenida de la API`);
 
         if (type === 'audio') {
           const tmpDir = path.join(process.cwd(), 'tmp');
-          if (!existsSync(tmpDir)) {
-            console.log(`[DEBUG] Creando carpeta tmp...`);
-            mkdirSync(tmpDir);
-          }
+          if (!existsSync(tmpDir)) mkdirSync(tmpDir);
 
           const timestamp = Date.now();
           const inputPath = path.join(tmpDir, `in_${timestamp}.mp3`);
           const thumbPath = path.join(tmpDir, `img_${timestamp}.jpg`);
           const outputPath = path.join(tmpDir, `out_${timestamp}.mp3`);
 
-          console.log(`[DEBUG] Iniciando descarga de archivos a: ${tmpDir}`);
-          
-          const audioRes = await fetch(downloadUrl);
-          if (!audioRes.ok) throw new Error(`Fallo descarga audio: ${audioRes.statusText}`);
-          await streamPipeline(audioRes.body, createWriteStream(inputPath));
-          console.log(`[DEBUG] Audio guardado: ${inputPath}`);
+          // Descarga
+          const [audioRes, thumbRes] = await Promise.all([fetch(downloadUrl), fetch(vid.thumbnail)]);
+          await Promise.all([
+            streamPipeline(audioRes.body, createWriteStream(inputPath)),
+            streamPipeline(thumbRes.body, createWriteStream(thumbPath))
+          ]);
 
-          const thumbRes = await fetch(vid.thumbnail);
-          if (!thumbRes.ok) throw new Error(`Fallo descarga imagen: ${thumbRes.statusText}`);
-          await streamPipeline(thumbRes.body, createWriteStream(thumbPath));
-          console.log(`[DEBUG] Miniatura guardada: ${thumbPath}`);
-
-          console.log(`[DEBUG] Iniciando FFmpeg...`);
+          // FFmpeg con metadatos limpios
           await new Promise((resolve, reject) => {
             ffmpeg(inputPath)
               .input(thumbPath)
               .outputOptions([
-                '-map', '0:0', '-map', '1:0', '-c', 'copy', '-id3v2_version', '3',
-                '-metadata', `title=${vid.title}`,
-                '-metadata', `artist=${vid.author.name}`
+                '-map', '0:0', 
+                '-map', '1:0', 
+                '-c', 'copy', 
+                '-id3v2_version', '3',
+                '-metadata', `title=${cleanTitle}`,
+                '-metadata', `artist=${cleanAuthor}`
               ])
-              .on('start', (cmd) => console.log(`[DEBUG] Comando FFmpeg: ${cmd}`))
               .on('error', (err) => {
-                console.error('[DEBUG ERROR FFmpeg]:', err);
+                console.error('[FFMPEG ERROR]:', err);
                 reject(err);
               })
-              .on('end', () => {
-                console.log(`[DEBUG] FFmpeg finalizado con éxito.`);
-                resolve();
-              })
+              .on('end', resolve)
               .save(outputPath);
           });
 
-          console.log(`[DEBUG] Leyendo archivo final para enviar...`);
-          const audioBuffer = await fs.readFile(outputPath);
-          
           await conn.sendMessage(m.chat, { 
-            audio: audioBuffer, 
+            audio: await fs.readFile(outputPath), 
             mimetype: "audio/mpeg", 
-            fileName: `${vid.title}.mp3`
+            fileName: `${cleanTitle}.mp3`
           }, { quoted: m });
 
-          console.log(`[DEBUG] Mensaje enviado. Limpiando archivos...`);
+          // Limpieza
           await Promise.all([
             fs.unlink(inputPath).catch(() => {}),
             fs.unlink(thumbPath).catch(() => {}),
@@ -112,18 +100,16 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
           
           await m.react("✅");
         } else {
-          // Lógica de video simplificada para debug
-          console.log(`[DEBUG] Enviando video directo...`);
           await conn.sendMessage(m.chat, { video: { url: downloadUrl }, caption: `🎬 ${vid.title}`, mimetype: "video/mp4" }, { quoted: m });
           await m.react("📽️");
         }
       } else {
-        throw new Error("La API respondió status false o no mandó URL");
+        throw new Error("API falló");
       }
     } catch (error) {
-      console.error(`[FATAL ERROR]:`, error);
+      console.error(error);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Mira la consola, algo se rompió: ${error.message}`, m);
+      return conn.reply(m.chat, `*— Tsk...* Algo se rompió: ${error.message}`, m);
     }
     return;
   }
