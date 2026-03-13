@@ -2,7 +2,7 @@ import axios from 'axios';
 import yts from "yt-search";
 import fetch from 'node-fetch';
 import ffmpeg from 'fluent-ffmpeg';
-import { createWriteStream, promises as fs } from 'fs';
+import { createWriteStream, promises as fs, existsSync, mkdirSync } from 'fs';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import path from 'path';
@@ -30,7 +30,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   };
 
   if (!args[0]) {
-    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué? No soy adivina.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger - The Cranberries*`, m, { contextInfo: { ...globalContext, externalAdReply: { title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', body: `— Suspiro... ¿Qué quieres ahora, ${name}?`, thumbnail: icons, sourceUrl: redes, mediaType: 1, renderLargerThumbnail: false } } });
+    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué?\n\n🎧 Ejemplo:\n${usedPrefix}play *Linger*`, m, { contextInfo: globalContext });
   }
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
@@ -42,9 +42,11 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     try {
       const search = await yts(query);
       const vid = search.videos[0];
-      const title = vid?.title || 'Audio';
-      const author = vid?.author?.name || 'Desconocido';
-      const thumbUrl = vid?.thumbnail;
+      if (!vid) throw new Error("Video no encontrado");
+
+      const title = vid.title;
+      const author = vid.author.name;
+      const thumbUrl = vid.thumbnail;
 
       const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(vid.url)}&type=${type}&apikey=${API_KEY}`);
       const res = response.data;
@@ -53,45 +55,54 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         const downloadUrl = res.data.download.url;
 
         if (type === 'audio') {
-          const tmpDir = './tmp';
-          if (!(await fs.stat(tmpDir).catch(() => false))) await fs.mkdir(tmpDir);
+          const tmpDir = path.join(process.cwd(), 'tmp');
+          if (!existsSync(tmpDir)) mkdirSync(tmpDir);
 
-          const inputPath = path.join(tmpDir, `in_${Date.now()}.mp3`);
-          const thumbPath = path.join(tmpDir, `img_${Date.now()}.jpg`);
-          const outputPath = path.join(tmpDir, `out_${Date.now()}.mp3`);
+          const timestamp = Date.now();
+          const inputPath = path.join(tmpDir, `in_${timestamp}.mp3`);
+          const thumbPath = path.join(tmpDir, `img_${timestamp}.jpg`);
+          const outputPath = path.join(tmpDir, `out_${timestamp}.mp3`);
 
-          // Descarga de archivos a tmp
+          // Descarga de archivos
           const audioRes = await fetch(downloadUrl);
           await streamPipeline(audioRes.body, createWriteStream(inputPath));
           const thumbRes = await fetch(thumbUrl);
           await streamPipeline(thumbRes.body, createWriteStream(thumbPath));
 
-          // FFmpeg para incrustar carátula y metadatos
+          // FFmpeg con Promesa robusta
           await new Promise((resolve, reject) => {
             ffmpeg(inputPath)
               .input(thumbPath)
               .outputOptions([
-                '-map 0:0',
-                '-map 1:0',
-                '-c copy',
-                '-id3v2_version 3',
-                `-metadata title=${JSON.stringify(title)}`,
-                `-metadata artist=${JSON.stringify(author)}`
+                '-map', '0:0',
+                '-map', '1:0',
+                '-c', 'copy',
+                '-id3v2_version', '3',
+                '-metadata', `title=${title}`,
+                '-metadata', `artist=${author}`
               ])
-              .save(outputPath)
-              .on('end', resolve)
-              .on('error', reject);
+              .on('error', (err) => {
+                console.error('Error FFmpeg:', err);
+                reject(err);
+              })
+              .on('end', () => resolve())
+              .save(outputPath);
           });
 
+          const audioBuffer = await fs.readFile(outputPath);
           await conn.sendMessage(m.chat, { 
-            audio: await fs.readFile(outputPath), 
+            audio: audioBuffer, 
             mimetype: "audio/mpeg", 
             fileName: `${title}.mp3`
           }, { quoted: m });
 
-          // Limpieza selectiva
-          await Promise.all([fs.unlink(inputPath), fs.unlink(thumbPath), fs.unlink(outputPath)]);
-          await m.react("🎧");
+          // Limpieza garantizada
+          await Promise.all([
+            fs.unlink(inputPath).catch(() => {}),
+            fs.unlink(thumbPath).catch(() => {}),
+            fs.unlink(outputPath).catch(() => {})
+          ]);
+          await m.react("✅");
         } else {
           await conn.sendMessage(m.chat, { 
             video: { url: downloadUrl }, 
@@ -105,18 +116,15 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       }
       return;
     } catch (error) {
+      console.error(error);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* El servidor de descargas respondió con error.`, m);
+      return conn.reply(m.chat, `*— Tsk...* Algo falló al procesar el archivo.`, m);
     }
   }
 
   await m.react("🔍");
-  let video;
-  try {
-    const searchResult = await yts(query);
-    video = searchResult.videos?.[0];
-  } catch (e) { return conn.reply(m.chat, `*— Error en búsqueda.*`, m); }
-
+  let searchResult = await yts(query);
+  let video = searchResult.videos?.[0];
   if (!video) return conn.reply(m.chat, `*— No hay nada.*`, m);
 
   const buttons = [
