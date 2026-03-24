@@ -107,10 +107,16 @@ export async function EllenJadiBot(options) {
         if (connection === 'open') {
             sock.isInit = true
             global.conns.push(sock)
-            // Log de consola limpio
             console.log(chalk.bold.cyanBright(`\n[OK] Agente Conectado: ${sock.user.name || 'Bot'}`))
             
-            await conn.sendMessage(m.chat, { text: `✅ Ya eres parte de la familia de Sub-Bots.`, mentions: [m.sender] }, { quoted: m })
+            // FIX: Validar que m y m.chat existan antes de enviar el mensaje
+            if (m && m.chat) {
+                await conn.sendMessage(m.chat, { 
+                    text: `✅ Ya eres parte de la familia de Sub-Bots.`, 
+                    mentions: [m.sender] 
+                }, { quoted: m }).catch(err => console.error("Error enviando confirmación:", err))
+            }
+            
             await joinChannels(sock)
         }
 
