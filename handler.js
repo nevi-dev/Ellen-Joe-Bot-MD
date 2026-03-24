@@ -60,10 +60,9 @@ export async function handler(chatUpdate) {
             ''
         ).trim();
 
-        sender = m.isGroup ? (m.key.participant || m.sender) : m.key.remoteJid;
+       sender = m.isGroup ? (m.key.participant || m.sender) : m.key.remoteJid;
 
-        // --- OPTIMIZACIÓN DE METADATOS ---
-        // Extraemos los datos del grupo 1 sola vez por mensaje, no 3 veces.
+        // --- 1. REGISTRO Y OPTIMIZACIÓN DE METADATOS ---
         let groupMetadata = {};
         let participants = [];
         if (m.isGroup) {
@@ -72,7 +71,35 @@ export async function handler(chatUpdate) {
             if (meta.participants) {
                 participants = meta.participants.map(p => ({ id: p.jid, jid: p.jid, lid: p.lid, admin: p.admin }));
                 groupMetadata.participants = participants;
+
+                // REGISTRO INMEDIATO: Guardamos todos los LIDs del grupo antes de procesar el mensaje
+                if (!global.db.data.lidMap) global.db.data.lidMap = {};
+                meta.participants.forEach(p => {
+                    if (p.lid && (p.id || p.jid)) {
+                        let realJid = (p.id || p.jid).split(':')[0] + '@s.whatsapp.net';
+                        global.db.data.lidMap[p.lid] = realJid;
+                    }
+                });
             }
+        }
+
+        // --- 2. TRADUCCIÓN GLOBAL (Ahora sí tiene los datos frescos) ---
+        if (!global.db.data.lidMap) global.db.data.lidMap = {};
+
+        // Traducir Sender
+        if (sender.endsWith('@lid')) {
+            sender = global.db.data.lidMap[sender] || sender;
+            m.sender = sender; 
+        }
+
+        // Traducir Menciones (Vital para comandos como .pay)
+        if (m.mentionedJid && m.mentionedJid.length > 0) {
+            m.mentionedJid = m.mentionedJid.map(id => id.includes('@lid') ? (global.db.data.lidMap[id] || id) : id);
+        }
+
+        // Traducir Quoted (Responder a un mensaje)
+        if (m.quoted && m.quoted.sender && m.quoted.sender.includes('@lid')) {
+            m.quoted.sender = global.db.data.lidMap[m.quoted.sender] || m.quoted.sender;
         }
 
         if (m.isGroup && sender.endsWith('@lid')) {
