@@ -16,7 +16,6 @@ const normalizeJid = jid => jid?.replace(/[^0-9]/g, '');
 const cleanJid = jid => jid?.split(':')[0] || '';
 
 // --- CONSTANTES OPTIMIZADAS ---
-// Mover esto fuera evita que Node asigne memoria nueva por cada mensaje
 const REACTION_REGEX = /(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/gi;
 const EMOTICONS = ["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"];
 const pickRandom = (list) => list[Math.floor(Math.random() * list.length)];
@@ -33,15 +32,6 @@ export async function handler(chatUpdate) {
     this.pushMessage(chatUpdate.messages).catch(console.error);
     let m = chatUpdate.messages[chatUpdate.messages.length - 1];
     if (!m) return;
-
-    if (m.isGroup) {
-        const chat = global.db.data.chats[m.chat];
-        if (chat?.primaryBot) {
-            const universalWords = ['resetbot', 'resetprimario', 'botreset'];
-            const firstWord = (m.text || m.msg?.selectedButtonId || m.msg?.selectedId || '').trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '');
-            if (!universalWords.includes(firstWord) && this?.user?.jid !== chat.primaryBot) return;
-        }
-    }
 
     if (global.db.data == null) await global.loadDatabase();
 
@@ -62,8 +52,22 @@ export async function handler(chatUpdate) {
 
         sender = m.isGroup ? (m.key.participant || m.sender) : m.key.remoteJid;
 
+        // --- MANEJO DE BOT PRIMARIO / SUB-BOTS ---
+        if (m.isGroup && global.db.data.chats[m.chat]) {
+            const chat = global.db.data.chats[m.chat];
+            const myJid = this.decodeJid(this.user.jid);
+            
+            // Si hay un bot primario asignado y NO soy yo
+            if (chat.primaryBot && chat.primaryBot !== myJid) {
+                const universalWords = ['resetbot', 'resetprimario', 'botreset'];
+                const firstWord = m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '');
+                
+                // Ignorar TODO si no es un comando universal de reseteo
+                if (!universalWords.includes(firstWord)) return;
+            }
+        }
+
         // --- OPTIMIZACIÓN DE METADATOS ---
-        // Extraemos los datos del grupo 1 sola vez por mensaje, no 3 veces.
         let groupMetadata = {};
         let participants = [];
         if (m.isGroup) {
@@ -83,8 +87,7 @@ export async function handler(chatUpdate) {
         m.exp = 0;
         m.coin = false;
 
-        // --- OPTIMIZACIÓN DE BASE DE DATOS ---
-        // Uso de plantillas para rellenar variables rápidamente
+        // --- INICIALIZACIÓN DE BASE DE DATOS ---
         try {
             const defaultUser = {
                 exp: 0, coin: 10, joincount: 1, diamond: 3, lastadventure: 0, health: 100,
@@ -162,6 +165,23 @@ export async function handler(chatUpdate) {
         const isMods = isOwner || global.mods.map(normalizeJid).includes(senderNum);
         const isPrems = isROwner || global.prems.map(normalizeJid).includes(senderNum) || _user.premium;
 
+        // --- SISTEMA BANCHAT / UNBANCHAT INTEGRADO ---
+        if (m.isGroup) {
+            const cmd = m.text.trim().toLowerCase().split(' ')[0].replace(/^[./#]/, '');
+            if (['banchat', 'mutechat'].includes(cmd)) {
+                if (!isOwner && !isROwner) return dfail('owner', m, this);
+                if (chatData.isBanned) return this.reply(m.chat, 'Este chat ya estaba baneado.', m);
+                chatData.isBanned = true;
+                return this.reply(m.chat, '✅ Chat baneado exitosamente. El bot dejará de responder aquí.', m);
+            }
+            if (['unbanchat', 'unmutechat'].includes(cmd)) {
+                if (!isOwner && !isROwner) return dfail('owner', m, this);
+                if (!chatData.isBanned) return this.reply(m.chat, 'Este chat no estaba baneado.', m);
+                chatData.isBanned = false;
+                return this.reply(m.chat, '✅ Chat desbaneado exitosamente. El bot vuelve a estar activo.', m);
+            }
+        }
+
         if (opts['queque'] && m.text && !(isMods || isPrems)) {
             let queque = this.msgqueque, time = 5000;
             const previousID = queque[queque.length - 1];
@@ -233,8 +253,9 @@ export async function handler(chatUpdate) {
                 m.plugin = name;
                 
                 if (chatData || _user) {
-                    if (!['grupo-unbanchat.js'].includes(name) && chatData?.isBanned && !isROwner) return;
-                    if (!['grupo-unbanchat.js', 'owner-exec.js', 'owner-exec2.js', 'grupo-delete.js'].includes(name) && chatData?.isBanned && !isROwner) return; 
+                    // Permitir comandos específicos incluso si el chat está baneado
+                    const bypassBannedChat = ['grupo-unbanchat.js', 'owner-exec.js', 'owner-exec2.js', 'grupo-delete.js', 'banchat', 'unbanchat'];
+                    if (!bypassBannedChat.includes(name) && chatData?.isBanned && !isROwner) return; 
                     
                     if (_user?.antispam > 2) return;
                     if (m.text && _user?.banned && !isROwner) {
@@ -247,7 +268,7 @@ export async function handler(chatUpdate) {
                     if (new Date() - (_user?.spam || 0) < 3000) return console.log(`[ SPAM ]`);
                     _user.spam = new Date() * 1;
 
-                    if (name !== 'grupo-unbanchat.js' && chatData?.isBanned) return; 
+                    if (!bypassBannedChat.includes(name) && chatData?.isBanned) return; 
                     if (name !== 'owner-unbanuser.js' && _user?.banned) return;
                 }
 
@@ -273,7 +294,7 @@ export async function handler(chatUpdate) {
                 else m.exp += xp;
 
                 if (!isPrems && plugin.coin && _user.coin < plugin.coin) {
-                    conn.reply(m.chat, `❮✦❯ Se agotaron tus monedas`, m); // Ajusté a 'monedas' por defecto si la variable global moneda fallaba
+                    conn.reply(m.chat, `❮✦❯ Se agotaron tus monedas`, m);
                     continue;
                 }
                 if (plugin.level > _user.level) {
