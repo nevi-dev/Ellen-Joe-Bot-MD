@@ -122,24 +122,35 @@ export async function EllenJadiBot(options) {
 
         if (connection === 'close') {
             const reason = lastDisconnect?.error?.output?.statusCode || 500
-            global.conns = global.conns.filter(conn => conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)
             console.log(chalk.bold.red(`[SISTEMA] Conexión cerrada. Razón: ${reason}`))
             
+            // LIMPIEZA DE RAM: Filtramos conexiones muertas
+            global.conns = global.conns.filter(conn => conn.ws?.socket && conn.ws?.socket?.readyState !== ws.CLOSED)
+            
             if (reason !== DisconnectReason.loggedOut) {
-                // RECARGA AUTOMÁTICA SI NO FUE DESCONEXIÓN MANUAL
                 creloadHandler(true).catch(console.error)
             } else {
                 console.log(chalk.bold.red(`[SISTEMA] Sesión eliminada definitivamente.`))
-                fs.rmdirSync(pathEllenJadiBot, { recursive: true })
+                
+                // IMPORTANTE: Matar listeners y socket para liberar RAM
+                sock.ev.removeAllListeners()
+                try { sock.ws.close() } catch {}
+                sock = null // Liberación directa de memoria
+
+                // FIX PARA WINDOWS (EPERM): Esperar a que el sistema suelte los archivos
+                setTimeout(() => {
+                    if (fs.existsSync(pathEllenJadiBot)) {
+                        fs.rmSync(pathEllenJadiBot, { recursive: true, force: true })
+                    }
+                }, 2000) 
             }
         }
     }
 
-    // --- SISTEMA DE RECARGA DE HANDLER (FIX PARA PLUGIN UPDATES) ---
+    // --- SISTEMA DE RECARGA DE HANDLER ---
     let handler = await import('../handler.js')
     let creloadHandler = async function (restatConn) {
         try {
-            // Importar el handler con un timestamp para forzar la recarga en memoria
             const Handler = await import(`../handler.js?update=${Date.now()}`)
             if (Object.keys(Handler || {}).length) handler = Handler
             console.log(chalk.bold.green(`[RELOAD] Lógica actualizada para Sub-Bot.`))
@@ -148,8 +159,10 @@ export async function EllenJadiBot(options) {
         }
 
         if (restatConn) {
-            try { sock.ws.close() } catch {}
-            sock.ev.removeAllListeners()
+            try { 
+                sock.ev.removeAllListeners() // Limpiar antes de crear uno nuevo
+                sock.ws.close() 
+            } catch {}
             sock = makeWASocket(connectionOptions)
             isInit = true
         }
@@ -160,9 +173,9 @@ export async function EllenJadiBot(options) {
             sock.ev.off('creds.update', sock.credsUpdate)
         }
 
-        // UNIÓN DE FUNCIONES AL SOCKET
+        // UNIÓN DE FUNCIONES
         sock.handler = handler.handler.bind(sock)
-        sock.subreloadHandler = (re) => creloadHandler(re) // IMPORTANTE PARA EVITAR TYPEERROR
+        sock.subreloadHandler = (re) => creloadHandler(re)
         sock.connectionUpdate = connectionUpdate.bind(sock)
         sock.credsUpdate = saveCreds.bind(sock, true)
 
