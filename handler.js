@@ -29,35 +29,44 @@ global.dfail = (type, m, conn) => {
 
 export async function handler(chatUpdate) {
     this.msgqueque = this.msgqueque || []
-this.uptime = this.uptime || Date.now()
-if (!chatUpdate) return
+    this.uptime = this.uptime || Date.now()
+    if (!chatUpdate) return
 
-this.pushMessage(chatUpdate.messages).catch(console.error)
-let m = chatUpdate.messages[chatUpdate.messages.length - 1]
-if (!m) return
+    this.pushMessage(chatUpdate.messages).catch(console.error)
+    let m = chatUpdate.messages[chatUpdate.messages.length - 1]
+    if (!m) return
 
-// Manejo de botones con archivo externo
-if (await manejarRespuestasBotones(this, m)) return;
-// Manejo de stickers con archivo externo
-if (await manejarRespuestasStickers(this, m)) return;
+    // --- SECCIÓN LIMPIA: ELIMINADOS MANEJADORES EXTERNOS ---
+    // Ya no llamamos a manejarRespuestasBotones ni manejarRespuestasStickers
+    
+    if (m.isGroup) {
+        const chat = global.db.data.chats[m.chat]
+        if (chat?.primaryBot) {
+            const universalWords = ['resetbot', 'resetprimario', 'botreset']
+            // Extraemos el texto de forma segura para la validación de grupo
+            const firstWord = (m.text || m.msg?.selectedButtonId || m.msg?.selectedId || '').trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '')
+            if (!universalWords.includes(firstWord) && this?.user?.jid !== chat.primaryBot) return
+        }
+    }
 
-if (m.isGroup) {
-const chat = global.db.data.chats[m.chat]
-if (chat?.primaryBot) {
-const universalWords = ['resetbot', 'resetprimario', 'botreset']
-const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : ''
-if (!universalWords.includes(firstWord) && this?.user?.jid !== chat.primaryBot) return
-}
-}
-
-    if (global.db.data == null)
-        await global.loadDatabase()       
+    if (global.db.data == null) await global.loadDatabase()       
     
     let sender;
     try {
         m = smsg(this, m) || m
-        if (!m)
-            return
+        if (!m) return
+
+        // --- EXTRACCIÓN MAESTRA DE TEXTO (BOTONES Y MENSAJES) ---
+        // Esto asegura que m.text NUNCA esté vacío si presionas un botón
+        m.text = (
+            m.text || 
+            m.msg?.selectedButtonId || 
+            m.msg?.selectedId || 
+            m.msg?.contentText || 
+            m.msg?.title || 
+            m.msg?.body?.text || 
+            ''
+        ).trim();
 
         sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid;
 
