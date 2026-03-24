@@ -1,7 +1,7 @@
 /* 🦈 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 - 𝗦𝗘𝗥𝗕𝗢𝗧 𝗨𝗟𝗧𝗥𝗔 𝗢𝗣𝗧𝗜𝗠𝗜𝗭𝗔𝗗𝗢 
    - Funcionalidad: Total (QR + Código)
    - Estabilidad: Alta (Manejo de cierres 408, 428, 500)
-   - Privacidad: Stealth Mode (Oculta ubicación del servidor)
+   - Antispam: Bloqueo de mensajes repetidos en conexión
 */
 
 const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion } = (await import("@whiskeysockets/baileys"));
@@ -19,7 +19,6 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Textos de interfaz
 const rtx = `*╭─────────────────────*
 *| 🦈 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 | ACCESO QR*
 *| ━━━━━━━━━━━━━━━━━━━━*
@@ -37,8 +36,11 @@ const rtx2 = `*╭────────────────────�
 if (!(global.conns instanceof Array)) global.conns = []
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-    let time = global.db.data.users[m.sender].Subs + 120000
-    if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `🦈 Aguarda ${msToTime(time - new Date())} para otra vinculación.`, m)
+    let user = global.db.data.users[m.sender]
+    if (!user) global.db.data.users[m.sender] = {}
+    
+    let time = (user.Subs || 0) + 120000
+    if (new Date - (user.Subs || 0) < 120000) return conn.reply(m.chat, `🦈 Aguarda ${msToTime(time - new Date())} para otra vinculación.`, m)
     
     const subBots = global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)
     if (subBots.length >= 90) return m.reply(`❌ Capacidad máxima de Agentes alcanzada.`)
@@ -49,8 +51,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
     console.log(chalk.bold.blue(`[SISTEMA] Iniciando Agente para: ${id}`))
 
-    EllenJadiBot({ pathEllenJadiBot, m, conn, args, usedPrefix, command, fromCommand: true })
-    global.db.data.users[m.sender].Subs = new Date * 1
+    EllenJadiBot({ pathEllenJadiBot, m, conn, args, usedPrefix, command })
+    user.Subs = new Date * 1
 }
 
 handler.help = ['qr', 'code']
@@ -74,64 +76,79 @@ export async function EllenJadiBot(options) {
             keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })) 
         },
         msgRetryCache,
-        // PRIVACIDAD: User-Agent genérico para no filtrar datos del VPS
         browser: ['Ubuntu', 'Chrome', '110.0.5585.95'], 
         version,
-        syncFullHistory: false, // Optimización de RAM
+        syncFullHistory: false,
         markOnlineOnConnect: true,
         generateHighQualityLinkPreview: true
     }
 
     let sock = makeWASocket(connectionOptions)
-    sock.isInit = false
+    
+    // --- BLOQUEOS ANTI-SPAM ---
+    let qrSent = false
+    let codeSent = false
+    let welcomeSent = false
 
     async function connectionUpdate(update) {
         const { connection, lastDisconnect, qr } = update
         
-        // Manejo de QR
-        if (qr && !mcode) {
-            let txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: rtx }, { quoted: m })
-            setTimeout(() => { conn.sendMessage(m.chat, { delete: txtQR.key }).catch(() => {}) }, 30000)
+        // Manejo de QR (Evita mandar 200 QRs)
+        if (qr && !mcode && !qrSent) {
+            qrSent = true
+            try {
+                let txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: rtx }, { quoted: m })
+                setTimeout(() => { conn.sendMessage(m.chat, { delete: txtQR.key }).catch(() => {}) }, 30000)
+            } catch { qrSent = false }
         }
 
-        // Manejo de Código de Emparejamiento
-        if (qr && mcode) {
+        // Manejo de Código (Evita mandar 200 códigos)
+        if (qr && mcode && !codeSent) {
+            codeSent = true
             await conn.sendMessage(m.chat, { text: rtx2 }, { quoted: m })
-            let secret = await sock.requestPairingCode(m.sender.split`@`[0])
-            secret = secret.match(/.{1,4}/g)?.join("-")
-            let codeBot = await m.reply(secret)
-            setTimeout(() => { conn.sendMessage(m.chat, { delete: codeBot.key }).catch(() => {}) }, 35000)
+            try {
+                let secret = await sock.requestPairingCode(m.sender.split`@`[0])
+                secret = secret.match(/.{1,4}/g)?.join("-") || secret
+                let codeBot = await m.reply(secret)
+                setTimeout(() => { conn.sendMessage(m.chat, { delete: codeBot.key }).catch(() => {}) }, 35000)
+            } catch { codeSent = false }
         }
 
         if (connection === 'open') {
+            if (welcomeSent) return // Si ya saludó, ignorar actualizaciones posteriores
+            
             sock.isInit = true
-            global.conns.push(sock)
+            welcomeSent = true
+            
+            if (!global.conns.some(c => c.user?.id === sock.user?.id)) {
+                global.conns.push(sock)
+            }
+
             console.log(chalk.bold.green(`\n[OK] Agente +${sock.user.id.split(':')[0]} Conectado`))
             
-            await conn.sendMessage(m.chat, { 
-                text: `✅ *@${m.sender.split('@')[0]}*, ya eres parte de la familia de Sub-Bots.`, 
-                mentions: [m.sender] 
-            }, { quoted: m })
-            
-            await joinChannels(sock)
+            if (m && m.chat) {
+                await conn.sendMessage(m.chat, { 
+                    text: `✅ *@${m.sender.split('@')[0]}*, ya eres parte de la familia de Sub-Bots.`, 
+                    mentions: [m.sender] 
+                }, { quoted: m }).catch(() => {})
+                
+                await joinChannels(sock)
+            }
         }
 
         if (connection === 'close') {
             const reason = lastDisconnect?.error?.output?.statusCode || 500
-            console.log(chalk.bold.yellow(`[SISTEMA] Conexión de Sub-Bot cerrada. Razón: ${reason}`))
+            console.log(chalk.bold.yellow(`[SISTEMA] Conexión cerrada. Razón: ${reason}`))
             
-            // Reintentar si no fue un logout manual
             if (reason !== DisconnectReason.loggedOut) {
                 creloadHandler(true).catch(console.error)
             } else {
                 console.log(chalk.bold.red(`[SISTEMA] Sesión terminada por el usuario.`))
                 sock.ev.removeAllListeners()
-                // Limpiar archivos de sesión para permitir reconexión limpia
                 setTimeout(() => {
                     if (fs.existsSync(pathEllenJadiBot)) fs.rmSync(pathEllenJadiBot, { recursive: true, force: true })
                 }, 3000)
             }
-            // Limpiar lista global de conexiones
             global.conns = global.conns.filter(c => c.ws?.socket?.readyState !== ws.CLOSED)
         }
     }
