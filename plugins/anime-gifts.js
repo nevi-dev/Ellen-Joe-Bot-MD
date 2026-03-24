@@ -1,22 +1,39 @@
 import fetch from 'node-fetch'
 
 let handler = async (m, { conn, command, usedPrefix }) => {
-    let mentionedJid = await m.mentionedJid
-    let userId = mentionedJid.length > 0 ? mentionedJid[0] : (m.quoted ? await m.quoted.sender : m.sender)
-    
-    // Nombres de usuario
-    let from = await (async () => global.db.data.users[m.sender]?.name || (async () => { try { const n = await conn.getName(m.sender); return typeof n === 'string' && n.trim() ? n : m.sender.split('@')[0] } catch { return m.sender.split('@')[0] } })())()
-    let who = await (async () => global.db.data.users[userId]?.name || (async () => { try { const n = await conn.getName(userId); return typeof n === 'string' && n.trim() ? n : userId.split('@')[0] } catch { return userId.split('@')[0] } })())()
+    let mentionedJid = m.mentionedJid || []
+    let userId = mentionedJid.length > 0 ? mentionedJid[0] : (m.quoted ? m.quoted.sender : m.sender)
 
-    const apiKey = "causa-ee5ee31dcfc79da4"
-    
-    // Definimos si es contenido NSFW o SFW
+    // ✅ Resolver LID a JID normal
+    if (userId.endsWith('@lid') || isNaN(userId.split('@')[0])) {
+        try {
+            const groupMeta = await conn.groupMetadata(m.chat)
+            const found = groupMeta.participants.find(p => p.id === userId || p.lid === userId)
+            if (found?.jid) userId = found.jid
+        } catch {}
+    }
+
+    // ✅ Resolver nombres correctamente
+    const getName = async (jid) => {
+        try {
+            const n = await conn.getName(jid)
+            return typeof n === 'string' && n.trim() ? n : jid.split('@')[0]
+        } catch {
+            return jid.split('@')[0]
+        }
+    }
+
+    let from = m.pushName || await getName(m.sender)
+    let who = await getName(userId)
+
+    const apiKey = "causa-ec43262f206b3305"
+
     const isNsfw = command === 'waifuh'
     const type = isNsfw ? 'nsfw' : 'sfw'
-    
+
     const interactions = {
         'waifu': { action: 'waifu', str: (f) => `✨ Waifu para \`${f}\`` },
-        'waifuh': { action: 'waifu', str: (f) => `🔥 Waifu H para \`${f}\`` }, // Modo H
+        'waifuh': { action: 'waifu', str: (f) => `🔥 Waifu H para \`${f}\`` },
         'neko': { action: 'neko', str: (f) => `🐾 Neko para \`${f}\`` },
         'shinobu': { action: 'shinobu', str: (f) => `🦋 Shinobu para \`${f}\`` },
         'megumin': { action: 'megumin', str: (f) => `💥 Megumin para \`${f}\`` },
@@ -65,7 +82,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     try {
         const response = await fetch(`https://rest.apicausas.xyz/api/v1/anime?action=${interaction.action}&type=${type}&apikey=${apiKey}`)
         const json = await response.json()
-        
+
         if (!json.status || !json.data) return m.reply('❌ Error en la API')
 
         const mediaUrl = json.data.url
@@ -76,18 +93,18 @@ let handler = async (m, { conn, command, usedPrefix }) => {
         const buffer = await resMedia.buffer()
 
         if (mime.includes('video') || mime.includes('gif')) {
-            await conn.sendMessage(m.chat, { 
-                video: buffer, 
-                caption: text, 
+            await conn.sendMessage(m.chat, {
+                video: buffer,
+                caption: text,
                 gifPlayback: true,
                 mimetype: 'video/mp4',
-                mentions: [userId] 
+                mentions: [userId]
             }, { quoted: m })
         } else {
-            await conn.sendMessage(m.chat, { 
-                image: buffer, 
-                caption: text, 
-                mentions: [userId] 
+            await conn.sendMessage(m.chat, {
+                image: buffer,
+                caption: text,
+                mentions: [userId]
             }, { quoted: m })
         }
 
