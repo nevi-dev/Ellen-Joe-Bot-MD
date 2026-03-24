@@ -122,6 +122,7 @@ export async function EllenJadiBot(options) {
 
         if (connection === 'close') {
             const reason = lastDisconnect?.error?.output?.statusCode || 500
+            global.conns = global.conns.filter(conn => conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)
             console.log(chalk.bold.red(`[SISTEMA] Conexión cerrada. Razón: ${reason}`))
             
             if (reason !== DisconnectReason.loggedOut) {
