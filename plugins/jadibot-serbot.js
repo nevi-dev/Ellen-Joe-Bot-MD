@@ -1,7 +1,7 @@
-/* 🦈 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 - 𝗦𝗘𝗥𝗕𝗢𝗧 𝗢𝗣𝗧𝗜𝗠𝗜𝗭𝗔𝗗𝗢 
-   - Estabilidad: Full (subreloadHandler fix)
-   - Privacidad: Total (No IP/Rutas leaks)
-   - Consumo: Mínimo (No Sync History)
+/* 🦈 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 - 𝗦𝗘𝗥𝗕𝗢𝗧 𝗨𝗟𝗧𝗥𝗔 𝗢𝗣𝗧𝗜𝗠𝗜𝗭𝗔𝗗𝗢 
+   - Funcionalidad: Total (QR + Código)
+   - Estabilidad: Alta (Manejo de cierres 408, 428, 500)
+   - Privacidad: Stealth Mode (Oculta ubicación del servidor)
 */
 
 const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion } = (await import("@whiskeysockets/baileys"));
@@ -18,33 +18,38 @@ import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const EllenJBOptions = {}
+
+// Textos de interfaz
+const rtx = `*╭─────────────────────*
+*| 🦈 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 | ACCESO QR*
+*| ━━━━━━━━━━━━━━━━━━━━*
+*| Escanea este QR para activar tu Sub-Bot.*
+*| El código expira en 30 segundos.*
+*╰─────────────────────*`
+
+const rtx2 = `*╭─────────────────────*
+*| 🎄 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 | CÓDIGO*
+*| ━━━━━━━━━━━━━━━━━━━━*
+*| Ingresa el código que recibirás a*
+*| continuación en "Vincular dispositivo".*
+*╰─────────────────────*`
 
 if (!(global.conns instanceof Array)) global.conns = []
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
     let time = global.db.data.users[m.sender].Subs + 120000
-    if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `🦈 Aguarda ${msToTime(time - new Date())} para vincular otro Agente.`, m)
+    if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `🦈 Aguarda ${msToTime(time - new Date())} para otra vinculación.`, m)
     
-    const subBots = global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)
-    if (subBots.length >= 90) return m.reply(`❌ Capacidad de Agentes llena.`)
+    const subBots = global.conns.filter((c) => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)
+    if (subBots.length >= 90) return m.reply(`❌ Capacidad máxima de Agentes alcanzada.`)
 
     let id = `${m.sender.split`@`[0]}`
     let pathEllenJadiBot = path.join(`./${jadi}/`, id)
-    
     if (!fs.existsSync(pathEllenJadiBot)) fs.mkdirSync(pathEllenJadiBot, { recursive: true })
 
-    console.log(chalk.bold.blue(`[SISTEMA] Generando sesión para: ${id}`))
+    console.log(chalk.bold.blue(`[SISTEMA] Iniciando Agente para: ${id}`))
 
-    EllenJBOptions.pathEllenJadiBot = pathEllenJadiBot
-    EllenJBOptions.m = m
-    EllenJBOptions.conn = conn
-    EllenJBOptions.args = args
-    EllenJBOptions.usedPrefix = usedPrefix
-    EllenJBOptions.command = command
-    EllenJBOptions.fromCommand = true
-    
-    EllenJadiBot(EllenJBOptions)
+    EllenJadiBot({ pathEllenJadiBot, m, conn, args, usedPrefix, command, fromCommand: true })
     global.db.data.users[m.sender].Subs = new Date * 1
 }
 
@@ -55,11 +60,8 @@ export default handler
 
 export async function EllenJadiBot(options) {
     let { pathEllenJadiBot, m, conn, args, usedPrefix, command } = options
-    if (command === 'code') { command = 'qr'; args.unshift('code') }
+    const mcode = /(--code|code)/.test(args[0]) || /(--code|code)/.test(args[1]) || command === 'code'
     
-    const mcode = /(--code|code)/.test(args[0]) || /(--code|code)/.test(args[1])
-    const pathCreds = path.join(pathEllenJadiBot, "creds.json")
-
     let { version } = await fetchLatestBaileysVersion()
     const msgRetryCache = new NodeCache()
     const { state, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
@@ -72,110 +74,81 @@ export async function EllenJadiBot(options) {
             keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })) 
         },
         msgRetryCache,
-        // PRIVACIDAD: Oculta que es un servidor en San Pedro
-        browser: ['Chrome', 'MacOS', '110.0.5585.95'], 
+        // PRIVACIDAD: User-Agent genérico para no filtrar datos del VPS
+        browser: ['Ubuntu', 'Chrome', '110.0.5585.95'], 
         version,
-        syncFullHistory: false, // RAM: No descarga chats viejos (vital para VPS)
-        markOnlineOnConnect: false,
-        connectTimeoutMs: 60000,
+        syncFullHistory: false, // Optimización de RAM
+        markOnlineOnConnect: true,
         generateHighQualityLinkPreview: true
     }
 
     let sock = makeWASocket(connectionOptions)
     sock.isInit = false
-    let isInit = true
 
     async function connectionUpdate(update) {
         const { connection, lastDisconnect, qr } = update
         
+        // Manejo de QR
         if (qr && !mcode) {
-            if (m?.chat) {
-                let txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: "*🦈 PROTOCOLO DE AGENTE ELLEN*\n\n> Escanea para activar tu Sub-Bot." }, { quoted: m })
-                setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key }).catch(() => {}) }, 30000)
-            }
-            return
+            let txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: rtx }, { quoted: m })
+            setTimeout(() => { conn.sendMessage(m.chat, { delete: txtQR.key }).catch(() => {}) }, 30000)
         }
 
+        // Manejo de Código de Emparejamiento
         if (qr && mcode) {
+            await conn.sendMessage(m.chat, { text: rtx2 }, { quoted: m })
             let secret = await sock.requestPairingCode(m.sender.split`@`[0])
             secret = secret.match(/.{1,4}/g)?.join("-")
-            console.log(chalk.bold.yellow(`[CODE] Código generado para ${m.sender}: ${secret}`))
-            let txtCode = await m.reply(secret)
-            setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key }).catch(() => {}) }, 35000)
+            let codeBot = await m.reply(secret)
+            setTimeout(() => { conn.sendMessage(m.chat, { delete: codeBot.key }).catch(() => {}) }, 35000)
         }
 
         if (connection === 'open') {
             sock.isInit = true
             global.conns.push(sock)
-            console.log(chalk.bold.cyanBright(`\n[OK] Agente Conectado: ${sock.user.name || 'Bot'}`))
+            console.log(chalk.bold.green(`\n[OK] Agente +${sock.user.id.split(':')[0]} Conectado`))
             
-            // FIX: Validar que m y m.chat existan antes de enviar el mensaje
-            if (m && m.chat) {
-                await conn.sendMessage(m.chat, { 
-                    text: `✅ Ya eres parte de la familia de Sub-Bots.`, 
-                    mentions: [m.sender] 
-                }, { quoted: m }).catch(err => console.error("Error enviando confirmación:", err))
-            }
+            await conn.sendMessage(m.chat, { 
+                text: `✅ *@${m.sender.split('@')[0]}*, ya eres parte de la familia de Sub-Bots.`, 
+                mentions: [m.sender] 
+            }, { quoted: m })
             
             await joinChannels(sock)
         }
 
         if (connection === 'close') {
             const reason = lastDisconnect?.error?.output?.statusCode || 500
-            console.log(chalk.bold.red(`[SISTEMA] Conexión cerrada. Razón: ${reason}`))
+            console.log(chalk.bold.yellow(`[SISTEMA] Conexión de Sub-Bot cerrada. Razón: ${reason}`))
             
-            // LIMPIEZA DE RAM: Filtramos conexiones muertas
-            global.conns = global.conns.filter(conn => conn.ws?.socket && conn.ws?.socket?.readyState !== ws.CLOSED)
-            
+            // Reintentar si no fue un logout manual
             if (reason !== DisconnectReason.loggedOut) {
                 creloadHandler(true).catch(console.error)
             } else {
-                console.log(chalk.bold.red(`[SISTEMA] Sesión eliminada definitivamente.`))
-                
-                // IMPORTANTE: Matar listeners y socket para liberar RAM
+                console.log(chalk.bold.red(`[SISTEMA] Sesión terminada por el usuario.`))
                 sock.ev.removeAllListeners()
-                try { sock.ws.close() } catch {}
-                sock = null // Liberación directa de memoria
-
-                // FIX PARA WINDOWS (EPERM): Esperar a que el sistema suelte los archivos
+                // Limpiar archivos de sesión para permitir reconexión limpia
                 setTimeout(() => {
-                    if (fs.existsSync(pathEllenJadiBot)) {
-                        fs.rmSync(pathEllenJadiBot, { recursive: true, force: true })
-                    }
-                }, 2000) 
+                    if (fs.existsSync(pathEllenJadiBot)) fs.rmSync(pathEllenJadiBot, { recursive: true, force: true })
+                }, 3000)
             }
+            // Limpiar lista global de conexiones
+            global.conns = global.conns.filter(c => c.ws?.socket?.readyState !== ws.CLOSED)
         }
     }
 
-    // --- SISTEMA DE RECARGA DE HANDLER ---
     let handler = await import('../handler.js')
     let creloadHandler = async function (restatConn) {
         try {
             const Handler = await import(`../handler.js?update=${Date.now()}`)
             if (Object.keys(Handler || {}).length) handler = Handler
-            console.log(chalk.bold.green(`[RELOAD] Lógica actualizada para Sub-Bot.`))
-        } catch (e) {
-            console.error('[ERROR RELOAD]: ', e)
-        }
+        } catch (e) { console.error(e) }
 
         if (restatConn) {
-            try { 
-                sock.ev.removeAllListeners() // Limpiar antes de crear uno nuevo
-                sock.ws.close() 
-            } catch {}
+            try { sock.ws.close() } catch {}
             sock = makeWASocket(connectionOptions)
-            isInit = true
         }
 
-        if (!isInit) {
-            sock.ev.off("messages.upsert", sock.handler)
-            sock.ev.off("connection.update", sock.connectionUpdate)
-            sock.ev.off('creds.update', sock.credsUpdate)
-        }
-
-        // UNIÓN DE FUNCIONES
         sock.handler = handler.handler.bind(sock)
-        sock.subreloadHandler = (re) => creloadHandler(re)
         sock.connectionUpdate = connectionUpdate.bind(sock)
         sock.credsUpdate = saveCreds.bind(sock, true)
 
@@ -183,14 +156,12 @@ export async function EllenJadiBot(options) {
         sock.ev.on("connection.update", sock.connectionUpdate)
         sock.ev.on("creds.update", sock.credsUpdate)
         
-        isInit = false
         return true
     }
 
     creloadHandler(false)
 }
 
-// --- UTILIDADES ---
 const msToTime = (duration) => {
     let seconds = Math.floor((duration / 1000) % 60),
         minutes = Math.floor((duration / (1000 * 60)) % 60)
@@ -198,7 +169,8 @@ const msToTime = (duration) => {
 }
 
 async function joinChannels(conn) {
-    for (const channelId of Object.values(global.ch || {})) {
+    if (!global.ch) return
+    for (const channelId of Object.values(global.ch)) {
         await conn.newsletterFollow(channelId).catch(() => {})
     }
 }
