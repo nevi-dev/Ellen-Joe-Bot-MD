@@ -83,23 +83,39 @@ export async function handler(chatUpdate) {
             }
         }
 
-        // --- 2. TRADUCCIÓN GLOBAL (Ahora sí tiene los datos frescos) ---
+        // --- 2. TRADUCCIÓN GLOBAL (CORREGIDA PARA READ-ONLY) ---
         if (!global.db.data.lidMap) global.db.data.lidMap = {};
 
         // Traducir Sender
         if (sender.endsWith('@lid')) {
-            sender = global.db.data.lidMap[sender] || sender;
-            m.sender = sender; 
+            let newSender = global.db.data.lidMap[sender] || sender;
+            sender = newSender;
+            try {
+                m.sender = newSender; // Intentar cambio directo
+            } catch {
+                Object.defineProperty(m, 'sender', { value: newSender, writable: true, configurable: true });
+            }
         }
 
-        // Traducir Menciones (Vital para comandos como .pay)
+        // Traducir Menciones (Aquí es donde daba el error)
         if (m.mentionedJid && m.mentionedJid.length > 0) {
-            m.mentionedJid = m.mentionedJid.map(id => id.includes('@lid') ? (global.db.data.lidMap[id] || id) : id);
+            let newMentions = m.mentionedJid.map(id => id.includes('@lid') ? (global.db.data.lidMap[id] || id) : id);
+            try {
+                m.mentionedJid = newMentions;
+            } catch {
+                // Forzar la escritura si es un getter de solo lectura
+                Object.defineProperty(m, 'mentionedJid', { value: newMentions, writable: true, configurable: true });
+            }
         }
 
         // Traducir Quoted (Responder a un mensaje)
         if (m.quoted && m.quoted.sender && m.quoted.sender.includes('@lid')) {
-            m.quoted.sender = global.db.data.lidMap[m.quoted.sender] || m.quoted.sender;
+            let newQuotedSender = global.db.data.lidMap[m.quoted.sender] || m.quoted.sender;
+            try {
+                m.quoted.sender = newQuotedSender;
+            } catch {
+                Object.defineProperty(m.quoted, 'sender', { value: newQuotedSender, writable: true, configurable: true });
+            }
         }
 
         if (m.isGroup && sender.endsWith('@lid')) {
