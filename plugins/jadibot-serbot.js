@@ -140,6 +140,16 @@ export async function EllenJadiBot(options) {
             const reason = lastDisconnect?.error?.output?.statusCode || 500
             console.log(chalk.bold.yellow(`[SISTEMA] Conexión cerrada. Razón: ${reason}`))
             
+            // --- PARCHE PARA EL ERROR 403 ---
+            if (reason === 403) {
+                console.log(chalk.bold.red(`[ERROR 403] Sesión corrupta o prohibida. Eliminando archivos para prevenir spam...`))
+                sock.ev.removeAllListeners() // Apagamos los eventos de esta conexión
+                if (fs.existsSync(pathEllenJadiBot)) fs.rmSync(pathEllenJadiBot, { recursive: true, force: true })
+                global.conns = global.conns.filter(c => c.ws?.socket?.readyState !== ws.CLOSED)
+                return // Detenemos la función aquí para que no intente reconectar (creloadHandler)
+            }
+            // ---------------------------------
+
             if (reason !== DisconnectReason.loggedOut) {
                 creloadHandler(true).catch(console.error)
             } else {
