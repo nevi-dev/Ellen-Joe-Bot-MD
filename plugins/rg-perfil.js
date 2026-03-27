@@ -3,60 +3,59 @@ import PhoneNumber from 'awesome-phonenumber';
 import fetch from 'node-fetch';
 
 let handler = async (m, { conn, args }) => {
-    // 1. Detección de usuario mejorada (Menciones > Citado > Uno mismo)
-    let userId = m.mentionedJid && m.mentionedJid[0] 
-        ? m.mentionedJid[0] 
-        : (m.quoted ? m.quoted.sender : m.sender);
+    let userId;
+    if (m.quoted && m.quoted.sender) {
+        userId = m.quoted.sender;
+    } else {
+        userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
+    }
 
-    // 2. Validación de base de datos para evitar errores de "undefined"
     let user = global.db.data.users[userId] || {};
-    if (!global.db.data.users[userId]) global.db.data.users[userId] = {};
-
-    // 3. Variables con valores por defecto (Failsafe)
     let name = conn.getName(userId);
+    
+    // Variables de usuario
+    let cumpleanos = user.birth || 'No especificado';
+    let genero = user.genre || 'No especificado';
+    let pareja = user.marry || 'Nadie';
+    let description = user.description || 'Sin Descripción';
     let exp = user.exp || 0;
     let nivel = user.level || 0;
     let role = user.role || 'Sin Rango';
     let coins = user.coin || 0;
     let bankCoins = user.bank || 0;
-    let description = user.description || 'Sin Descripción';
-    
-    // 4. Obtención de foto de perfil (Si falla, usa una por defecto)
-    let perfil;
-    try {
-        perfil = await conn.profilePictureUrl(userId, 'image');
-    } catch (e) {
-        perfil = 'https://telegra.ph/file/241f050a4abb3a354ca3f.jpg'; 
-    }
+
+    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => icons);
 
     let profileText = `
 「✿」 *Perfil* ◢@${userId.split('@')[0]}◤
 ${description}
 
-✦ *Edad »* ${user.age || 'Desconocida'}
-♛ *Cumpleaños »* ${user.birth || 'No especificado'}
-⚥ *Género »* ${user.genre || 'No especificado'}
-♡ *Casado »* ${user.marry || 'Nadie'}
+✦ Edad » ${user.age || 'Desconocida'}
+♛ *Cumpleaños* » ${cumpleanos}
+⚥ *Género* » ${genero}
+♡ *Casado con* » ${pareja}
 
-☆ *Experiencia »* ${exp.toLocaleString()}
-❖ *Nivel »* ${nivel}
-✎ *Rango »* ${role}
+☆ *Experiencia* » ${exp.toLocaleString()}
+❖ *Nivel* » ${nivel}
+✎ Rango » ${role}
 
-⛁ *Cartera »* ${coins.toLocaleString()} ${global.moneda || 'Coins'}
-⛃ *Banco »* ${bankCoins.toLocaleString()} ${global.moneda || 'Coins'}
-❁ *Premium »* ${user.premium ? '✅' : '❌'}`.trim();
+⛁ *Coins Cartera* » ${coins.toLocaleString()} ${global.moneda || ''}
+⛃ *Coins Banco* » ${bankCoins.toLocaleString()} ${global.moneda || ''}
+❁ *Premium* » ${user.premium ? '✅' : '❌'}`.trim();
 
-    // 5. Envío del mensaje corregido para visibilidad total
+    // Aplicando la estructura del comando PLAY que sí funciona:
     await conn.sendMessage(m.chat, { 
-        text: profileText,
+        text: profileText, 
         contextInfo: {
             mentionedJid: [userId],
+            isForwarded: true,
+            forwardingScore: 999,
             externalAdReply: {
-                title: `✧ Perfil de ${name} ✧`,
-                body: global.dev || 'Sistema de Usuario',
+                title: '✧ Perfil de Usuario ✧',
+                body: `— Perfil de ${name}`,
                 thumbnailUrl: perfil,
-                sourceUrl: redes, // URL necesaria para estabilidad
-                mediaType: 1, // CAMBIADO A 1: Esto soluciona que los demás no lo vean
+                sourceUrl: global.redes || '', // Usando la variable de tus redes
+                mediaType: 1, // Cambiado a 1 para asegurar visibilidad total
                 showAdAttribution: true,
                 renderLargerThumbnail: true
             }
