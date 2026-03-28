@@ -10,52 +10,66 @@ let handler = async (m, { conn, args }) => {
         userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
     }
 
+    // Validación para que no de error si el usuario no está en la base de datos
     let user = global.db.data.users[userId] || {};
-    let name = conn.getName(userId);
-    
-    // Variables de usuario
+    let name = await conn.getName(userId);
     let cumpleanos = user.birth || 'No especificado';
     let genero = user.genre || 'No especificado';
-    let pareja = user.marry || 'Nadie';
-    let description = user.description || 'Sin Descripción';
+    let parejaId = user.marry || null;
+    let parejaText = 'Nadie';
+    let mentions = [userId];
+
+    if (parejaId) {
+        let parejaName = await conn.getName(parejaId);
+        parejaText = `@${parejaId.split('@')[0]} (${parejaName})`;
+        mentions.push(parejaId);
+    }
+
+    let description = user.description || 'Sin descripción';
     let exp = user.exp || 0;
     let nivel = user.level || 0;
     let role = user.role || 'Sin Rango';
     let coins = user.coin || 0;
     let bankCoins = user.bank || 0;
 
-    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => icons);
+    // Foto de perfil con URL de respaldo fija (Catbox es muy confiable)
+    let perfil;
+    try {
+        perfil = await conn.profilePictureUrl(userId, 'image');
+    } catch (e) {
+        perfil = 'https://files.catbox.moe/xr2m6u.jpg';
+    }
 
     let profileText = `
-「✿」 *Perfil* ◢@${userId.split('@')[0]}◤
-${description}
+「✿」 *Perfil de* @${userId.split('@')[0]}
+✦ *Edad:* ${user.age || 'Desconocida'}
+♛ *Cumpleaños:* ${cumpleanos}
+⚥ *Género:* ${genero}
+♡ *Casado con:* ${parejaText}
 
-✦ Edad » ${user.age || 'Desconocida'}
-♛ *Cumpleaños* » ${cumpleanos}
-⚥ *Género* » ${genero}
-♡ *Casado con* » ${pareja}
+✎ *Rango:* ${role}
+☆ *Exp:* ${exp.toLocaleString()}
+❖ *Nivel:* ${nivel}
 
-☆ *Experiencia* » ${exp.toLocaleString()}
-❖ *Nivel* » ${nivel}
-✎ Rango » ${role}
+⛁ *Coins Cartera:* ${coins.toLocaleString()} ${global.moneda || ''}
+⛃ *Coins Banco:* ${bankCoins.toLocaleString()} ${global.moneda || ''}
+❁ *Premium:* ${user.premium ? '✅' : '❌'}
 
-⛁ *Coins Cartera* » ${coins.toLocaleString()} ${global.moneda || ''}
-⛃ *Coins Banco* » ${bankCoins.toLocaleString()} ${global.moneda || ''}
-❁ *Premium* » ${user.premium ? '✅' : '❌'}`.trim();
+📝 *Descripción:* ${description}
+`.trim();
 
-    // Aplicando la estructura del comando PLAY que sí funciona:
     await conn.sendMessage(m.chat, { 
-        text: profileText, 
+        text: profileText,
         contextInfo: {
-            mentionedJid: [userId],
-            isForwarded: true,
-            forwardingScore: 999,
+            mentionedJid: mentions,
+            isForwarded: true,             // Estructura del comando PLAY
+            forwardingScore: 999,          // Estructura del comando PLAY
             externalAdReply: {
                 title: '✧ Perfil de Usuario ✧',
-                body: `— Perfil de ${name}`,
+                body: global.dev || 'Victoria Housekeeping',
                 thumbnailUrl: perfil,
-                sourceUrl: global.redes || '', // Usando la variable de tus redes
-                mediaType: 1, // Cambiado a 1 para asegurar visibilidad total
+                sourceUrl: global.redes || 'https://www.whatsapp.com',
+                mediaType: 1,
                 showAdAttribution: true,
                 renderLargerThumbnail: true
             }
