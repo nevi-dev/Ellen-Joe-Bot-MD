@@ -113,7 +113,7 @@ ${sep}
 *Dime qué quieres rápido, mi turno termina pronto.*
 
 👤 **Proxy:** ${nombre}
-⌚ **Tu Hora Local:** ${userTime}
+⌚ **Hora** ${userTime}
 ${sep}
 ⚙️ **𝐒𝐘𝐒𝐓𝐄𝐌 𝐈𝐍𝐅𝐎**
 | 🛠️ **Build:** v${localVersion}
