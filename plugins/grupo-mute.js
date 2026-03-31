@@ -6,29 +6,29 @@ const handler = async (m, { conn, command, text }) => {
         who = m.chat;
     }
 
-    if (!who) return m.reply(`*⚠️ ¿A quién quieres silenciar? Etiqueta a alguien o responde a su mensaje.*`);
+    if (!who) return m.reply(`*⚠️ Menciona a alguien o responde a un mensaje para usar ${command}.*`);
 
-    // Inicialización forzada en la DB global para evitar errores de undefined
+    // Inicialización directa en la DB global del chat
     if (!global.db.data.chats[m.chat].users) global.db.data.chats[m.chat].users = {};
     if (!global.db.data.chats[m.chat].users[who]) global.db.data.chats[m.chat].users[who] = { muto: false };
 
-    // --- MUTE: Acción Directa ---
+    // --- MUTE: Sin filtros, directo a la DB ---
     if (command === 'mute') {
-        // El bot es el único que se salva, porque si no... ¿quién ejecuta el código?
-        if (who === conn.user.jid) return m.reply('*❌ No puedo mutearme a mí misma. ¿Quién borraría los mensajes entonces?*');
-
-        if (global.db.data.chats[m.chat].users[who].muto) return m.reply('*🍭 Este usuario ya está en la lista negra de este grupo.*');
+        // Solo el bot se salva por pura lógica de funcionamiento
+        if (who === conn.user.jid) return m.reply('*❌ No voy a auto-mutearme, búscate a otro para tus experimentos.*');
+        
+        if (global.db.data.chats[m.chat].users[who].muto) return m.reply('*🍭 Este usuario ya tiene el estado "muto" activo aquí.*');
 
         global.db.data.chats[m.chat].users[who].muto = true;
-        await conn.reply(m.chat, `*🔇 Silencio Absoluto*\n\n@${who.split`@`[0]} ahora tiene el estado "muto" en la base de datos de este grupo.`, m, { mentions: [who] });
+        await conn.reply(m.chat, `*🔇 Estado: MUTO*\n\n@${who.split`@`[0]} ahora está marcado en la base de datos de este grupo. Tu plugin de borrado ya puede entrar en acción.`, m, { mentions: [who] });
     }
 
     // --- UNMUTE ---
     if (command === 'unmute') {
-        if (!global.db.data.chats[m.chat].users[who].muto) return m.reply('*🍭 Este usuario no tiene restricciones activas aquí.*');
+        if (!global.db.data.chats[m.chat].users[who].muto) return m.reply('*🍭 Este usuario no está marcado como mutado aquí.*');
 
         global.db.data.chats[m.chat].users[who].muto = false;
-        await conn.reply(m.chat, `*🔊 Voz Restaurada*\n\nSe ha desactivado el estado "muto" para @${who.split`@`[0]}.`, m, { mentions: [who] });
+        await conn.reply(m.chat, `*🔊 Estado: LIBRE*\n\nSe ha desactivado el "muto" para @${who.split`@`[0]} en este grupo.`, m, { mentions: [who] });
     }
 };
 
