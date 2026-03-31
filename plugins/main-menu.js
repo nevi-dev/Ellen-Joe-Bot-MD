@@ -1,8 +1,10 @@
+//nevi-dev
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 import axios from 'axios';
 import moment from 'moment-timezone';
+import phoneNumber from 'awesome-phonenumber'; // <-- Importado para la hora
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
@@ -48,7 +50,18 @@ let handler = async (m, { conn, usedPrefix, text }) => {
   }
 
   let nombre = await conn.getName(m.sender);
-  const horaRD = moment().tz("America/Santo_Domingo").format('h:mm A');
+
+  // --- NUEVA LÓGICA DE HORA AUTOMÁTICA ---
+  let userTime;
+  try {
+    const pn = new phoneNumber('+' + m.sender.split('@')[0]);
+    const tzList = pn.getRegionCode() ? moment.tz.zonesForCountry(pn.getRegionCode()) : [];
+    userTime = tzList.length > 0 
+      ? moment().tz(tzList[0]).format('h:mm A') 
+      : moment().format('h:mm A');
+  } catch {
+    userTime = moment().format('h:mm A'); // Fallback de seguridad
+  }
 
   // Sistema de comandos y categorías
   let comandosPorGrupo = {};
@@ -100,7 +113,7 @@ ${sep}
 *Dime qué quieres rápido, mi turno termina pronto.*
 
 👤 **Proxy:** ${nombre}
-⌚ **Hora:** ${horaRD} (RD)
+⌚ **Tu Hora Local:** ${userTime}
 ${sep}
 ⚙️ **𝐒𝐘𝐒𝐓𝐄𝐌 𝐈𝐍𝐅𝐎**
 | 🛠️ **Build:** v${localVersion}
@@ -143,20 +156,19 @@ ${sep}`.trim();
   };
 
   try {
-    const response = await fetch(videoGifURL);
-    if (!response.ok) throw new Error();
-    const videoBuffer = await response.buffer();
-
+    // --- ENVÍO EN FORMATO GIF DIRECTO SIN BUFFER ---
     await conn.sendMessage(m.chat, {
-      video: videoBuffer,
-      gifPlayback: true, // Forzar reproducción tipo GIF
+      video: { url: videoGifURL },
       caption: textoFinal,
       footer: packname,
+      gifPlayback: true, // Fuerza reproducción tipo GIF
+      mimetype: 'video/mp4', // Asegura compatibilidad
       buttons: buttons.length > 0 ? buttons : undefined,
       headerType: 5,
       contextInfo
     }, { quoted: m });
   } catch (e) {
+    // Fallback a imagen
     await conn.sendMessage(m.chat, { 
       image: { url: miniaturaRandom }, 
       caption: textoFinal, 
