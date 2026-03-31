@@ -42,13 +42,16 @@ if (await manejarRespuestasBotones(this, m)) return;
 if (await manejarRespuestasStickers(this, m)) return;
 
 if (m.isGroup) {
-const chat = global.db.data.chats[m.chat]
-if (chat?.primaryBot) {
-const universalWords = ['resetbot', 'resetprimario', 'botreset']
-const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : ''
-if (!universalWords.includes(firstWord) && this?.user?.jid !== chat.primaryBot) return
-}
-}
+        const chat = global.db.data.chats[m.chat]
+        // Si el grupo tiene un bot primario asignado y NO es este bot
+        if (chat?.primaryBot && this.user.jid !== chat.primaryBot) {
+            const universalWords = ['resetbot', 'resetprimario', 'botreset']
+            const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : ''
+            
+            // Si no es un comando de emergencia para resetear el bot, el sub-bot ignora todo
+            if (!universalWords.includes(firstWord)) return 
+        }
+    }
 
     if (global.db.data == null)
         await global.loadDatabase()       
