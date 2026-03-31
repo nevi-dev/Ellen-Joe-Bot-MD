@@ -4,7 +4,7 @@ import path from 'path';
 import fetch from 'node-fetch';
 import axios from 'axios';
 import moment from 'moment-timezone';
-import phoneNumber from 'awesome-phonenumber'; // <-- Importado para la hora
+import phoneNumber from 'awesome-phonenumber';
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
@@ -51,7 +51,6 @@ let handler = async (m, { conn, usedPrefix, text }) => {
 
   let nombre = await conn.getName(m.sender);
 
-  // --- NUEVA LÓGICA DE HORA AUTOMÁTICA ---
   let userTime;
   try {
     const pn = new phoneNumber('+' + m.sender.split('@')[0]);
@@ -60,10 +59,9 @@ let handler = async (m, { conn, usedPrefix, text }) => {
       ? moment().tz(tzList[0]).format('h:mm A') 
       : moment().format('h:mm A');
   } catch {
-    userTime = moment().format('h:mm A'); // Fallback de seguridad
+    userTime = moment().format('h:mm A');
   }
 
-  // Sistema de comandos y categorías
   let comandosPorGrupo = {};
   Object.values(global.plugins).forEach(plugin => {
     if (!plugin.help || !plugin.tags) return;
@@ -91,11 +89,10 @@ let handler = async (m, { conn, usedPrefix, text }) => {
   const gruposPagina = allGroupNames.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
 
   const secciones = gruposPagina.map(groupName => {
-    const commandList = Array.from(comandosPorGrupo[groupName]).sort().map(cmd => `  ○ ${cmd}`).join('\n');
-    return `\n🔷 **${groupName}**\n${commandList}`;
+    const commandList = Array.from(comandosPorGrupo[groupName]).sort().map(cmd => ` ○ ${cmd}`).join('\n');
+    return `\n🔷 *${groupName}*\n${commandList}`;
   }).join('\n');
 
-  // Versión Check
   let localVersion = '1.0.0';
   let updateStatus = '✅ Operativo';
   try {
@@ -113,7 +110,7 @@ ${sep}
 *Dime qué quieres rápido, mi turno termina pronto.*
 
 👤 **Proxy:** ${nombre}
-⌚ **Hora** ${userTime}
+⌚ **Hora:** ${userTime}
 ${sep}
 ⚙️ **𝐒𝐘𝐒𝐓𝐄𝐌 𝐈𝐍𝐅𝐎**
 | 🛠️ **Build:** v${localVersion}
@@ -127,18 +124,36 @@ ${sep}`.trim();
 
   const textoFinal = `${encabezado}\n${secciones}\n\n*— No me pidas nada más fuera de mi horario.*\n*${packname}*`;
 
-  // Botones
-  let buttons = [];
-  if (paginaActual > 1) {
-    buttons.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual - 1}`, buttonText: { displayText: '⬅️ ANTERIOR' }, type: 1 });
-  }
-  if (paginaActual < totalPaginas) {
-    buttons.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual + 1}`, buttonText: { displayText: 'SIGUIENTE ➡️' }, type: 1 });
-  }
-
-  // Multimedia
+  // Multimedia azar
   const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
   const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
+
+  // Botones Nuevos (Native Flow)
+  let buttons = [
+    {
+      name: "quick_reply",
+      buttonParamsJson: JSON.stringify({ display_text: "🔄 REFRESCAR", id: `${usedPrefix}menu` })
+    }
+  ];
+
+  if (paginaActual > 1) {
+    buttons.push({
+      name: "quick_reply",
+      buttonParamsJson: JSON.stringify({ display_text: "⬅️ ANTERIOR", id: `${usedPrefix}menu pagina ${paginaActual - 1}` })
+    });
+  }
+
+  if (paginaActual < totalPaginas) {
+    buttons.push({
+      name: "quick_reply",
+      buttonParamsJson: JSON.stringify({ display_text: "SIGUIENTE ➡️", id: `${usedPrefix}menu pagina ${paginaActual + 1}` })
+    });
+  }
+
+  buttons.push({
+    name: "cta_url",
+    buttonParamsJson: JSON.stringify({ display_text: "🌐 GITHUB", url: redes })
+  });
 
   const contextInfo = {
     mentionedJid: [m.sender],
@@ -156,24 +171,37 @@ ${sep}`.trim();
   };
 
   try {
-    // --- ENVÍO EN FORMATO GIF DIRECTO SIN BUFFER ---
-    await conn.sendMessage(m.chat, {
-      video: { url: videoGifURL },
-      caption: textoFinal,
-      footer: packname,
-      gifPlayback: true, // Fuerza reproducción tipo GIF
-      mimetype: 'video/mp4', // Asegura compatibilidad
-      buttons: buttons.length > 0 ? buttons : undefined,
-      headerType: 5,
-      contextInfo
-    }, { quoted: m });
+    // Preparar el video para el mensaje interactivo
+    const media = await conn.prepareWAMessageMedia({ video: { url: videoGifURL }, gifPlayback: true }, { upload: conn.waUploadToServer });
+
+    const msg = {
+      viewOnceMessage: {
+        message: {
+          interactiveMessage: {
+            body: { text: textoFinal },
+            footer: { text: packname },
+            header: {
+              hasVideoMessage: true,
+              videoMessage: media.videoMessage,
+            },
+            nativeFlowMessage: {
+              buttons: buttons
+            },
+            contextInfo
+          }
+        }
+      }
+    };
+
+    await conn.relayMessage(m.chat, msg, { messageId: m.key.id });
+
   } catch (e) {
-    // Fallback a imagen
+    console.error(e);
+    // Fallback si los botones interactivos fallan (enviará video normal)
     await conn.sendMessage(m.chat, { 
-      image: { url: miniaturaRandom }, 
+      video: { url: videoGifURL }, 
       caption: textoFinal, 
-      footer: packname,
-      buttons: buttons.length > 0 ? buttons : undefined,
+      gifPlayback: true,
       contextInfo 
     }, { quoted: m });
   }
