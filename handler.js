@@ -7,8 +7,6 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js';
-import { manejarRespuestasBotones } from './lib/botones.js';
-import { manejarRespuestasStickers } from './lib/stickers.js';
 
 const { proto } = (await import('@whiskeysockets/baileys')).default
 const isNumber = x => typeof x === 'number' && !isNaN(x)
@@ -35,11 +33,6 @@ if (!chatUpdate) return
 this.pushMessage(chatUpdate.messages).catch(console.error)
 let m = chatUpdate.messages[chatUpdate.messages.length - 1]
 if (!m) return
-
-// Manejo de botones con archivo externo
-if (await manejarRespuestasBotones(this, m)) return;
-// Manejo de stickers con archivo externo
-if (await manejarRespuestasStickers(this, m)) return;
 
 if (m.isGroup) {
         const chat = global.db.data.chats[m.chat]
