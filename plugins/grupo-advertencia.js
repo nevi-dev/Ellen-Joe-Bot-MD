@@ -1,70 +1,44 @@
 const handler = async (m, { conn, text, command, usedPrefix }) => {
-  let who;
-  if (m.isGroup) { 
-    who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text; 
-  } else {
-    return !1 // Este comando solo tiene sentido en grupos
-  }
-
-  if (!who) {
-    const warntext = `⚠️ Etiqueta a alguien o responde a su mensaje para darle una advertencia.`;
-    return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
-  }
-
-  // --- PROTECCIÓN PARA EL DUEÑO ---
-  const isOwner = [conn.user.jid, ...global.owner.map(([number]) => number + '@s.whatsapp.net')].includes(who);
-  if (isOwner) return m.reply(`*Tsk...* 🙄 No puedo advertir al dueño.`);
-
-  // 1. OBTENER LA BASE DE DATOS DEL CHAT (GRUPO)
-  let chat = global.db.data.chats[m.chat];
-  if (!chat) global.db.data.chats[m.chat] = {};
-  
-  // 2. CREAR EL OBJETO DE ADVERTENCIAS DENTRO DEL GRUPO SI NO EXISTE
-  if (!chat.warnedUsers) chat.warnedUsers = {};
-  
-  // 3. INICIALIZAR EL CONTADOR DEL USUARIO EN ESTE GRUPO ESPECÍFICO
-  if (!chat.warnedUsers[who]) chat.warnedUsers[who] = { count: 0 };
-
+// if (m.mentionedJid.includes(conn.user.jid)) return; // Evitar advertir al bot mismo
+const pp = './src/catalogo.jpg'
+let number, ownerNumber, aa, who;
+if (m.isGroup) { 
+who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text; 
+} else who = m.chat;
+  const user = global.db.data.users[who];
+  const usuario = conn.user.jid.split`@`[0] + '@s.whatsapp.net'
+  const bot = global.db.data.settings[conn.user.jid] || {};
   const dReason = 'Sin motivo';
-  const msgtext = text || dReason;
+  const msgtext = text || dReason 
   const sdms = msgtext.replace(/@\d+-?\d* /g, '');
-
-  // SUMAR ADVERTENCIA SOLO EN ESTE GRUPO
-  chat.warnedUsers[who].count += 1;
-  let conteo = chat.warnedUsers[who].count;
-  
-  await m.reply(
-    `🦈 *¡Advertencia Local!* \n\n` +
-    `*Usuario:* *@${who.split`@`[0]}*\n` +
-    `*Motivo:* ${sdms}\n` +
-    `*Advertencias en este grupo:* ${conteo}/3`, 
-    null, { mentions: [who] }
-  );
-
-  // Si llegan a 3 en ESTE grupo, expulsión
-  if (conteo >= 3) {
-    chat.warnedUsers[who].count = 0; // Resetear para ese grupo
-    await m.reply(
-      `Ya te lo advertí 3 veces. 💢\n` +
-      `*@${who.split`@`[0]}* fuera de aquí.`, 
-      null, { mentions: [who] }
-    );
-    
-    try {
-        await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
-    } catch (e) {
-        m.reply('❌ Error: No pude eliminar al usuario (quizás es admin o ya no está).');
-    }
+  const warntext = `${emoji} Etiquete a una persona o responda a un mensaje del grupo para advertir al usuario.`;
+  if (!who) {
+return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
   }
-  
-  return !0;
+
+for (let i = 0; i < global.owner.length; i++) {
+ownerNumber = global.owner[i][0];
+if (usuario.replace(/@s\.whatsapp\.net$/, '') === ownerNumber) {
+aa = ownerNumber + '@s.whatsapp.net'
+await conn.reply(m.chat, `…`, m, { mentions: [aa] })
+return
+}}
+
+  user.warn += 1;
+  await m.reply(`${user.warn == 1 ? `*@${who.split`@`[0]}*` : `*@${who.split`@`[0]}*`} Recibio una advertencia en este grupo!.\nMotivo: ${sdms}\n*Advertencias: ${user.warn}/3*`, null, { mentions: [who] },
+  );
+  if (user.warn >= 3) {
+    user.warn = 0;
+    await m.reply(`${emoji} Te lo adverti varias veces!!!.\n*@${who.split`@`[0]}* Superaste las *3* advertencias, ahora seras eliminado/a.`, null, { mentions: [who] },
+    );
+    await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
+  }
+  return !1;
 };
 
-handler.help = ['warn *@user*'];
-handler.tags = ['admin'];
-handler.command = ['advertir', 'warn'];
-handler.group = true;    
-handler.admin = true;    
-handler.botAdmin = true; 
+handler.command = ['advertir', 'advertencia', 'warn', 'warning'];
+handler.group = true;
+handler.admin = true;
+handler.botAdmin = true;
 
 export default handler;
