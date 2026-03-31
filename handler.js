@@ -342,13 +342,18 @@ if (!universalWords.includes(firstWord) && this?.user?.jid !== chat.primaryBot) 
 
         let user, stats = global.db.data.stats
         if (m) { 
-            // --- NUEVO SISTEMA DE MUTE POR GRUPO (REEMPLAZA AL GLOBAL) ---
             const chat = global.db.data.chats[m.chat]
+            
+            // Verificamos si el usuario está en mute2
             if (chat?.users?.[sender]?.mute2) {
+                // Definimos isBotAdmin aquí mismo para evitar el ReferenceError
+                const bot = (m.isGroup ? (this.chats[m.chat]?.metadata?.participants || []).find(u => this.decodeJid(u.id) == this.user.jid) : {}) || {}
+                const isBotAdmin = bot?.admin || false
+
                 if (isBotAdmin) {
-                    await this.sendMessage(m.chat, { delete: m.key })
+                    await this.sendMessage(m.chat, { delete: m.key }).catch(e => console.error('Error al borrar:', e))
                 }
-                return // <--- Esto es vital: corta la ejecución para que el mensaje "no exista" para el bot
+                return // Corta la ejecución para el mutado
             }
             // -------------------------------------------------------------
 
