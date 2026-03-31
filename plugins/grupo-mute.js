@@ -1,6 +1,4 @@
-import fetch from 'node-fetch'
-
-const handler = async (m, { conn, command, text, groupMetadata }) => {
+const handler = async (m, { conn, command, text }) => {
     let who;
     if (m.isGroup) {
         who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text;
@@ -8,33 +6,29 @@ const handler = async (m, { conn, command, text, groupMetadata }) => {
         who = m.chat;
     }
 
-    // Si no hay objetivo, no hay diversión
     if (!who) return m.reply(`*⚠️ ¿A quién quieres silenciar? Etiqueta a alguien o responde a su mensaje.*`);
 
-    // Accedemos a la base de datos LOCAL del chat
-    const chat = global.db.data.chats[m.chat];
-    if (!chat.users) chat.users = {};
-    if (!chat.users[who]) chat.users[who] = { mauto: false };
+    // Inicialización forzada en la DB global para evitar errores de undefined
+    if (!global.db.data.chats[m.chat].users) global.db.data.chats[m.chat].users = {};
+    if (!global.db.data.chats[m.chat].users[who]) global.db.data.chats[m.chat].users[who] = { muto: false };
 
-    const userInChat = chat.users[who];
-
-    // --- MUTE: Sin piedad ---
+    // --- MUTE: Acción Directa ---
     if (command === 'mute') {
-        // Solo el bot es intocable porque, bueno, si me muteas a mí... ¿quién va a hacer el trabajo?
-        if (who === conn.user.jid) return m.reply('*❌ No puedo mutearme a mí misma, genio. ¿Quién borraría los mensajes entonces?*');
-        
-        if (userInChat.mauto) return m.reply('*🍭 Este usuario ya está en silencio aquí.*');
+        // El bot es el único que se salva, porque si no... ¿quién ejecuta el código?
+        if (who === conn.user.jid) return m.reply('*❌ No puedo mutearme a mí misma. ¿Quién borraría los mensajes entonces?*');
 
-        userInChat.mauto = true;
-        await conn.reply(m.chat, `*🔇 Silencio Total*\n\n@${who.split`@`[0]} ha sido mutado. No importa quién sea, aquí ya no tiene voz.`, m, { mentions: [who] });
+        if (global.db.data.chats[m.chat].users[who].muto) return m.reply('*🍭 Este usuario ya está en la lista negra de este grupo.*');
+
+        global.db.data.chats[m.chat].users[who].muto = true;
+        await conn.reply(m.chat, `*🔇 Silencio Absoluto*\n\n@${who.split`@`[0]} ahora tiene el estado "muto" en la base de datos de este grupo.`, m, { mentions: [who] });
     }
 
     // --- UNMUTE ---
     if (command === 'unmute') {
-        if (!userInChat.mauto) return m.reply('*🍭 Este usuario ya podía hablar. No malgastes mi tiempo.*');
+        if (!global.db.data.chats[m.chat].users[who].muto) return m.reply('*🍭 Este usuario no tiene restricciones activas aquí.*');
 
-        userInChat.mauto = false;
-        await conn.reply(m.chat, `*🔊 Voz Restaurada*\n\n@${who.split`@`[0]} puede volver a hablar... por ahora.`, m, { mentions: [who] });
+        global.db.data.chats[m.chat].users[who].muto = false;
+        await conn.reply(m.chat, `*🔊 Voz Restaurada*\n\nSe ha desactivado el estado "muto" para @${who.split`@`[0]}.`, m, { mentions: [who] });
     }
 };
 
