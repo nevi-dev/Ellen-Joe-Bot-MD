@@ -3,60 +3,68 @@ const handler = async (m, { conn, text, command, usedPrefix }) => {
   if (m.isGroup) { 
     who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text; 
   } else {
-    who = m.chat;
+    return !1 // Este comando solo tiene sentido en grupos
   }
 
-  // Si no hay nadie a quien castigar, no me hagas perder el tiempo
   if (!who) {
-    const warntext = `${emoji} Etiqueta a alguien o responde a su mensaje para darle un correctivo.`;
+    const warntext = `⚠️ Etiqueta a alguien o responde a su mensaje para darle una advertencia.`;
     return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
   }
 
-  // --- PROTECCIÓN PARA EL DUEÑO (ROWNER) ---
-  // Intentar darle un warn al jefe es como intentar morder un ancla... patético.
+  // --- PROTECCIÓN PARA EL DUEÑO ---
   const isOwner = [conn.user.jid, ...global.owner.map(([number]) => number + '@s.whatsapp.net')].includes(who);
-  
-  if (isOwner) {
-    return m.reply(`*Tsk...* 🙄 Intentas advertir al dueño. ¿De verdad eres así de lento? No voy a mover ni un dedo contra él.`);
-  }
+  if (isOwner) return m.reply(`*Tsk...* 🙄 No puedo advertir al dueño.`);
 
-  const user = global.db.data.users[who];
-  if (!user) return m.reply(`❌ Ese usuario ni siquiera está registrado. Qué pérdida de tiempo.`);
+  // 1. OBTENER LA BASE DE DATOS DEL CHAT (GRUPO)
+  let chat = global.db.data.chats[m.chat];
+  if (!chat) global.db.data.chats[m.chat] = {};
+  
+  // 2. CREAR EL OBJETO DE ADVERTENCIAS DENTRO DEL GRUPO SI NO EXISTE
+  if (!chat.warnedUsers) chat.warnedUsers = {};
+  
+  // 3. INICIALIZAR EL CONTADOR DEL USUARIO EN ESTE GRUPO ESPECÍFICO
+  if (!chat.warnedUsers[who]) chat.warnedUsers[who] = { count: 0 };
 
   const dReason = 'Sin motivo';
   const msgtext = text || dReason;
   const sdms = msgtext.replace(/@\d+-?\d* /g, '');
 
-  user.warn += 1;
+  // SUMAR ADVERTENCIA SOLO EN ESTE GRUPO
+  chat.warnedUsers[who].count += 1;
+  let conteo = chat.warnedUsers[who].count;
   
   await m.reply(
-    `🦈 *¡Atención!* *@${who.split`@`[0]}* recibió un aviso.\n\n` +
+    `🦈 *¡Advertencia Local!* \n\n` +
+    `*Usuario:* *@${who.split`@`[0]}*\n` +
     `*Motivo:* ${sdms}\n` +
-    `*Advertencias:* ${user.warn}/3`, 
+    `*Advertencias en este grupo:* ${conteo}/3`, 
     null, { mentions: [who] }
   );
 
-  // Si llegan a 3, me encargo de sacarlos a patadas
-  if (user.warn >= 3) {
-    user.warn = 0; 
+  // Si llegan a 3 en ESTE grupo, expulsión
+  if (conteo >= 3) {
+    chat.warnedUsers[who].count = 0; // Resetear para ese grupo
     await m.reply(
-      `Ya te lo advertí, pero parece que no escuchas. 💢\n` +
-      `*@${who.split`@`[0]}* fuera de aquí. No necesitamos gente molesta.`, 
+      `Ya te lo advertí 3 veces. 💢\n` +
+      `*@${who.split`@`[0]}* fuera de aquí.`, 
       null, { mentions: [who] }
     );
-    await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
+    
+    try {
+        await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
+    } catch (e) {
+        m.reply('❌ Error: No pude eliminar al usuario (quizás es admin o ya no está).');
+    }
   }
   
-  return !1;
+  return !0;
 };
 
-// Documentación para el menú aburrido
-handler.help = ['warn *@user*', 'advertir *@user*'];
+handler.help = ['warn *@user*'];
 handler.tags = ['admin'];
-handler.command = ['advertir', 'advertencia', 'warn', 'warning'];
-
-handler.group = true;    // Solo en grupos, obvio.
-handler.admin = true;    // Solo los admins pueden mandarme.
-handler.botAdmin = true; // Si no soy admin, no puedo echar a nadie, genio.
+handler.command = ['advertir', 'warn'];
+handler.group = true;    
+handler.admin = true;    
+handler.botAdmin = true; 
 
 export default handler;
