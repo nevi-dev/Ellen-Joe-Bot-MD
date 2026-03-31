@@ -2,27 +2,45 @@ const toxicRegex = /g0re|g0r3|g.o.r.e|sap0|sap4|malparido|malparida|malparidos|m
 
 let handler = m => m
 handler.before = async function (m, { conn, isAdmin, isBotAdmin, isOwner }) { 
-if (m.isBaileys && m.fromMe)
-return !0
-if (!m.isGroup)
-return !1
-  let user = global.db.data.users[m.sender]
-  let chat = global.db.data.chats[m.chat]
-  let bot = global.db.data.settings[this.user.jid] || {}
-  let img = 'https://qu.ax/trzJV.jpg'
- const isToxic = toxicRegex.exec(m.text)
+    if (m.isBaileys && m.fromMe) return !0
+    if (!m.isGroup) return !1
 
-if (isToxic && chat.antiToxic && !isOwner && !isAdmin) {
-user.warn += 1
-if (!(user.warn >= 3)) await m.reply(`${user.warn == 1 ? `*@${m.sender.split`@`[0]}*` : `*@${m.sender.split`@`[0]}*`}, Tienes: (${isToxic}) advertencias... tienes: *${user.warn}/3*\n\nde advertencias.`, false, { mentions: [m.sender] })}
+    let chat = global.db.data.chats[m.chat]
+    let user = global.db.data.users[m.sender]
+    
+    // 1. SEGURIDAD: Si el chat o la función antiToxic no existen/están apagados, ignorar.
+    if (!chat || !chat.antiToxic) return !1
 
-if (user.warn >= 3) {
-user.warn = 0
-await m.reply(`'𝙎𝙚𝙧𝙖𝙨 𝙚𝙡𝙞𝙢𝙞𝙣𝙖𝙙𝙤  \n*@${m.sender.split`@`[0]}*`, false, { mentions: [m.sender] })
-user.banned = true
-await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
-//await this.updateBlockStatus(m.sender, 'block')
+    // 2. SEGURIDAD: Inicializar user.warn si no existe para evitar el TypeError
+    if (typeof user.warn === 'undefined') user.warn = 0
+
+    const isToxic = toxicRegex.exec(m.text)
+
+    // Si es tóxico y NO es owner ni admin
+    if (isToxic && !isOwner && !isAdmin) {
+        
+        // Solo actuar si el bot es admin para poder eliminar
+        if (!isBotAdmin) return !1 
+
+        user.warn += 1
+        
+        // Si aún no llega al límite de 3
+        if (user.warn < 3) {
+            await m.reply(`*⚠️ ¡Palabra Prohibida Detectada! @${m.sender.split`@`[0]}*\n\nLa palabra *"${isToxic}"* no está permitida.\nAdvertencias: *${user.warn}/3*\n\n_Si llegas a 3 serás eliminado._`, false, { mentions: [m.sender] })
+            // Opcional: Borrar el mensaje tóxico
+            await conn.sendMessage(m.chat, { delete: m.key })
+        }
+
+        // Si llega a las 3 advertencias
+        if (user.warn >= 3) {
+            user.warn = 0 // Resetear
+            await m.reply(`*❌ ADIÓS @${m.sender.split`@`[0]}*\nSuperaste el límite de advertencias por toxicidad.`, false, { mentions: [m.sender] })
+            
+            // Eliminar del grupo
+            await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
+        }
+    }
+    return !1
 }
-return !1
-}
+
 export default handler
