@@ -1,18 +1,53 @@
-const handler = async (m, {conn, text, command, usedPrefix}) => {
-  const pp = './src/Imagen.jpg';
+const handler = async (m, { conn, text, command, usedPrefix }) => {
   let who;
-  if (m.isGroup) who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text;
-  else who = m.chat;
-  const user = global.db.data.users[who];
-  const bot = global.db.data.settings[conn.user.jid] || {};
-  const warntext = `${emoji} Etiqueta a un usuario para quitarle las advertencias.\n${emoji2} Ejemplo: *${usedPrefix + command} @${global.suittag}*`;
-  if (!who) throw m.reply(warntext, m.chat, {mentions: conn.parseMention(warntext)});
-  if (m.mentionedJid.includes(conn.user.jid)) return;
-  if (user.warn == 0) throw `${emoji2} El usuario tiene 0 advertencias.`;
-  user.warn -= 1;
-  await m.reply(`${user.warn == 1 ? `*@${who.split`@`[0]}*` : `♻️ *@${who.split`@`[0]}*`} Se le quito una advertencia.\n*ADVERTENCIAS ${user.warn}/3*`, null, {mentions: [who]});
+  
+  // Determinamos a quién se le quita el warn
+  if (m.isGroup) {
+    who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text;
+  } else {
+    who = m.chat;
+  }
+
+  // 1. Validaciones de Base de Datos por Grupo
+  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {};
+  let chat = global.db.data.chats[m.chat];
+  
+  // Aseguramos que el objeto de usuarios advertidos exista
+  if (!chat.warnedUsers) chat.warnedUsers = {};
+
+  const warntext = `⚠️ *Etiqueta a un usuario o responde a su mensaje para quitarle una advertencia.*\n\n📌 *Ejemplo:* ${usedPrefix + command} @user`;
+  
+  if (!who) return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
+  
+  // Evitar que el bot se auto-quite warns (innecesario)
+  if (who === conn.user.jid) return;
+
+  // 2. Inicializar al usuario en este grupo si no tiene registro previo
+  if (!chat.warnedUsers[who]) chat.warnedUsers[who] = { count: 0 };
+  
+  let userWarns = chat.warnedUsers[who];
+
+  // 3. Verificar si tiene advertencias (Icono de verificación)
+  if (userWarns.count <= 0) {
+    return m.reply(`✅ *El usuario @${who.split`@`[0]} ya tiene 0 advertencias en este grupo.*`, null, { mentions: [who] });
+  }
+
+  // 4. Restar la advertencia local (Icono de reciclaje/limpieza)
+  userWarns.count -= 1;
+
+  // 5. Respuesta visual con iconos
+  let mensaje = `✨ *¡PERDÓN CONCEDIDO!* ✨\n\n` +
+                `👤 *Usuario:* @${who.split`@`[0]}\n` +
+                `📉 *Estado:* Se le ha retirado 1 advertencia\n` +
+                `📊 *Total ahora:* [ ${userWarns.count} / 3 ]\n\n` +
+                `🛡️ *Sistema de Control de Grupo*`;
+
+  await m.reply(mensaje, null, { mentions: [who] });
 };
-handler.command = ['delwarn', 'unwarn']
+
+handler.help = ['delwarn @user'];
+handler.tags = ['admin'];
+handler.command = ['delwarn', 'unwarn', 'quitarwarn', 'borrarwarn'];
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
