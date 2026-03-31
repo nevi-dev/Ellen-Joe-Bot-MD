@@ -1,54 +1,48 @@
 import fetch from 'node-fetch'
 
-let handler = async (m, { conn, command, text, isAdmin, isOwner }) => {
-    let who
+const handler = async (m, { conn, command, text, groupMetadata }) => {
+    let who;
     if (m.isGroup) {
-        who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text ? text.replace(/[^0-9]/g, '') + '@s.whatsapp.net' : false
+        who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text;
     } else {
-        who = m.chat
+        who = m.chat;
     }
 
-    if (!who) throw `🍬 *Menciona o responde a alguien para ${command === 'mute' ? 'mutar' : 'desmutar'}*`
+    // Si no hay objetivo, no hay diversión
+    if (!who) return m.reply(`*⚠️ ¿A quién quieres silenciar? Etiqueta a alguien o responde a su mensaje.*`);
 
-    // 1. Validaciones de Base de Datos por Grupo
-    if (!global.db.data.chats) global.db.data.chats = {}
-    if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-    let chat = global.db.data.chats[m.chat]
-    
-    // Creamos la lista de silenciados si no existe
-    if (!chat.mutedUsers) chat.mutedUsers = {}
+    // Accedemos a la base de datos LOCAL del chat
+    const chat = global.db.data.chats[m.chat];
+    if (!chat.users) chat.users = {};
+    if (!chat.users[who]) chat.users[who] = { mauto: false };
 
-    // 2. Protecciones
-    const ownerJid = global.owner[0][0] + '@s.whatsapp.net'
-    if (who === ownerJid) throw '🍬 *No puedes mutar al creador del bot*'
-    if (who === conn.user.jid) throw '🍭 *No puedes mutar al propio bot*'
-    
-    const groupMetadata = await conn.groupMetadata(m.chat)
-    const groupOwner = groupMetadata.owner || m.chat.split`-`[0] + '@s.whatsapp.net'
-    if (who === groupOwner) throw '🍭 *No puedes mutar al creador del grupo*'
+    const userInChat = chat.users[who];
 
-    // 3. Lógica de MUTE
+    // --- MUTE: Sin piedad ---
     if (command === 'mute') {
-        if (chat.mutedUsers[who]) throw '🍭 *Este usuario ya está mutado en este grupo*'
+        // Solo el bot es intocable porque, bueno, si me muteas a mí... ¿quién va a hacer el trabajo?
+        if (who === conn.user.jid) return m.reply('*❌ No puedo mutearme a mí misma, genio. ¿Quién borraría los mensajes entonces?*');
         
-        chat.mutedUsers[who] = true
-        await conn.reply(m.chat, `✅ *Usuario mutado exitosamente*\n\nSus mensajes serán eliminados automáticamente en este grupo.`, m, { mentions: [who] })
+        if (userInChat.mauto) return m.reply('*🍭 Este usuario ya está en silencio aquí.*');
+
+        userInChat.mauto = true;
+        await conn.reply(m.chat, `*🔇 Silencio Total*\n\n@${who.split`@`[0]} ha sido mutado. No importa quién sea, aquí ya no tiene voz.`, m, { mentions: [who] });
     }
 
-    // 4. Lógica de UNMUTE
+    // --- UNMUTE ---
     if (command === 'unmute') {
-        if (!chat.mutedUsers[who]) throw '🍭 *Este usuario no está mutado en este grupo*'
-        
-        delete chat.mutedUsers[who]
-        await conn.reply(m.chat, `✨ *Usuario desmutado*\n\nYa puede volver a hablar libremente.`, m, { mentions: [who] })
+        if (!userInChat.mauto) return m.reply('*🍭 Este usuario ya podía hablar. No malgastes mi tiempo.*');
+
+        userInChat.mauto = false;
+        await conn.reply(m.chat, `*🔊 Voz Restaurada*\n\n@${who.split`@`[0]} puede volver a hablar... por ahora.`, m, { mentions: [who] });
     }
-}
+};
 
-handler.help = ['mute', 'unmute']
-handler.tags = ['admin']
-handler.command = ['mute', 'unmute']
-handler.admin = true
-handler.botAdmin = true
-handler.group = true
+handler.help = ['mute', 'unmute'];
+handler.tags = ['admin'];
+handler.command = ['mute', 'unmute'];
+handler.group = true;
+handler.admin = true;
+handler.botAdmin = true;
 
-export default handler
+export default handler;
