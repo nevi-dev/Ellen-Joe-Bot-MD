@@ -339,14 +339,19 @@ if (!universalWords.includes(firstWord) && this?.user?.jid !== chat.primaryBot) 
             if (quequeIndex !== -1)
                 this.msgqueque.splice(quequeIndex, 1)
         }
+
         let user, stats = global.db.data.stats
         if (m) { 
-            let utente = global.db.data.users[sender]
-            if (utente && utente.muto == true) {
-                let bang = m.key.id
-                let cancellazzione = m.key.participant
-                await conn.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: bang, participant: cancellazzione }})
+            // --- NUEVO SISTEMA DE MUTE POR GRUPO (REEMPLAZA AL GLOBAL) ---
+            const chat = global.db.data.chats[m.chat]
+            if (chat?.users?.[sender]?.mute2) {
+                if (isBotAdmin) {
+                    await this.sendMessage(m.chat, { delete: m.key })
+                }
+                return // <--- Esto es vital: corta la ejecución para que el mensaje "no exista" para el bot
             }
+            // -------------------------------------------------------------
+
             if (sender && (user = global.db.data.users[sender])) {
                 user.exp += m.exp
                 user.coin -= m.coin * 1
