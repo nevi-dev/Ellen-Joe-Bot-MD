@@ -1,25 +1,25 @@
 const handler = async (m, { conn, text, command, usedPrefix }) => {
   let who;
   
-  // Determinamos a quién se le quita el warn
+  // Lógica mejorada para detectar al usuario por respuesta (quoted) o mención
   if (m.isGroup) {
-    who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text;
+    who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text ? text.replace(/[^0-9]/g, '') + '@s.whatsapp.net' : false;
   } else {
     who = m.chat;
   }
 
-  // 1. Validaciones de Base de Datos por Grupo
+  // Si no se pudo determinar quién es, mandamos el mensaje de ayuda
+  const warntext = `⚠️ *Etiqueta a un usuario o responde a su mensaje para quitarle una advertencia.*\n\n📌 *Ejemplo:* ${usedPrefix + command} @user`;
+  if (!who) return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
+
+  // 1. Validaciones de Base de Datos por Grupo (Asegura que no tire error)
+  if (!global.db.data.chats) global.db.data.chats = {}; 
   if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {};
-  let chat = global.db.data.chats[m.chat];
   
-  // Aseguramos que el objeto de usuarios advertidos exista
+  let chat = global.db.data.chats[m.chat];
   if (!chat.warnedUsers) chat.warnedUsers = {};
 
-  const warntext = `⚠️ *Etiqueta a un usuario o responde a su mensaje para quitarle una advertencia.*\n\n📌 *Ejemplo:* ${usedPrefix + command} @user`;
-  
-  if (!who) return m.reply(warntext, m.chat, { mentions: conn.parseMention(warntext) });
-  
-  // Evitar que el bot se auto-quite warns (innecesario)
+  // Evitar que el bot se auto-quite warns
   if (who === conn.user.jid) return;
 
   // 2. Inicializar al usuario en este grupo si no tiene registro previo
@@ -27,12 +27,12 @@ const handler = async (m, { conn, text, command, usedPrefix }) => {
   
   let userWarns = chat.warnedUsers[who];
 
-  // 3. Verificar si tiene advertencias (Icono de verificación)
+  // 3. Verificar si tiene advertencias
   if (userWarns.count <= 0) {
     return m.reply(`✅ *El usuario @${who.split`@`[0]} ya tiene 0 advertencias en este grupo.*`, null, { mentions: [who] });
   }
 
-  // 4. Restar la advertencia local (Icono de reciclaje/limpieza)
+  // 4. Restar la advertencia local
   userWarns.count -= 1;
 
   // 5. Respuesta visual con iconos
