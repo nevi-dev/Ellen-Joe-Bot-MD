@@ -1,7 +1,7 @@
 import { getContentType, generateForwardMessageContent, generateWAMessageFromContent } from '@whiskeysockets/baileys';
 
 global.delete = global.delete || [];
-
+// xd
 export async function before(m, { conn, isAdmin, isBotAdmin }) {
     if (isAdmin) return;
     if (!m.isGroup) return;
