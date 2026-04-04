@@ -26,7 +26,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
     let from = m.pushName || await getName(m.sender)
     let who = await getName(userId)
 
-    const apiKey = "causa-ee5ee31dcfc79da4"
+    const apiKey = "Zyzz-1234"
 
     const isNsfw = command === 'waifuh'
     const type = isNsfw ? 'nsfw' : 'sfw'
