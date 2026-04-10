@@ -10,13 +10,12 @@ let handler = async (m, { conn, args }) => {
         userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
     }
 
-    // Validación para que no de error si el usuario no está en la base de datos
-    let user = global.db.data.users[userId] || {};
+    let user = global.db.data.users[userId];
     let name = await conn.getName(userId);
-    let cumpleanos = user.birth || 'No especificado';
-    let genero = user.genre || 'No especificado';
+    let cumpleanos = user.birth || 'No lo ha dicho';
+    let genero = user.genre || 'Desconocido';
     let parejaId = user.marry || null;
-    let parejaText = 'Nadie';
+    let parejaText = 'Nadie (mejor así)';
     let mentions = [userId];
 
     if (parejaId) {
@@ -25,52 +24,54 @@ let handler = async (m, { conn, args }) => {
         mentions.push(parejaId);
     }
 
-    let description = user.description || 'Sin descripción';
+    let description = user.description || 'No hay nada escrito aquí... qué flojera.';
     let exp = user.exp || 0;
     let nivel = user.level || 0;
-    let role = user.role || 'Sin Rango';
+    let role = user.role || 'Novato';
     let coins = user.coin || 0;
     let bankCoins = user.bank || 0;
 
-    // Foto de perfil con URL de respaldo fija (Catbox es muy confiable)
-    let perfil;
-    try {
-        perfil = await conn.profilePictureUrl(userId, 'image');
-    } catch (e) {
-        perfil = 'https://files.catbox.moe/xr2m6u.jpg';
-    }
+    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => 'https://files.catbox.moe/xr2m6u.jpg');
 
+    // Personalidad de Ellen Joe: Cortante, perezosa pero eficiente.
     let profileText = `
-「✿」 *Perfil de* @${userId.split('@')[0]}
-✦ *Edad:* ${user.age || 'Desconocida'}
-♛ *Cumpleaños:* ${cumpleanos}
-⚥ *Género:* ${genero}
-♡ *Casado con:* ${parejaText}
+🦈 *Expediente de Servicio: @${userId.split('@')[0]}*
+> "Ugh, ¿otra vez pidiendo datos? Terminaré esto rápido, mi turno casi acaba..."
 
+*「 Datos del Cliente 」*
+✦ *Edad:* ${user.age || '¿A quién le importa?'}
+♛ *Cumple:* ${cumpleanos}
+⚥ *Género:* ${genero}
+♡ *Pareja:* ${parejaText}
+
+*「 Rendimiento (RPG) 」*
 ✎ *Rango:* ${role}
 ☆ *Exp:* ${exp.toLocaleString()}
 ❖ *Nivel:* ${nivel}
+> *(No te esfuerces demasiado, el exceso de trabajo mata).*
 
-⛁ *Coins Cartera:* ${coins.toLocaleString()} ${global.moneda || ''}
-⛃ *Coins Banco:* ${bankCoins.toLocaleString()} ${global.moneda || ''}
-❁ *Premium:* ${user.premium ? '✅' : '❌'}
+*「 Economía 」*
+⛁ *Cartera:* ${coins.toLocaleString()} ${global.moneda || 'Coins'}
+⛃ *Banco:* ${bankCoins.toLocaleString()} ${global.moneda || 'Coins'}
+❁ *Estatus Premium:* ${user.premium ? '✅ (Vip, supongo)' : '❌ (Cliente promedio)'}
 
-📝 *Descripción:* ${description}
+*「 Notas adicionales 」*
+📝 ${description}
+
+_— Solo no me pidas nada más durante mi descanso..._ 🍭
 `.trim();
 
     await conn.sendMessage(m.chat, { 
         text: profileText,
+        mentions,
         contextInfo: {
             mentionedJid: mentions,
-            isForwarded: true,             // Estructura del comando PLAY
-            forwardingScore: 999,          // Estructura del comando PLAY
             externalAdReply: {
-                title: '✧ Perfil de Usuario ✧',
-                body: global.dev || 'Victoria Housekeeping',
+                title: '🦈 V.H.P.S - Ellen Joe Service',
+                body: '¿Ya terminaste? Quiero un helado.',
                 thumbnailUrl: perfil,
-                sourceUrl: global.redes || 'https://www.whatsapp.com',
                 mediaType: 1,
-                showAdAttribution: true,
+                showAdAttribution: false,
                 renderLargerThumbnail: true
             }
         }
