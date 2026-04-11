@@ -114,7 +114,7 @@ href="https://www.mediafire.com/file/bp2l6cci2p30hjv/Cloud+Shell_1.apk/file"><im
   <summary><b>🚀 Ver pasos para Cloud Shell</b></summary>
 
 ```bash
-git clone git clone https://github.com/nevi-dev/Ellen-Joe-Bot-MD && cd Ellen-Joe-Bot-MD
+git clone https://github.com/nevi-dev/Ellen-Joe-Bot-MD && cd Ellen-Joe-Bot-MD
 ```
 
 ```bash
