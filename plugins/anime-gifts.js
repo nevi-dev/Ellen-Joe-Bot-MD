@@ -2,7 +2,8 @@ import fetch from 'node-fetch'
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
     let mentionedJid = m.mentionedJid || []
-    let userId = mentionedJid.length > 0 ? mentionedJid[0] : (m.quoted ? m.quoted.sender : m.sender)
+    let isSelf = mentionedJid.length === 0 && !m.quoted
+    let userId = isSelf ? m.sender : (mentionedJid.length > 0 ? mentionedJid[0] : m.quoted.sender)
 
     // ✅ Resolver LID a JID normal
     if (userId.endsWith('@lid') || isNaN(userId.split('@')[0])) {
@@ -13,7 +14,6 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         } catch {}
     }
 
-    // ✅ Nombres
     const getName = async (jid) => {
         try {
             const n = await conn.getName(jid)
@@ -24,40 +24,44 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     let from = m.pushName || await getName(m.sender)
     let who = await getName(userId)
 
-    // Configuración de la API
+    // Configuración de APIs
     const apiKey = "Zyzz-1234"
-    const baseURL = "https://rest.apicausas.xyz/api/v1/anime"
+    const apiCausas = "https://rest.apicausas.xyz/api/v1/anime"
+    const apiWaifuPics = "https://api.waifu.pics"
 
-    // Mapeo de interacciones y sus frases
+    // Mapeo de interacciones (SFW y NSFW mezclados según tu lista)
     const interactions = {
-        // SFW
+        // --- SFW (API CAUSAS / WAIFU PICS) ---
+        'waifu': { api: 'waifu.pics', type: 'sfw', str: (f) => `✨ Waifu para \`${f}\`` },
         'awoo': { str: (f) => `\`${f}\` dice: ¡Awoooo! 🐺` },
-        'bite': { str: (f, w) => `\`${f}\` mordió a \`${w}\` 🦷` },
+        'bite': { str: (f, w, s) => s ? `\`${f}\` se mordió solo/a... 🦷` : `\`${f}\` mordió a \`${w}\` 🦷` },
         'blush': { str: (f) => `\`${f}\` se sonrojó 😳` },
-        'bonk': { str: (f, w) => `\`${f}\` le dio un bonk a \`${w}\` 🔨` },
-        'bully': { str: (f, w) => `\`${f}\` le hace bullying a \`${w}\` 👊` },
+        'bonk': { str: (f, w, s) => s ? `\`${f}\` se dio un auto-bonk 🔨` : `\`${f}\` le dio un bonk a \`${w}\` 🔨` },
+        'bully': { str: (f, w, s) => s ? `\`${f}\` se hace bullying...` : `\`${f}\` le hace bullying a \`${w}\` 👊` },
         'cringe': { str: (f) => `\`${f}\` siente cringe... 😬` },
-        'cry': { str: (f, w) => `\`${f}\` está llorando por \`${w}\` 😭` },
-        'cuddle': { str: (f, w) => `\`${f}\` se acurruca con \`${w}\` 🫂` },
-        'dance': { str: (f, w) => `\`${f}\` baila con \`${w}\` 💃` },
-        'glomp': { str: (f, w) => `\`${f}\` se lanzó sobre \`${w}\` ✨` },
-        'handhold': { str: (f, w) => `\`${f}\` tomó la mano de \`${w}\` 🤝` },
+        'cry': { str: (f) => `\`${f}\` está llorando 😭` },
+        'cuddle': { str: (f, w, s) => s ? `\`${f}\` se acurruca solo/a 🫂` : `\`${f}\` se acurruca con \`${w}\` 🫂` },
+        'dance': { str: (f, w, s) => s ? `\`${f}\` baila solo/a ✨` : `\`${f}\` baila con \`${w}\` 💃` },
+        'glomp': { str: (f, w, s) => s ? `\`${f}\` se lanzó al suelo` : `\`${f}\` se lanzó sobre \`${w}\` ✨` },
+        'handhold': { str: (f, w, s) => s ? `\`${f}\` se toma su mano` : `\`${f}\` tomó la mano de \`${w}\` 🤝` },
         'happy': { str: (f) => `\`${f}\` está feliz ✨` },
-        'highfive': { str: (f, w) => `\`${f}\` chocó los cinco con \`${w}\` 🖐️` },
-        'hug': { str: (f, w) => `\`${f}\` le dio un abrazo a \`${w}\` 🤗` },
-        'kill': { str: (f, w) => `\`${f}\` mató a \`${w}\` 💀` },
-        'kiss': { str: (f, w) => `\`${f}\` besó a \`${w}\` 💋` },
-        'lick': { str: (f, w) => `\`${f}\` lamió a \`${w}\` 👅` },
+        'highfive': { str: (f, w, s) => s ? `\`${f}\` chocó los cinco con el aire` : `\`${f}\` chocó los cinco con \`${w}\` 🖐️` },
+        'hug': { str: (f, w, s) => s ? `\`${f}\` se dio un auto-abrazo 🤗` : `\`${f}\` le dio un abrazo a \`${w}\` 🤗` },
+        'kill': { str: (f, w, s) => s ? `\`${f}\` se suicidó 💀` : `\`${f}\` mató a \`${w}\` 💀` },
+        'kiss': { str: (f, w, s) => s ? `\`${f}\` se besó al espejo 💋` : `\`${f}\` besó a \`${w}\` 💋` },
+        'lick': { str: (f, w, s) => s ? `\`${f}\` se está lamiendo` : `\`${f}\` lamió a \`${w}\` 👅` },
         'nom': { str: (f) => `\`${f}\` está comiendo... 😋` },
-        'pat': { str: (f, w) => `\`${f}\` acaricia a \`${w}\` 👋` },
-        'poke': { str: (f, w) => `\`${f}\` picó a \`${w}\` 👉` },
-        'slap': { str: (f, w) => `\`${f}\` le dio una bofetada a \`${w}\` 🖐️` },
-        'smile': { str: (f, w) => `\`${f}\` le sonrió a \`${w}\` 😊` },
+        'pat': { str: (f, w, s) => s ? `\`${f}\` se da palmaditas` : `\`${f}\` acaricia a \`${w}\` 👋` },
+        'poke': { str: (f, w, s) => s ? `\`${f}\` se picó a sí mismo/a` : `\`${f}\` picó a \`${w}\` 👉` },
+        'slap': { str: (f, w, s) => s ? `\`${f}\` se dio una cachetada 🖐️` : `\`${f}\` le dio una bofetada a \`${w}\` 🖐️` },
+        'smile': { str: (f) => `\`${f}\` está sonriendo 😊` },
         'smug': { str: (f) => `\`${f}\` se puso presumido/a 😏` },
-        'wave': { str: (f, w) => `\`${f}\` saluda a \`${w}\` 👋` },
-        'wink': { str: (f, w) => `\`${f}\` le guiñó el ojo a \`${w}\` 😉` },
-        'yeet': { str: (f, w) => `\`${f}\` mandó a volar a \`${w}\` ☄️` },
-        // NSFW
+        'wave': { str: (f) => `\`${f}\` está saludando 👋` },
+        'wink': { str: (f) => `\`${f}\` guiñó el ojo 😉` },
+        'yeet': { str: (f, w, s) => s ? `\`${f}\` se mandó a volar` : `\`${f}\` mandó a volar a \`${w}\` ☄️` },
+
+        // --- NSFW (API CAUSAS / WAIFU PICS) ---
+        'waifuh': { api: 'waifu.pics', type: 'nsfw', action: 'waifu', str: (f) => `🔥 Waifu H para \`${f}\``, nsfw: true },
         'anal': { str: (f, w) => `\`${f}\` le da por el anal a \`${w}\` 🔞`, nsfw: true },
         'blowjob': { str: (f, w) => `\`${f}\` se la mama a \`${w}\` 🔞`, nsfw: true },
         'bondage': { str: (f, w) => `\`${f}\` amarró a \`${w}\` 🔞`, nsfw: true },
@@ -97,7 +101,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         'picar': 'poke', 'bailar': 'dance', 'feliz': 'happy', 'matar': 'kill', 'bofetada': 'slap',
         'comer': 'nom', 'morder': 'bite', 'mano': 'handhold', '5': 'highfive', 'ola': 'wave', 'saludar': 'wave',
         'sonreir': 'smile', 'sonrojarse': 'blush', 'presumir': 'smug', 'acurrucarse': 'cuddle', 'llorar': 'cry',
-        'bullying': 'bully'
+        'bullying': 'bully', 'patear': 'yeet'
     }
 
     const action = aliases[command] || command
@@ -105,7 +109,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     if (!interaction) return
 
-    // 1. Verificación de NSFW para grupos
+    // Verificación NSFW
     if (interaction.nsfw) {
         const chat = global.db.data.chats[m.chat];
         if (m.isGroup && !chat?.nsfw) {
@@ -114,21 +118,34 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     }
 
     try {
-        const type = interaction.nsfw ? 'nsfw' : 'sfw'
-        const response = await fetch(`${baseURL}?action=${action}&type=${type}&apikey=${apiKey}`)
-        const json = await response.json()
-
-        if (!json.status || !json.data) return m.reply('❌ Error en la API o acción no disponible.')
-
-        const mediaUrl = json.data.url
-        const text = interaction.str(from, who)
+        let mediaUrl;
         
-        // Al usar tu API, el archivo llega directamente. 
-        // No es necesario buffer manual si usamos la URL en el mensaje, 
-        // pero para asegurar la compatibilidad con el pipe de tu API:
+        if (interaction.api === 'waifu.pics') {
+            const res = await fetch(`${apiWaifuPics}/${interaction.type}/${interaction.action || action}`)
+            const json = await res.json()
+            mediaUrl = json.url
+        } else {
+            // Usar tu API de apicausas
+            const response = await fetch(`${apiCausas}?action=${action}&apikey=${apiKey}`)
+            const contentType = response.headers.get('content-type')
+
+            if (contentType && contentType.includes('application/json')) {
+                const json = await response.json()
+                mediaUrl = json.data?.url
+            } else {
+                // Si la API devuelve el buffer directo (el error de ftypis que tenías)
+                mediaUrl = await response.buffer()
+            }
+        }
+
+        if (!mediaUrl) return m.reply('❌ No se pudo obtener el contenido.')
+
+        const caption = interaction.str(from, who, isSelf)
+
         await conn.sendMessage(m.chat, {
-            video: { url: mediaUrl }, // O image: { url: mediaUrl } según mimetype
-            caption: text,
+            [typeof mediaUrl === 'string' && (mediaUrl.endsWith('.mp4') || mediaUrl.includes('yuki-wabot')) ? 'video' : 'image']: 
+            typeof mediaUrl === 'string' ? { url: mediaUrl } : mediaUrl,
+            caption: caption,
             gifPlayback: true,
             mentions: [userId]
         }, { quoted: m })
@@ -139,13 +156,11 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     }
 }
 
-handler.help = ['sfw', 'nsfw'].map(v => 'anime ' + v)
+handler.help = ['waifu', 'waifuh', 'anime']
 handler.tags = ['anime']
 handler.command = [
-    // Lista completa basada en available_actions
-    "anal", "awoo", "bite", "blowjob", "blush", "bondage", "bonk", "boobjob", "bukkake", "bully", "creampie", "cringe", "cry", "cuddle", "cum", "cummoth", "cumshot", "dance", "deepthroat", "facesitting", "fap", "fingering", "footjob", "fuck", "futanari", "glomp", "grabboobs", "grope", "handhold", "handjob", "happy", "highfive", "hug", "kill", "kiss", "lick", "lickass", "lickdick", "lickpussy", "nom", "orgy", "pat", "pegging", "poke", "sixnine", "slap", "smile", "smug", "spank", "squirting", "suckboobs", "thighjob", "undress", "wave", "wink", "yaoi", "yeet", "yuri",
-    // Aliases
-    'abrazar', 'beso', 'muak', 'lamer', 'palmada', 'palmadita', 'picar', 'bailar', 'feliz', 'matar', 'bofetada', 'comer', 'morder', 'mano', '5', 'ola', 'saludar', 'sonreir', 'sonrojarse', 'presumir', 'acurrucarse', 'llorar', 'bullying'
+    "waifu", "waifuh", "anal", "awoo", "bite", "blowjob", "blush", "bondage", "bonk", "boobjob", "bukkake", "bully", "creampie", "cringe", "cry", "cuddle", "cum", "cummoth", "cumshot", "dance", "deepthroat", "facesitting", "fap", "fingering", "footjob", "fuck", "futanari", "glomp", "grabboobs", "grope", "handhold", "handjob", "happy", "highfive", "hug", "kill", "kiss", "lick", "lickass", "lickdick", "lickpussy", "nom", "orgy", "pat", "pegging", "poke", "sixnine", "slap", "smile", "smug", "spank", "squirting", "suckboobs", "thighjob", "undress", "wave", "wink", "yaoi", "yeet", "yuri",
+    'abrazar', 'beso', 'muak', 'lamer', 'palmada', 'palmadita', 'picar', 'bailar', 'feliz', 'matar', 'bofetada', 'comer', 'morder', 'mano', '5', 'ola', 'saludar', 'sonreir', 'sonrojarse', 'presumir', 'acurrucarse', 'llorar', 'bullying', 'patear'
 ]
 handler.group = true
 
