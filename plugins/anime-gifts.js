@@ -109,47 +109,45 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     if (interaction.nsfw) {
         const chat = global.db.data.chats[m.chat];
-        if (m.isGroup && !chat?.nsfw) {
-            return m.reply(`*Ugh, qué molesto.* 🔞\nEste lugar es demasiado "limpio". Activa el modo NSFW: *${usedPrefix}nsfw on*`);
-        }
+        if (m.isGroup && !chat?.nsfw) return m.reply(`🔞 Activa el modo NSFW para usar esto.`);
     }
 
     try {
+        const response = await fetch(`${apiCausas}?action=${action}&apikey=${apiKey}`)
         let mediaUrl;
-        
-        if (interaction.api === 'waifu.pics') {
-            const res = await fetch(`${apiWaifuPics}/${interaction.type}/${interaction.action || action}`)
-            const json = await res.json()
-            mediaUrl = json.url
-        } else {
-            const response = await fetch(`${apiCausas}?action=${action}&apikey=${apiKey}`)
-            const contentType = response.headers.get('content-type')
+        let isVideo = false;
 
-            // Si la API devuelve JSON (con la URL)
-            if (contentType && contentType.includes('application/json')) {
-                const json = await response.json()
-                mediaUrl = json.data?.url
-            } else {
-                // Si la API devuelve el VIDEO DIRECTO (Streaming Buffer)
-                mediaUrl = await response.buffer()
-            }
+        const contentType = response.headers.get('content-type')
+
+        if (contentType && contentType.includes('application/json')) {
+            const json = await response.json()
+            mediaUrl = json.data?.url
+        } else {
+            // Si la API devuelve el archivo directamente
+            mediaUrl = await response.buffer()
         }
 
-        if (!mediaUrl) return m.reply('❌ No se pudo obtener el contenido.')
+        // --- LÓGICA DE DETECCIÓN CRÍTICA ---
+        // Verificamos si es un string (URL) y termina en .mp4, o si el buffer es de video
+        if (typeof mediaUrl === 'string') {
+            isVideo = mediaUrl.toLowerCase().split('?')[0].endsWith('.mp4') || mediaUrl.includes('.mp4')
+        } else {
+            isVideo = contentType && contentType.includes('video')
+        }
 
         const caption = interaction.str(from, who, isSelf)
 
+        // Forzamos el tipo de mensaje según la detección
         await conn.sendMessage(m.chat, {
-            [typeof mediaUrl === 'string' && (mediaUrl.endsWith('.mp4') || mediaUrl.includes('yuki-wabot')) ? 'video' : 'image']: 
-            typeof mediaUrl === 'string' ? { url: mediaUrl } : mediaUrl,
+            [isVideo ? 'video' : 'image']: typeof mediaUrl === 'string' ? { url: mediaUrl } : mediaUrl,
             caption: caption,
-            gifPlayback: true,
+            gifPlayback: isVideo, // Si es video, se reproduce como GIF
             mentions: [userId]
         }, { quoted: m })
 
     } catch (e) {
         console.error(e)
-        m.reply('⚠︎ Error al procesar el comando.')
+        m.reply('⚠ Error al obtener el contenido de la API.')
     }
 }
 
