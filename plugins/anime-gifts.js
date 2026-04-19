@@ -5,7 +5,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     let isSelf = mentionedJid.length === 0 && !m.quoted
     let userId = isSelf ? m.sender : (mentionedJid.length > 0 ? mentionedJid[0] : m.quoted.sender)
 
-    // ✅ Resolver LID a JID normal
+    // ✅ Resolver LID a JID normal (Compatibilidad con WhatsApp actual)
     if (userId.endsWith('@lid') || isNaN(userId.split('@')[0])) {
         try {
             const groupMeta = await conn.groupMetadata(m.chat)
@@ -24,14 +24,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     let from = m.pushName || await getName(m.sender)
     let who = await getName(userId)
 
-    // Configuración de APIs
     const apiKey = "Zyzz-1234"
     const apiCausas = "https://rest.apicausas.xyz/api/v1/anime"
     const apiWaifuPics = "https://api.waifu.pics"
 
-    // Mapeo de interacciones (SFW y NSFW mezclados según tu lista)
     const interactions = {
-        // --- SFW (API CAUSAS / WAIFU PICS) ---
+        // --- SFW ---
         'waifu': { api: 'waifu.pics', type: 'sfw', str: (f) => `✨ Waifu para \`${f}\`` },
         'awoo': { str: (f) => `\`${f}\` dice: ¡Awoooo! 🐺` },
         'bite': { str: (f, w, s) => s ? `\`${f}\` se mordió solo/a... 🦷` : `\`${f}\` mordió a \`${w}\` 🦷` },
@@ -60,37 +58,37 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         'wink': { str: (f) => `\`${f}\` guiñó el ojo 😉` },
         'yeet': { str: (f, w, s) => s ? `\`${f}\` se mandó a volar` : `\`${f}\` mandó a volar a \`${w}\` ☄️` },
 
-        // --- NSFW (API CAUSAS / WAIFU PICS) ---
+        // --- NSFW ---
         'waifuh': { api: 'waifu.pics', type: 'nsfw', action: 'waifu', str: (f) => `🔥 Waifu H para \`${f}\``, nsfw: true },
-        'anal': { str: (f, w) => `\`${f}\` le da por el anal a \`${w}\` 🔞`, nsfw: true },
-        'blowjob': { str: (f, w) => `\`${f}\` se la mama a \`${w}\` 🔞`, nsfw: true },
-        'bondage': { str: (f, w) => `\`${f}\` amarró a \`${w}\` 🔞`, nsfw: true },
-        'boobjob': { str: (f, w) => `\`${f}\` le hace un ruso a \`${w}\` 🔞`, nsfw: true },
-        'bukkake': { str: (f, w) => `\`${f}\` llenó de leche a \`${w}\` 🔞`, nsfw: true },
-        'creampie': { str: (f, w) => `\`${f}\` se vino dentro de \`${w}\` 🔞`, nsfw: true },
-        'cum': { str: (f) => `\`${f}\` se está viniendo... 🔞`, nsfw: true },
-        'cummoth': { str: (f, w) => `\`${f}\` le llenó la boca a \`${w}\` 🔞`, nsfw: true },
-        'cumshot': { str: (f, w) => `\`${f}\` se vino sobre \`${w}\` 🔞`, nsfw: true },
-        'deepthroat': { str: (f, w) => `\`${f}\` le hace garganta profunda a \`${w}\` 🔞`, nsfw: true },
-        'facesitting': { str: (f, w) => `\`${f}\` se sentó en la cara de \`${w}\` 🔞`, nsfw: true },
-        'fap': { str: (f) => `\`${f}\` se está pajeando 🔞`, nsfw: true },
-        'fingering': { str: (f, w) => `\`${f}\` está dedeando a \`${w}\` 🔞`, nsfw: true },
-        'footjob': { str: (f, w) => `\`${f}\` usa sus pies con \`${w}\` 🔞`, nsfw: true },
-        'fuck': { str: (f, w) => `\`${f}\` se está follando a \`${w}\` 🔞`, nsfw: true },
+        'anal': { str: (f, w, s) => s ? `\`${f}\` se está dando auto-anal... ¿cómo? 🔞` : `\`${f}\` le da por el anal a \`${w}\` 🔞`, nsfw: true },
+        'blowjob': { str: (f, w, s) => s ? `\`${f}\` está... ¿intentando automamársela? 🔞` : `\`${f}\` se la mama a \`${w}\` 🔞`, nsfw: true },
+        'bondage': { str: (f, w, s) => s ? `\`${f}\` se amarró a sí mismo/a 🔞` : `\`${f}\` amarró a \`${w}\` 🔞`, nsfw: true },
+        'boobjob': { str: (f, w, s) => s ? `\`${f}\` se hace un ruso a sí mismo/a 🔞` : `\`${f}\` le hace un ruso a \`${w}\` 🔞`, nsfw: true },
+        'bukkake': { str: (f, w, s) => s ? `\`${f}\` se bañó en su propia leche 🔞` : `\`${f}\` llenó de leche a \`${w}\` 🔞`, nsfw: true },
+        'creampie': { str: (f, w, s) => s ? `\`${f}\` se vino dentro de... ¿él mismo? 🔞` : `\`${f}\` se vino dentro de \`${w}\` 🔞`, nsfw: true },
+        'cum': { str: (f, w, s) => s ? `\`${f}\` se está viniendo solo/a... 🔞` : `\`${f}\` se vino sobre \`${w}\` 🔞`, nsfw: true },
+        'cummoth': { str: (f, w, s) => s ? `\`${f}\` tiene la boca llena de su leche 🔞` : `\`${f}\` le llenó la boca a \`${w}\` 🔞`, nsfw: true },
+        'cumshot': { str: (f, w, s) => s ? `\`${f}\` se vino al aire 🔞` : `\`${f}\` se vino sobre \`${w}\` 🔞`, nsfw: true },
+        'deepthroat': { str: (f, w, s) => s ? `\`${f}\` está practicando garganta profunda 🔞` : `\`${f}\` le hace garganta profunda a \`${w}\` 🔞`, nsfw: true },
+        'facesitting': { str: (f, w, s) => s ? `\`${f}\` se sentó en su propia mano 🔞` : `\`${f}\` se sentó en la cara de \`${w}\` 🔞`, nsfw: true },
+        'fap': { str: (f) => `\`${f}\` se está pajeando intensamente 🔞`, nsfw: true },
+        'fingering': { str: (f, w, s) => s ? `\`${f}\` se está explorando solo/a 🔞` : `\`${f}\` está dedeando a \`${w}\` 🔞`, nsfw: true },
+        'footjob': { str: (f, w, s) => s ? `\`${f}\` se toca con sus propios pies 🔞` : `\`${f}\` usa sus pies con \`${w}\` 🔞`, nsfw: true },
+        'fuck': { str: (f, w, s) => s ? `\`${f}\` se está dando placer solo/a 🔞` : `\`${f}\` se está follando a \`${w}\` 🔞`, nsfw: true },
         'futanari': { str: (f) => `Futanari para \`${f}\` 🔞`, nsfw: true },
-        'grabboobs': { str: (f, w) => `\`${f}\` le agarra las tetas a \`${w}\` 🔞`, nsfw: true },
-        'grope': { str: (f, w) => `\`${f}\` está manoseando a \`${w}\` 🔞`, nsfw: true },
-        'handjob': { str: (f, w) => `\`${f}\` le hace una paja a \`${w}\` 🔞`, nsfw: true },
-        'lickass': { str: (f, w) => `\`${f}\` le lame el culo a \`${w}\` 🔞`, nsfw: true },
-        'lickdick': { str: (f, w) => `\`${f}\` le lame el pene a \`${w}\` 🔞`, nsfw: true },
-        'lickpussy': { str: (f, w) => `\`${f}\` le lame la vagina a \`${w}\` 🔞`, nsfw: true },
-        'orgy': { str: (f) => `¡Orgía con \`${f}\`! 🔞`, nsfw: true },
-        'pegging': { str: (f, w) => `\`${f}\` le hace pegging a \`${w}\` 🔞`, nsfw: true },
-        'sixnine': { str: (f, w) => `\`${f}\` hace un 69 con \`${w}\` 🔞`, nsfw: true },
-        'spank': { str: (f, w) => `\`${f}\` le da nalgadas a \`${w}\` 🔞`, nsfw: true },
-        'squirting': { str: (f, w) => `\`${f}\` hizo squirt sobre \`${w}\` 🔞`, nsfw: true },
-        'suckboobs': { str: (f, w) => `\`${f}\` le chupa los pechos a \`${w}\` 🔞`, nsfw: true },
-        'thighjob': { str: (f, w) => `\`${f}\` usa sus muslos con \`${w}\` 🔞`, nsfw: true },
+        'grabboobs': { str: (f, w, s) => s ? `\`${f}\` se agarra sus propias tetas 🔞` : `\`${f}\` le agarra las tetas a \`${w}\` 🔞`, nsfw: true },
+        'grope': { str: (f, w, s) => s ? `\`${f}\` se está manoseando solo/a 🔞` : `\`${f}\` está manoseando a \`${w}\` 🔞`, nsfw: true },
+        'handjob': { str: (f, w, s) => s ? `\`${f}\` se está haciendo una paja 🔞` : `\`${f}\` le hace una paja a \`${w}\` 🔞`, nsfw: true },
+        'lickass': { str: (f, w, s) => s ? `\`${f}\` intenta lamerse el culo 🔞` : `\`${f}\` le lame el culo a \`${w}\` 🔞`, nsfw: true },
+        'lickdick': { str: (f, w, s) => s ? `\`${f}\` se lame su propio miembro 🔞` : `\`${f}\` le lame el pene a \`${w}\` 🔞`, nsfw: true },
+        'lickpussy': { str: (f, w, s) => s ? `\`${f}\` se lame su propia vagina 🔞` : `\`${f}\` le lame la vagina a \`${w}\` 🔞`, nsfw: true },
+        'orgy': { str: (f) => `¡Orgía salvaje con \`${f}\`! 🔞`, nsfw: true },
+        'pegging': { str: (f, w, s) => s ? `\`${f}\` se está auto-pegging? 🔞` : `\`${f}\` le hace pegging a \`${w}\` 🔞`, nsfw: true },
+        'sixnine': { str: (f, w, s) => s ? `\`${f}\` está muy flexible hoy 🔞` : `\`${f}\` hace un 69 con \`${w}\` 🔞`, nsfw: true },
+        'spank': { str: (f, w, s) => s ? `\`${f}\` se dio una nalgada 🔞` : `\`${f}\` le da nalgadas a \`${w}\` 🔞`, nsfw: true },
+        'squirting': { str: (f, w, s) => s ? `\`${f}\` hizo squirt solo/a 🔞` : `\`${f}\` hizo squirt sobre \`${w}\` 🔞`, nsfw: true },
+        'suckboobs': { str: (f, w, s) => s ? `\`${f}\` se chupa sus propios pechos 🔞` : `\`${f}\` le chupa los pechos a \`${w}\` 🔞`, nsfw: true },
+        'thighjob': { str: (f, w, s) => s ? `\`${f}\` usa sus muslos para él mismo 🔞` : `\`${f}\` usa sus muslos con \`${w}\` 🔞`, nsfw: true },
         'undress': { str: (f) => `\`${f}\` se está desvistiendo... 🔞`, nsfw: true },
         'yaoi': { str: (f) => `Yaoi para \`${f}\` 🔞`, nsfw: true },
         'yuri': { str: (f) => `Yuri para \`${f}\` 🔞`, nsfw: true }
@@ -109,11 +107,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     if (!interaction) return
 
-    // Verificación NSFW
     if (interaction.nsfw) {
         const chat = global.db.data.chats[m.chat];
         if (m.isGroup && !chat?.nsfw) {
-            return m.reply(`*Ugh, qué molesto.* 🔞\nEste lugar es demasiado "limpio". Si quieres que trabaje, activa el modo NSFW: *${usedPrefix}nsfw on*`);
+            return m.reply(`*Ugh, qué molesto.* 🔞\nEste lugar es demasiado "limpio". Activa el modo NSFW: *${usedPrefix}nsfw on*`);
         }
     }
 
@@ -125,15 +122,15 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             const json = await res.json()
             mediaUrl = json.url
         } else {
-            // Usar tu API de apicausas
             const response = await fetch(`${apiCausas}?action=${action}&apikey=${apiKey}`)
             const contentType = response.headers.get('content-type')
 
+            // Si la API devuelve JSON (con la URL)
             if (contentType && contentType.includes('application/json')) {
                 const json = await response.json()
                 mediaUrl = json.data?.url
             } else {
-                // Si la API devuelve el buffer directo (el error de ftypis que tenías)
+                // Si la API devuelve el VIDEO DIRECTO (Streaming Buffer)
                 mediaUrl = await response.buffer()
             }
         }
