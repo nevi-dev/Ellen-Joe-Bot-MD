@@ -21,7 +21,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     isForwarded: true,
     forwardingScore: 999,
     externalAdReply: {
-      title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥ𝙋ＩＮ𝙂',
+      title: '🦈 𝙑𝙄𝘾𝙏𝙊ＲＩ𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥＰＩＮ𝙂',
       body: `— Suspiro... ¿Qué quieres ahora, ${name}?`,
       thumbnail: global.icons, 
       sourceUrl: global.redes,
@@ -31,7 +31,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   };
 
   if (!args[0]) {
-    return conn.reply(m.chat, `*— (Bostezo)*... ¿Qué vas a pedir?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger*`, m, { contextInfo });
+    return conn.reply(m.chat, `*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger*`, m, { contextInfo });
   }
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
@@ -47,43 +47,25 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
       if (res.status && res.data.download.url) {
         const { title, download: { url: downloadUrl } } = res.data;
+        
+        // Búsqueda rápida para metadatos
         const search = await yts(query);
-        const video = search.videos?.[0];
-        const uploader = video?.author?.name || "Victoria Housekeeping";
-        const thumbUrl = video?.thumbnail;
+        const uploader = search.videos?.[0]?.author?.name || "Victoria Housekeeping";
 
         const fileName = `${Date.now()}`;
         const inputPath = path.join(tmpDir, `${fileName}_in`);
-        const thumbPath = path.join(tmpDir, `${fileName}_thumb.jpg`);
         const outputPath = path.join(tmpDir, `${fileName}.${type === 'audio' ? 'm4a' : 'mp4'}`);
 
-        // Descarga de archivos
-        const [fileRes, thumbRes] = await Promise.all([
-          axios({ url: downloadUrl, method: 'GET', responseType: 'stream' }),
-          axios({ url: thumbUrl, method: 'GET', responseType: 'stream' }).catch(() => null)
-        ]);
-
+        // Descarga directa
+        const fileRes = await axios({ url: downloadUrl, method: 'GET', responseType: 'stream' });
         const writer = fs.createWriteStream(inputPath);
         fileRes.data.pipe(writer);
         await new Promise(res => writer.on('finish', res));
 
-        if (thumbRes) {
-            const thumbWriter = fs.createWriteStream(thumbPath);
-            thumbRes.data.pipe(thumbWriter);
-            await new Promise(res => thumbWriter.on('finish', res));
-        }
-
         if (type === 'audio') {
-          // Comando robusto: Re-codificamos a AAC (muy rápido) para asegurar que pegue la imagen y los metadatos sin errores
-          let ffmpegCmd = `ffmpeg -i "${inputPath}" `;
-          if (fs.existsSync(thumbPath)) {
-            ffmpegCmd += `-i "${thumbPath}" -map 0:0 -map 1:0 -c:a aac -b:a 128k -disposition:v:0 attached_pic `;
-          } else {
-            ffmpegCmd += `-c:a aac -b:a 128k `;
-          }
-          ffmpegCmd += `-metadata title="${title}" -metadata artist="${uploader}" -metadata album="Ellen Joe Service" -movflags +faststart "${outputPath}"`;
-
-          await execPromise(ffmpegCmd);
+          // REMUX RÁPIDO: Repara duración + añade metadatos de texto sin tocar el audio (ultra ligero)
+          // -c copy asegura que no haya pérdida de calidad ni peso extra
+          await execPromise(`ffmpeg -i "${inputPath}" -c copy -metadata title="${title}" -metadata artist="${uploader}" -metadata album="Ellen Joe Service" -movflags +faststart "${outputPath}"`);
 
           await conn.sendMessage(m.chat, { 
             audio: fs.readFileSync(outputPath), 
@@ -100,15 +82,16 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
           }, { quoted: m });
         }
 
-        // Limpieza de archivos
-        [inputPath, thumbPath, outputPath].forEach(p => { if (fs.existsSync(p)) fs.unlinkSync(p); });
+        // Limpieza
+        if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
         await m.react("✅");
 
       }
     } catch (error) {
-      console.error("Error en Handler:", error);
+      console.error(error);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Algo salió mal internamente.`, m);
+      return conn.reply(m.chat, `*— Tsk...* Algo salió mal.`, m);
     }
     return;
   }
@@ -127,7 +110,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     footer: 'Victoria Housekeeping Service',
     buttons: [
       { buttonId: `${usedPrefix}play audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
-      { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑Ｉ𝘿Ｅ𝙊' }, type: 1 }
+      { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
     ],
     headerType: 4,
     contextInfo
