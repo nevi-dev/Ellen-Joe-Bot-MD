@@ -21,17 +21,17 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     isForwarded: true,
     forwardingScore: 999,
     externalAdReply: {
-      title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+      title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥ𝙋ＩＮ𝙂',
       body: `— Suspiro... ¿Qué quieres ahora, ${name}?`,
-      thumbnail: icons, 
-      sourceUrl: redes,
+      thumbnail: global.icons, 
+      sourceUrl: global.redes,
       mediaType: 1,
       renderLargerThumbnail: false
     }
   };
 
   if (!args[0]) {
-    return conn.reply(m.chat, `*— (Bostezo)*... ¿Viniste a pedirme algo sin siquiera saber qué?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger*`, m, { contextInfo });
+    return conn.reply(m.chat, `*— (Bostezo)*... ¿Qué vas a pedir?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}play *Linger*`, m, { contextInfo });
   }
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
@@ -46,32 +46,43 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       const res = response.data;
 
       if (res.status && res.data.download.url) {
-        const { title, uploader: apiUploader, download: { url: downloadUrl } } = res.data;
-        
+        const { title, download: { url: downloadUrl } } = res.data;
         const search = await yts(query);
-        const uploader = apiUploader || search.videos?.[0]?.author?.name || "Unknown";
+        const video = search.videos?.[0];
+        const uploader = video?.author?.name || "Victoria Housekeeping";
+        const thumbUrl = video?.thumbnail;
 
         const fileName = `${Date.now()}`;
-        const inputPath = path.join(tmpDir, `${fileName}_input`);
-        
-        // Para notas de voz, usaremos .opus o .m4a
-        const outputExt = type === 'audio' ? 'm4a' : 'mp4';
-        const outputPath = path.join(tmpDir, `${fileName}.${outputExt}`);
+        const inputPath = path.join(tmpDir, `${fileName}_in`);
+        const thumbPath = path.join(tmpDir, `${fileName}_thumb.jpg`);
+        const outputPath = path.join(tmpDir, `${fileName}.${type === 'audio' ? 'm4a' : 'mp4'}`);
 
-        const fileRes = await axios({ url: downloadUrl, method: 'GET', responseType: 'stream' });
+        // Descarga de Audio/Video e Imagen
+        const [fileRes, thumbRes] = await Promise.all([
+          axios({ url: downloadUrl, method: 'GET', responseType: 'stream' }),
+          axios({ url: thumbUrl, method: 'GET', responseType: 'stream' })
+        ]);
+
         const writer = fs.createWriteStream(inputPath);
         fileRes.data.pipe(writer);
-        await new Promise((resolve) => writer.on('finish', resolve));
+        const thumbWriter = fs.createWriteStream(thumbPath);
+        thumbRes.data.pipe(thumbWriter);
+
+        await Promise.all([
+          new Promise(res => writer.on('finish', res)),
+          new Promise(res => thumbWriter.on('finish', res))
+        ]);
 
         if (type === 'audio') {
-          // Copiamos el audio manteniendo la calidad
-          await execPromise(`ffmpeg -i "${inputPath}" -c:a copy "${outputPath}"`);
+          // FFmpeg: Une audio + miniatura + metadatos (Copy para no perder calidad/peso)
+          // Usamos disposición de portada para que WhatsApp la lea
+          await execPromise(`ffmpeg -i "${inputPath}" -i "${thumbPath}" -map 0:0 -map 1:0 -c copy -disposition:v:0 attached_pic -metadata title="${title}" -metadata artist="${uploader}" -metadata album="Ellen Joe Service" -movflags +faststart "${outputPath}"`);
 
           await conn.sendMessage(m.chat, { 
             audio: fs.readFileSync(outputPath), 
-            mimetype: 'audio/mp4', // Mimetype para que sea compatible
-            ptt: true,             // <--- ESTO LO CONVIERTE EN NOTA DE VOZ
-            fileName: `${title}.m4a` 
+            mimetype: 'audio/mp4', 
+            fileName: `${title}.m4a`,
+            ptt: false 
           }, { quoted: m });
           
         } else {
@@ -82,15 +93,15 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
           }, { quoted: m });
         }
 
-        if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
-        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-
+        // Limpieza
+        [inputPath, thumbPath, outputPath].forEach(p => { if (fs.existsSync(p)) fs.unlinkSync(p); });
         await m.react("✅");
+
       }
     } catch (error) {
       console.error(error);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Falló el servicio.`, m);
+      return conn.reply(m.chat, `*— Tsk...* Error de servicio.`, m);
     }
     return;
   }
@@ -109,7 +120,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     footer: 'Victoria Housekeeping Service',
     buttons: [
       { buttonId: `${usedPrefix}play audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
-      { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
+      { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑Ｉ𝘿𝙀𝙊' }, type: 1 }
     ],
     headerType: 4,
     contextInfo
