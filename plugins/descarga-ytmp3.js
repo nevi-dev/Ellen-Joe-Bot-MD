@@ -18,7 +18,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
         forwardingScore: 999,
         forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
         externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥ𝙋𝙄𝙉𝙂',
+            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍Ｉ𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥ𝙋𝙄𝙉𝙂',
             body: `✦ ¿Otra vez tú, ${name}? Ya estoy trabajando...`, 
             thumbnail: global.icons, 
             sourceUrl: global.redes, 
@@ -36,11 +36,11 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
         );
     }
 
-    await conn.reply(m.chat, `✦ *Procesando...* Estoy conectando con el servidor. No me presiones.`, m, { contextInfo, quoted: m });
+    await conn.reply(m.chat, `✦ *Procesando...* Generando tu nota de voz. Ten paciencia.`, m, { contextInfo, quoted: m });
     await m.react("🎧");
 
     try {
-        // Petición única a API Causas
+        // Petición única a API Causas (Tipo Audio)
         const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(url)}&type=audio&apikey=${API_KEY}`);
         const res = response.data;
 
@@ -50,24 +50,25 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
             
             await m.react("📥");
 
-            // Verificar tamaño para decidir si enviar como Audio o Documento
+            // Verificar tamaño
             const checkHeader = await axios.head(downloadUrl);
             const fileSizeMb = (checkHeader.headers['content-length'] || 0) / (1024 * 1024);
 
             if (fileSizeMb > SIZE_LIMIT_MB) {
                 await conn.sendMessage(m.chat, {
                     document: { url: downloadUrl },
-                    fileName: `${title}.mp3`,
-                    mimetype: 'audio/mpeg',
-                    caption: `🦈 *Pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nSupera el límite de audio directo, así que va como documento.\n\n🎵 *Archivo:* ${title}`
+                    fileName: `${title}.m4a`,
+                    mimetype: 'audio/mp4',
+                    caption: `🦈 *Demasiado largo...* (${fileSizeMb.toFixed(2)} MB).\n\nComo nota de voz sería demasiado, así que aquí tienes el archivo.\n\n🎵 *Archivo:* ${title}`
                 }, { quoted: m });
                 await m.react("📄");
             } else {
+                // ENVÍO COMO NOTA DE VOZ (Nota amarilla)
                 await conn.sendMessage(m.chat, { 
                     audio: { url: downloadUrl }, 
-                    mimetype: 'audio/mpeg', 
-                    fileName: `${title}.mp3`,
-                    ptt: false 
+                    mimetype: 'audio/mp4', // Compatible con el M4A de tu API
+                    ptt: true,             // <--- ESTO ACTIVA LA NOTA AMARILLA
+                    fileName: `${title}.m4a`
                 }, { quoted: m });
                 await m.react("✅");
             }
@@ -79,7 +80,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     } catch (error) {
         console.error("Error API Causas:", error.message);
         await m.react("❌");
-        await conn.reply(m.chat, `🦈 *Tsk...* Hubo un problema con la API de Causas. El enlace no sirve o mi llave se quedó sin energía.`, m, { contextInfo });
+        await conn.reply(m.chat, `🦈 *Tsk...* El servidor está fallando o el enlace es basura. Inténtalo más tarde.`, m, { contextInfo });
     }
 };
 
