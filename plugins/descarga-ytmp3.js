@@ -18,7 +18,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
         forwardingScore: 999,
         forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
         externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥ𝙋Ｉ𝙉𝙂',
+            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥ𝙋𝙄𝙉𝙂',
             body: `✦ ¿Otra vez tú, ${name}? Ya estoy trabajando...`, 
             thumbnail: global.icons, 
             sourceUrl: global.redes, 
@@ -30,13 +30,13 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     if (!url) {
         return conn.reply(
             m.chat,
-            `🦈 *— (Bostezo)*... Dame un enlace de YouTube.\n\n_Uso: ${usedPrefix + command} https://youtu.be/video_`,
+            `🦈 *— (Bostezo)*... Dame un enlace de YouTube. No me hagas perder el tiempo.\n\n_Uso: ${usedPrefix + command} https://youtu.be/video_`,
             m,
             { contextInfo, quoted: m }
         );
     }
 
-    await conn.reply(m.chat, `✦ *Procesando...* Preparando tu audio.`, m, { contextInfo, quoted: m });
+    await conn.reply(m.chat, `✦ *Procesando...* Estoy conectando con el servidor. No me presiones.`, m, { contextInfo, quoted: m });
     await m.react("🎧");
 
     try {
@@ -50,7 +50,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
             
             await m.react("📥");
 
-            // Verificar tamaño
+            // Verificar tamaño para decidir si enviar como Audio o Documento
             const checkHeader = await axios.head(downloadUrl);
             const fileSizeMb = (checkHeader.headers['content-length'] || 0) / (1024 * 1024);
 
@@ -59,28 +59,27 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     document: { url: downloadUrl },
                     fileName: `${title}.mp3`,
                     mimetype: 'audio/mpeg',
-                    caption: `🦈 *Pesado...* (${fileSizeMb.toFixed(2)} MB).\n\n🎵 *Archivo:* ${title}`
+                    caption: `🦈 *Pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nSupera el límite de audio directo, así que va como documento.\n\n🎵 *Archivo:* ${title}`
                 }, { quoted: m });
                 await m.react("📄");
             } else {
-                // ENVÍO COMO AUDIO NORMAL
                 await conn.sendMessage(m.chat, { 
                     audio: { url: downloadUrl }, 
-                    mimetype: 'audio/mpeg', // Forzamos este mime para que WhatsApp lo trate como audio
+                    mimetype: 'audio/mpeg', 
                     fileName: `${title}.mp3`,
-                    ptt: false  // <--- IMPORTANTE: ptt false para audio normal (con barra de tiempo)
+                    ptt: false 
                 }, { quoted: m });
                 await m.react("✅");
             }
 
         } else {
-            throw new Error("API Error");
+            throw new Error("API devolvió estado falso");
         }
 
     } catch (error) {
-        console.error(error);
+        console.error("Error API Causas:", error.message);
         await m.react("❌");
-        await conn.reply(m.chat, `🦈 *Tsk...* Hubo un problema al obtener el audio.`, m, { contextInfo });
+        await conn.reply(m.chat, `🦈 *Tsk...* Hubo un problema con la API de Causas. El enlace no sirve o mi llave se quedó sin energía.`, m, { contextInfo });
     }
 };
 
@@ -88,5 +87,6 @@ handler.help = ['ytmp3 <link>'];
 handler.tags = ['descargas'];
 handler.command = ['ytmp3'];
 handler.register = true;
+handler.limit = true;
 
 export default handler;
