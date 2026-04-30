@@ -57,26 +57,33 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         const thumbPath = path.join(tmpDir, `${fileName}_thumb.jpg`);
         const outputPath = path.join(tmpDir, `${fileName}.${type === 'audio' ? 'm4a' : 'mp4'}`);
 
-        // Descarga de Audio/Video e Imagen
+        // Descarga de archivos
         const [fileRes, thumbRes] = await Promise.all([
           axios({ url: downloadUrl, method: 'GET', responseType: 'stream' }),
-          axios({ url: thumbUrl, method: 'GET', responseType: 'stream' })
+          axios({ url: thumbUrl, method: 'GET', responseType: 'stream' }).catch(() => null)
         ]);
 
         const writer = fs.createWriteStream(inputPath);
         fileRes.data.pipe(writer);
-        const thumbWriter = fs.createWriteStream(thumbPath);
-        thumbRes.data.pipe(thumbWriter);
+        await new Promise(res => writer.on('finish', res));
 
-        await Promise.all([
-          new Promise(res => writer.on('finish', res)),
-          new Promise(res => thumbWriter.on('finish', res))
-        ]);
+        if (thumbRes) {
+            const thumbWriter = fs.createWriteStream(thumbPath);
+            thumbRes.data.pipe(thumbWriter);
+            await new Promise(res => thumbWriter.on('finish', res));
+        }
 
         if (type === 'audio') {
-          // FFmpeg: Une audio + miniatura + metadatos (Copy para no perder calidad/peso)
-          // Usamos disposición de portada para que WhatsApp la lea
-          await execPromise(`ffmpeg -i "${inputPath}" -i "${thumbPath}" -map 0:0 -map 1:0 -c copy -disposition:v:0 attached_pic -metadata title="${title}" -metadata artist="${uploader}" -metadata album="Ellen Joe Service" -movflags +faststart "${outputPath}"`);
+          // Comando robusto: Re-codificamos a AAC (muy rápido) para asegurar que pegue la imagen y los metadatos sin errores
+          let ffmpegCmd = `ffmpeg -i "${inputPath}" `;
+          if (fs.existsSync(thumbPath)) {
+            ffmpegCmd += `-i "${thumbPath}" -map 0:0 -map 1:0 -c:a aac -b:a 128k -disposition:v:0 attached_pic `;
+          } else {
+            ffmpegCmd += `-c:a aac -b:a 128k `;
+          }
+          ffmpegCmd += `-metadata title="${title}" -metadata artist="${uploader}" -metadata album="Ellen Joe Service" -movflags +faststart "${outputPath}"`;
+
+          await execPromise(ffmpegCmd);
 
           await conn.sendMessage(m.chat, { 
             audio: fs.readFileSync(outputPath), 
@@ -93,15 +100,15 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
           }, { quoted: m });
         }
 
-        // Limpieza
+        // Limpieza de archivos
         [inputPath, thumbPath, outputPath].forEach(p => { if (fs.existsSync(p)) fs.unlinkSync(p); });
         await m.react("✅");
 
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error en Handler:", error);
       await m.react("❌");
-      return conn.reply(m.chat, `*— Tsk...* Error de servicio.`, m);
+      return conn.reply(m.chat, `*— Tsk...* Algo salió mal internamente.`, m);
     }
     return;
   }
@@ -120,7 +127,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     footer: 'Victoria Housekeeping Service',
     buttons: [
       { buttonId: `${usedPrefix}play audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
-      { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑Ｉ𝘿𝙀𝙊' }, type: 1 }
+      { buttonId: `${usedPrefix}play video ${video.url}`, buttonText: { displayText: '🎬 𝙑Ｉ𝘿Ｅ𝙊' }, type: 1 }
     ],
     headerType: 4,
     contextInfo
