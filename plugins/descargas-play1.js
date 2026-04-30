@@ -21,7 +21,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     isForwarded: true,
     forwardingScore: 999,
     externalAdReply: {
-      title: '🦈 𝙑𝙄𝘾𝙏𝙊ＲＩ𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥＰＩＮ𝙂',
+      title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍Ｉ𝘼 𝙃𝙊𝙐𝙎Ｅ𝙆ＥＥＰＩＮ𝙂',
       body: `— Suspiro... ¿Qué quieres ahora, ${name}?`,
       thumbnail: global.icons, 
       sourceUrl: global.redes,
@@ -48,24 +48,19 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       if (res.status && res.data.download.url) {
         const { title, download: { url: downloadUrl } } = res.data;
         
-        // Búsqueda rápida para metadatos
-        const search = await yts(query);
-        const uploader = search.videos?.[0]?.author?.name || "Victoria Housekeeping";
-
         const fileName = `${Date.now()}`;
         const inputPath = path.join(tmpDir, `${fileName}_in`);
         const outputPath = path.join(tmpDir, `${fileName}.${type === 'audio' ? 'm4a' : 'mp4'}`);
 
-        // Descarga directa
+        // Descarga
         const fileRes = await axios({ url: downloadUrl, method: 'GET', responseType: 'stream' });
         const writer = fs.createWriteStream(inputPath);
         fileRes.data.pipe(writer);
         await new Promise(res => writer.on('finish', res));
 
         if (type === 'audio') {
-          // REMUX RÁPIDO: Repara duración + añade metadatos de texto sin tocar el audio (ultra ligero)
-          // -c copy asegura que no haya pérdida de calidad ni peso extra
-          await execPromise(`ffmpeg -i "${inputPath}" -c copy -metadata title="${title}" -metadata artist="${uploader}" -metadata album="Ellen Joe Service" -movflags +faststart "${outputPath}"`);
+          // REMUX PURO: Igual que el ytmp3. Repara duración y ya.
+          await execPromise(`ffmpeg -i "${inputPath}" -c copy -movflags +faststart "${outputPath}"`);
 
           await conn.sendMessage(m.chat, { 
             audio: fs.readFileSync(outputPath), 
@@ -77,7 +72,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         } else {
           await conn.sendMessage(m.chat, { 
             video: { url: downloadUrl }, 
-            caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}\n> *Uploader:* ${uploader}`, 
+            caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}`, 
             mimetype: "video/mp4" 
           }, { quoted: m });
         }
