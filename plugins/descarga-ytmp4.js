@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // --- Configuración API Causas ---
-const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
+const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 const SIZE_LIMIT_MB = 100; 
 
