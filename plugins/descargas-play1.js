@@ -6,7 +6,7 @@ import { promisify } from 'util';
 import path from 'path';
 
 const execPromise = promisify(exec);
-const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
+const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
