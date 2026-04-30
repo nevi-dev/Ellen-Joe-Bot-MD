@@ -46,35 +46,35 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       const res = response.data;
 
       if (res.status && res.data.download.url) {
-        const { title, download: { url: downloadUrl } } = res.data;
+        const { title, uploader: apiUploader, download: { url: downloadUrl } } = res.data;
         
-        // Búsqueda rápida para obtener el nombre del canal (uploader)
         const search = await yts(query);
-        const uploader = search.videos?.[0]?.author?.name;
-        const albumName = "Ellen Joe Service";
+        const uploader = apiUploader || search.videos?.[0]?.author?.name || "Unknown";
 
         const fileName = `${Date.now()}`;
         const inputPath = path.join(tmpDir, `${fileName}_input`);
-        const outputPath = path.join(tmpDir, `${fileName}.${type === 'audio' ? 'mp3' : 'mp4'}`);
+        
+        // Para notas de voz, usaremos .opus o .m4a
+        const outputExt = type === 'audio' ? 'm4a' : 'mp4';
+        const outputPath = path.join(tmpDir, `${fileName}.${outputExt}`);
 
-        // Descarga directa (Stream)
         const fileRes = await axios({ url: downloadUrl, method: 'GET', responseType: 'stream' });
         const writer = fs.createWriteStream(inputPath);
         fileRes.data.pipe(writer);
         await new Promise((resolve) => writer.on('finish', resolve));
 
         if (type === 'audio') {
-          // Comando FFmpeg ultra rápido: Solo texto, sin procesar imagen
-          await execPromise(`ffmpeg -i "${inputPath}" -c copy -metadata title="${title}" -metadata artist="${uploader} // ${albumName}" -metadata album="${albumName}" "${outputPath}"`);
+          // Copiamos el audio manteniendo la calidad
+          await execPromise(`ffmpeg -i "${inputPath}" -c:a copy "${outputPath}"`);
 
           await conn.sendMessage(m.chat, { 
             audio: fs.readFileSync(outputPath), 
-            mimetype: "audio/mpeg", 
-            fileName: `${title}.mp3` 
+            mimetype: 'audio/mp4', // Mimetype para que sea compatible
+            ptt: true,             // <--- ESTO LO CONVIERTE EN NOTA DE VOZ
+            fileName: `${title}.m4a` 
           }, { quoted: m });
           
         } else {
-          // Envío de video
           await conn.sendMessage(m.chat, { 
             video: { url: downloadUrl }, 
             caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}\n> *Uploader:* ${uploader}`, 
@@ -82,7 +82,6 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
           }, { quoted: m });
         }
 
-        // Limpieza rápida
         if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
         if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
 
