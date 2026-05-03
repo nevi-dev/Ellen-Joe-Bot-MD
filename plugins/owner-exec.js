@@ -9,16 +9,13 @@ const require = createRequire(__dirname)
 
 let handler = async (m, _2) => {
   let { conn, usedPrefix, noPrefix, args, groupMetadata } = _2
-//if (!isOwner) return;
   let _return
   let _syntax = ''
-  let _text = (/^=/.test(usedPrefix) ? 'return ' : '') + noPrefix
+  let _text = noPrefix
   let old = m.exp * 1
   try {
     let i = 15
-    let f = {
-      exports: {}
-    }
+    let f = { exports: {} }
     let exec = new (async () => { }).constructor('print', 'm', 'handler', 'require', 'conn', 'Array', 'process', 'args', 'groupMetadata', 'module', 'exports', 'argument', _text)
     _return = await exec.call(conn, (...args) => {
       if (--i < 1) return
@@ -29,7 +26,7 @@ let handler = async (m, _2) => {
     let err = syntaxerror(_text, 'Execution Function', {
       allowReturnOutsideFunction: true,
       allowAwaitOutsideFunction: true,
-        sourceType: 'module'
+      sourceType: 'module'
     })
     if (err) _syntax = '```' + err + '```\n\n'
     _return = e
@@ -38,10 +35,10 @@ let handler = async (m, _2) => {
     m.exp = old
   }
 }
-handler.help = ['> ', '=> ']
+
+handler.help = ['e']
 handler.tags = ['owner']
-handler.customPrefix = /^=?> /
-handler.command = /(?:)/i
+handler.command = ['e']
 handler.rowner = true
 
 export default handler
