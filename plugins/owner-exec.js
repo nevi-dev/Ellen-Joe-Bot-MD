@@ -8,14 +8,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(__dirname)
 
 let handler = async (m, _2) => {
-  let { conn, usedPrefix, noPrefix, args, groupMetadata } = _2
+  let { conn, isOwner, usedPrefix, noPrefix, args, groupMetadata } = _2
+  if (!isOwner) return;
   let _return
   let _syntax = ''
-  let _text = noPrefix
+  let _body = args.join(' ')
+  let _text = (/^=/.test(usedPrefix) || /^return\s/.test(_body) ? '' : 'return ') + _body
   let old = m.exp * 1
   try {
     let i = 15
-    let f = { exports: {} }
+    let f = {
+      exports: {}
+    }
     let exec = new (async () => { }).constructor('print', 'm', 'handler', 'require', 'conn', 'Array', 'process', 'args', 'groupMetadata', 'module', 'exports', 'argument', _text)
     _return = await exec.call(conn, (...args) => {
       if (--i < 1) return
@@ -26,17 +30,16 @@ let handler = async (m, _2) => {
     let err = syntaxerror(_text, 'Execution Function', {
       allowReturnOutsideFunction: true,
       allowAwaitOutsideFunction: true,
-      sourceType: 'module'
+        sourceType: 'module'
     })
     if (err) _syntax = '```' + err + '```\n\n'
     _return = e
   } finally {
-    conn.reply(m.chat, _syntax + format(_return), m)
+   conn.reply(m.chat, _syntax + format(_return), m)
     m.exp = old
   }
 }
-
-handler.help = ['e']
+handler.help = ['eval']
 handler.tags = ['owner']
 handler.command = ['e']
 handler.rowner = true
