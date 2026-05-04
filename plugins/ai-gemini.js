@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 
-const API_URL = 'https://rest.apicausas.xyz/api/v1/ai?apikey=causa-ee5ee31dcfc79da4'; 
+const API_URL = 'https://rest.apicausas.xyz/api/v1/ai/gemini?apikey=causa-ee5ee31dcfc79da4'; 
 const INACTIVITY_LIMIT = 10 * 60 * 1000; 
 
 const chatMemory = {}; 
