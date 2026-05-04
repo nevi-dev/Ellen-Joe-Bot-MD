@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 
 // --- CONFIGURACIÓN ---
-const API_URL = 'https://rest.apicausas.xyz/api/v1/ai?apikey=causa-ee5ee31dcfc79da4';
+const API_URL = 'https://rest.apicausas.xyz/api/v1/ai/gemini?apikey=causa-ee5ee31dcfc79da4';
 const MODELO = "google/gemini-2.0-flash-001"; 
 
 // --- PERSONALIDAD: ELLEN JOE ---
