@@ -95,7 +95,7 @@ var handler = async (m, { conn, text, participants, isPrems, usedPrefix, command
     }
 }
 
-handler.command = ['ia2', 'ollama', 'bot']
+handler.command = ['ia2', 'ollama']
 handler.help = ['ia2 [modelo] [texto]']
 handler.tags = ['ai']
 
