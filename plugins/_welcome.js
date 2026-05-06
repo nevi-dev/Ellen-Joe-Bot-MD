@@ -8,18 +8,17 @@ export async function before(m, { conn, participants, groupMetadata }) {
     if (!chat?.welcome) return true 
 
     const groupName = groupMetadata?.subject || 'Esta Cavidad'
+    const groupDesc = groupMetadata?.desc?.toString() || 'Sin descripción'
     const currentSize = (participants || []).length
 
-    // --- LÓGICA DE ENTRADA ---
+    // --- LÓGICA DE BIENVENIDA ---
     const welcomeStubs = [WAMessageStubType.GROUP_PARTICIPANT_ADD, 27, 28, 31]
     if (welcomeStubs.includes(m.messageStubType)) {
       const users = m.messageStubParameters || []
       for (const user of users) {
         const jid = user.includes('@') ? user : `${user}@s.whatsapp.net`
-        const realSize = currentSize // Ya incluye al que entró generalmente
         
-        // Mensaje por defecto de Ellen (si no hay uno personalizado en DB)
-        let defaultWelcome = `
+        let txt = global.welcom1 || `
 > ꒰🦈꒱ ¡𝓞𝐡! 𝓤𝐧 𝐧𝐮𝐞𝐯𝐨 𝐣𝐮𝐠𝐮𝐞𝐭𝐞 𝐬𝐞́ 𝐮𝐧𝐢𝐨́... 𝐪𝐮𝐞́ 𝐦𝐨𝐥𝐞𝐬𝐭𝐢𝐚.
 ➥ 𝓑𝒊𝒆𝒏𝒗𝒆𝒏𝒊𝒅𝒂/𝒐 𝒂 *#group*
 
@@ -28,48 +27,44 @@ export async function before(m, { conn, participants, groupMetadata }) {
 ∫ 👥 *𝐌𝐢𝐞𝐦𝐛𝐫𝐨𝐬:* #members
 ∫ 🆔 *𝐈𝐃:* @user
 
-> ꒰💡꒱ ¿𝓝𝐞𝐜𝐞𝐬𝐢𝐭𝐚𝐬 𝐮𝐧 𝐦𝐚𝐧𝐮𝐚𝐥? 𝐔𝐬𝐚 .𝐡𝐞𝐥𝐩... 𝐬𝐢 𝐞𝐬 𝐪𝐮𝐞 𝐬𝐚𝐛𝐞𝐬 𝐜𝐨́𝐦𝐨 𝐭𝐫𝐚𝐭𝐚𝐫 𝐚 𝐞𝐬𝐭𝐞 𝐭𝐢𝐛𝐮𝐫𝐨́𝐧.`.trim()
+> ꒰💡꒱ ¿𝓝𝐞𝐜𝐞𝐬𝐢𝐭𝐚𝐬 𝐮𝐧 𝐦𝐚𝐧𝐮𝐚𝐥? 𝐔𝐬𝐚 .𝐡𝐞𝐥𝐩... 𝐬𝐢 𝒆𝒔 𝒒𝒖𝒆 𝒔𝒂𝒃𝒆𝒔 𝒄𝒐́𝒎𝒐 𝒕𝒓𝒂𝒕𝒂𝒓 𝒂 𝒆𝒔𝒕𝒆 𝒕𝒊𝒃𝒖𝒓𝒐́𝒏.`.trim()
 
-        let txt = chat.sWelcome || defaultWelcome
-        
-        // Reemplazo de variables
+        // Reemplazo de etiquetas (INCLUIDO #desc)
         txt = txt.replace('@user', `@${jid.split('@')[0]}`)
                  .replace('#group', groupName)
-                 .replace('#members', realSize)
+                 .replace('#desc', groupDesc)
+                 .replace('#members', currentSize)
 
         await sendEllenMsg(m, conn, txt, jid, '「 🦈 BIENVENIDO/A 」')
       }
     }
 
-    // --- LÓGICA DE SALIDA ---
+    // --- LÓGICA DE DESPEDIDA ---
     const leaveStubs = [WAMessageStubType.GROUP_PARTICIPANT_LEAVE, WAMessageStubType.GROUP_PARTICIPANT_REMOVE, 32]
     if (leaveStubs.includes(m.messageStubType)) {
       const users = m.messageStubParameters || []
       for (const user of users) {
         const jid = user.includes('@') ? user : `${user}@s.whatsapp.net`
         
-        // Calcular tiempo de estadía (opcional si tienes joindate en DB)
         let userData = global.db.data.users[jid]
         let stayTime = userData?.joindate ? clockString(new Date() - userData.joindate) : 'un tiempo desconocido'
 
-        let defaultBye = `
-> ⊰🦈⊱ 𝓞𝐡, 𝐬𝐞 𝐟𝐮𝐞. 𝓟𝐟𝐟, 𝐪𝐮𝐞 𝐩𝐞́𝐫𝐝𝐢𝐝𝐚 𝐝𝐞 𝐭𝐢𝐞𝐦𝐩𝐨.
+        let txt = global.welcom2 || `
+> ⊰🦈⊱ 𝓞𝐡, 𝐬𝐞 𝐟𝐮𝐞. 𝓟𝐟𝐟, 𝐪𝐮𝐞 𝐩𝐞́𝐫𝐝𝐢𝐝𝐚 𝐝𝐞 𝐭𝐢𝐞 m𝐩𝐨.
 
 𝓠𝒖𝒆 𝒃𝒖𝒆𝒏𝒐 𝒒𝒖𝒆 𝒕𝒆 𝒇𝒖𝒊𝒔𝒕𝒆, 𝒂𝒔𝒊́ 𝒕𝒖 𝒍𝒖𝒈𝒂𝒓 𝒍𝒐 𝒖𝒔𝒂 𝒂𝒍𝒈𝒖𝒊𝒆𝒏 𝒒𝒖𝒆 𝒔𝒊́ 𝒗𝒂𝒍𝒈𝒂 𝒍𝒂 𝒑𝒆𝒏𝒂. 𝑷𝒐𝒓 𝒄𝒊𝒆𝒓𝒕𝒐, 𝒑𝒆𝒓𝒅𝒊𝒔𝒕𝒆 𝒕𝒐𝒅𝒐 𝒕𝒖 𝒊𝒏𝒗𝒆𝒏𝒕𝒂𝒓𝒊𝒐.
 > ⌛ *𝐃𝐮𝐫𝐚𝐜𝐢𝐨́𝐧:* #stay
 
 > ⊰🦈⊱ 𝓨 𝒆𝒔𝒐 𝒆𝒔 𝒕𝒐𝒅𝒐, 𝒏𝒐 𝒎𝒆 𝒎𝒐𝒍𝒆𝒔𝒕𝒆𝒔 𝒔𝒊 𝒏𝒐 𝒆𝒔 𝒂𝒍𝒈𝒐 𝒊𝒎𝒑𝒐𝒓𝒕𝒂𝒏𝒕𝒆.`.trim()
-
-        let txt = chat.sBye || defaultBye
         
         txt = txt.replace('@user', `@${jid.split('@')[0]}`)
                  .replace('#group', groupName)
+                 .replace('#desc', groupDesc)
                  .replace('#stay', stayTime)
 
         await sendEllenMsg(m, conn, txt, jid, '「 🦈 ADIÓS/BYE 」')
       }
     }
-
     return true
   } catch (e) {
     console.error('[ERROR]', e)
@@ -77,7 +72,6 @@ export async function before(m, { conn, participants, groupMetadata }) {
   }
 }
 
-// --- FUNCIÓN DE ENVÍO CON ESTILO ---
 async function sendEllenMsg(m, conn, text, user, title) {
   let pp = 'https://github.com/nevi-dev/nevi-dev/blob/main/src/%E2%98%85%20Ellen%20Joe.jpeg?raw=true'
   try {
