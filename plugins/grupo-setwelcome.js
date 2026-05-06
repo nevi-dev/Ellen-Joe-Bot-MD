@@ -1,19 +1,13 @@
 let handler = async (m, { conn, text }) => {
-  // Definimos un emoji por si no tienes la variable global
-  let e = '🦈' 
+  if (!text) return conn.reply(m.chat, '🦈 ¡Oye! Pon el mensaje.\nEjemplo: #setwelcome Hola @user', m)
   
-  if (!text) return m.reply(`${e} ¡Oye! Proporciona un mensaje de bienvenida.\n\n*Variables disponibles:*\n#group (Nombre)\n#desc (Descripción)\n#members (Cantidad)\n@user (Mención)`);
-
-  // Guardamos en el chat para que sea por grupo y no se borre
-  let chat = global.db.data.chats[m.chat]
-  chat.sWelcome = text.trim()
+  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
+  global.db.data.chats[m.chat].sWelcome = text
   
-  m.reply(`${e} *Mensaje de bienvenida actualizado:* \n\n${text}`);
-};
+  await conn.reply(m.chat, '✅ Bienvenida guardada correctamente.', m)
+}
+handler.command = /^setwelcome$/i
+handler.admin = true
+handler.group = true
 
-handler.help = ['setwelcome'];
-handler.tags = ['admin'];
-handler.command = ['setwelcome']; // Se activa con #setwelcome
-handler.admin = true; // Solo para admins del grupo
-
-export default handler;
+export default handler
