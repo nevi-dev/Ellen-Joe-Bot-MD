@@ -18,22 +18,21 @@ export async function before(m, { conn, participants, groupMetadata }) {
       for (const user of users) {
         const jid = user.includes('@') ? user : `${user}@s.whatsapp.net`
         
-        let txt = global.welcom1 || `
+        // Buscamos primero en la base de datos del chat (individual), luego en la global
+        let txt = chat.sWelcome || global.welcom1 || `
 > ꒰🦈꒱ ¡𝓞𝐡! 𝓤𝐧 𝐧𝐮𝐞𝐯𝐨 𝐣𝐮𝐠𝐮𝐞𝐭𝐞 𝐬𝐞́ 𝐮𝐧𝐢𝐨́... 𝐪𝐮𝐞́ 𝐦𝐨𝐥𝐞𝐬𝐭𝐢𝐚.
 ➥ 𝓑𝒊𝒆𝒏𝒗𝒆𝒏𝒊𝒅𝒂/𝒐 𝒂 *#group*
 
 𝓔𝒔𝒑𝒆𝒓𝒂𝒎𝒐𝒔 𝒒𝒖𝒆 𝒕𝒆 𝒔𝒊𝒆𝒏𝒕𝒂𝒔 𝒄𝒐́𝒎𝒐𝒅𝒐, 𝒂𝒖𝒏𝒒𝒖𝒆 𝒔𝒐𝒍𝒐 𝒆𝒓𝒆𝒔 𝒖𝒏 𝒊𝒏𝒕𝒆𝒈𝒓𝒂𝒏𝒕𝒆 𝒎𝒂́𝒔. 𝑵𝒐 𝒆𝒔𝒑𝒆𝒓𝒆𝒔 𝒕𝒓𝒂𝒕𝒐 𝒆𝒔𝒑𝒆𝒄𝒊𝒂𝒍.
 
 ∫ 👥 *𝐌𝐢𝐞𝐦𝐛𝐫𝐨𝐬:* #members
-∫ 🆔 *𝐈𝐃:* @user
+∫ 🆔 *𝐈𝐃:* @user`.trim()
 
-> ꒰💡꒱ ¿𝓝𝐞𝐜𝐞𝐬𝐢𝐭𝐚𝐬 𝐮𝐧 𝐦𝐚𝐧𝐮𝐚𝐥? 𝐔𝐬𝐚 .𝐡𝐞𝐥𝐩... 𝐬𝐢 𝒆𝒔 𝒒𝒖𝒆 𝒔𝒂𝒃𝒆𝒔 𝒄𝒐́𝒎𝒐 𝒕𝒓𝒂𝒕𝒂𝒓 𝒂 𝒆𝒔𝒕𝒆 𝒕𝒊𝒃𝒖𝒓𝒐́𝒏.`.trim()
-
-        // Reemplazo de etiquetas (INCLUIDO #desc)
-        txt = txt.replace('@user', `@${jid.split('@')[0]}`)
-                 .replace('#group', groupName)
-                 .replace('#desc', groupDesc)
-                 .replace('#members', currentSize)
+        // Reemplazo usando expresiones regulares para que funcione aunque se repitan
+        txt = txt.replace(/@user/g, `@${jid.split('@')[0]}`)
+                 .replace(/#group/g, groupName)
+                 .replace(/#desc/g, groupDesc)
+                 .replace(/#members/g, currentSize)
 
         await sendEllenMsg(m, conn, txt, jid, '「 🦈 BIENVENIDO/A 」')
       }
@@ -49,18 +48,16 @@ export async function before(m, { conn, participants, groupMetadata }) {
         let userData = global.db.data.users[jid]
         let stayTime = userData?.joindate ? clockString(new Date() - userData.joindate) : 'un tiempo desconocido'
 
-        let txt = global.welcom2 || `
+        let txt = chat.sBye || global.welcom2 || `
 > ⊰🦈⊱ 𝓞𝐡, 𝐬𝐞 𝐟𝐮𝐞. 𝓟𝐟𝐟, 𝐪𝐮𝐞 𝐩𝐞́𝐫𝐝𝐢𝐝𝐚 𝐝𝐞 𝐭𝐢𝐞 m𝐩𝐨.
 
 𝓠𝒖𝒆 𝒃𝒖𝒆𝒏𝒐 𝒒𝒖𝒆 𝒕𝒆 𝒇𝒖𝒊𝒔𝒕𝒆, 𝒂𝒔𝒊́ 𝒕𝒖 𝒍𝒖𝒈𝒂𝒓 𝒍𝒐 𝒖𝒔𝒂 𝒂𝒍𝒈𝒖𝒊𝒆𝒏 𝒒𝒖𝒆 𝒔𝒊́ 𝒗𝒂𝒍𝒈𝒂 𝒍𝒂 𝒑𝒆𝒏𝒂. 𝑷𝒐𝒓 𝒄𝒊𝒆𝒓𝒕𝒐, 𝒑𝒆𝒓𝒅𝒊𝒔𝒕𝒆 𝒕𝒐𝒅𝒐 𝒕𝒖 𝒊𝒏𝒗𝒆𝒏𝒕𝒂𝒓𝒊𝒐.
-> ⌛ *𝐃𝐮𝐫𝐚𝐜𝐢𝐨́𝐧:* #stay
-
-> ⊰🦈⊱ 𝓨 𝒆𝒔𝒐 𝒆𝒔 𝒕𝒐𝒅𝒐, 𝒏𝒐 𝒎𝒆 𝒎𝒐𝒍𝒆𝒔𝒕𝒆𝒔 𝒔𝒊 𝒏𝒐 𝒆𝒔 𝒂𝒍𝒈𝒐 𝒊𝒎𝒑𝒐𝒓𝒕𝒂𝒏𝒕𝒆.`.trim()
+> ⌛ *𝐃𝐮𝐫𝐚𝐜𝐢𝐨́𝐧:* #stay`.trim()
         
-        txt = txt.replace('@user', `@${jid.split('@')[0]}`)
-                 .replace('#group', groupName)
-                 .replace('#desc', groupDesc)
-                 .replace('#stay', stayTime)
+        txt = txt.replace(/@user/g, `@${jid.split('@')[0]}`)
+                 .replace(/#group/g, groupName)
+                 .replace(/#desc/g, groupDesc)
+                 .replace(/#stay/g, stayTime)
 
         await sendEllenMsg(m, conn, txt, jid, '「 🦈 ADIÓS/BYE 」')
       }
