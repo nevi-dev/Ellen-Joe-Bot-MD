@@ -1,23 +1,13 @@
 let handler = async (m, { conn, text }) => {
-  // 1. Forzamos que exista el objeto del chat en la DB
+  if (!text) return conn.reply(m.chat, '🦈 ¡Oye! Pon el mensaje.\nEjemplo: #setbye Adiós @user', m)
+  
   if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-  let chat = global.db.data.chats[m.chat]
+  global.db.data.chats[m.chat].sBye = text
   
-  // 2. Definimos un emoji local por si falla la variable global
-  let e = '🦈'
+  await conn.reply(m.chat, '✅ Despedida guardada correctamente.', m)
+}
+handler.command = /^setbye$/i
+handler.admin = true
+handler.group = true
 
-  if (!text) return m.reply(`${e} ¡Oye! Proporciona un mensaje de despedida.\n\n*Variables:*\n#group (Nombre)\n#stay (Estadía)\n@user (Mención)`);
-
-  // 3. Guardamos en sBye para que la lógica del 'before.js' lo lea
-  chat.sBye = text.trim()
-  
-  m.reply(`${e} *Mensaje de despedida actualizado:* \n\n${text}`);
-};
-
-handler.help = ['setbye'];
-handler.tags = ['admin'];
-handler.command = ['setbye', 'setdespedida']; // Responde a ambos
-handler.admin = true;
-handler.group = true; // Solo en grupos
-
-export default handler;
+export default handler
