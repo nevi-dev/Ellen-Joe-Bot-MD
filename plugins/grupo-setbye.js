@@ -1,15 +1,15 @@
-let handler = async (m, { conn, text, isRowner }) => {
-  if (!text) return m.reply(`${emoji} Por favor, proporciona un mensaje de despedida para el bot.\n> Ejemplo: #setbye adios user`);
+let handler = async (m, { conn, text }) => {
+  if (!text) return m.reply(`¿Qué mensaje quieres poner?\n\n*Palabras clave:*\n- @user (Mención)\n- #group (Nombre del grupo)\n- #stay (Tiempo que duró en el grupo)`);
 
-  global.welcom2 = text.trim();
-  
-  m.reply(`${emoji} La despedida del bot ha sido cambiado a: ${global.welcom2}`);
+  let chat = global.db.data.chats[m.chat];
+  chat.sBye = text;
+
+  m.reply(`✅ *Despedida establecida:*\n${text}`);
 };
 
-handler.help = ['setdespedida'];
-handler.tags = ['tools'];
+handler.help = ['setbye'];
+handler.tags = ['admin'];
 handler.command = ['setbye'];
-handler.owner = false;
 handler.admin = true;
 
 export default handler;
