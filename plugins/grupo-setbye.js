@@ -1,15 +1,17 @@
 let handler = async (m, { conn, text }) => {
-  if (!text) return m.reply(`¿Qué mensaje quieres poner?\n\n*Palabras clave:*\n- @user (Mención)\n- #group (Nombre del grupo)\n- #stay (Tiempo que duró en el grupo)`);
+  let e = '🦈'
 
-  let chat = global.db.data.chats[m.chat];
-  chat.sBye = text;
+  if (!text) return m.reply(`${e} ¡Oye! Proporciona un mensaje de despedida.\n\n*Variables disponibles:*\n#group (Nombre)\n#stay (Tiempo que duró)\n@user (Mención)`);
 
-  m.reply(`✅ *Despedida establecida:*\n${text}`);
+  let chat = global.db.data.chats[m.chat]
+  chat.sBye = text.trim()
+  
+  m.reply(`${e} *Mensaje de despedida actualizado:* \n\n${text}`);
 };
 
 handler.help = ['setbye'];
 handler.tags = ['admin'];
-handler.command = ['setbye'];
+handler.command = ['setbye', 'setdespedida']; // Se activa con #setbye o #setdespedida
 handler.admin = true;
 
 export default handler;
