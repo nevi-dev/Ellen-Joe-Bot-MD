@@ -7,8 +7,6 @@ let handler = async (m, { conn, text }) => {
   await conn.reply(m.chat, '✅ Bienvenida guardada correctamente.', m)
 }
 
-handler.help = ['setwelcome'];
-handler.tags = ['admin'];
 handler.command = /^setwelcome$/i
 handler.admin = true
 handler.group = true
