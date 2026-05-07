@@ -1,5 +1,5 @@
 let handler = async (m, { conn, text }) => {
-  if (!text) return conn.reply(m.chat, '🦈 ¡Oye! Pon el mensaje.\nEjemplo: #setbye Adiós @user', m)
+  if (!text) return conn.reply(m.chat, '🦈 ¡Oye! Proporciona un mensaje de despedida.\n\n*Variables:*\n#group (Nombre)\n#stay (Estadía)\n@user (Mención)', m)
   
   if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
   global.db.data.chats[m.chat].sBye = text
