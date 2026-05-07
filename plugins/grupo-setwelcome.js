@@ -7,9 +7,9 @@ let handler = async (m, { conn, text }) => {
   await conn.reply(m.chat, '✅ Bienvenida guardada correctamente.', m)
 }
 
-handler.command = /^setwelcome$/i
-handler.help = /^setwelcome$/i
-handler.tags = /^admin$/i
+handler.command = /^setwelcome$/i // Aquí el RegExp está bien
+handler.help = ['setwelcome <texto>'] // Debe ser un Array de Strings
+handler.tags = ['admin'] // Debe ser un Array de Strings
 handler.admin = true
 handler.group = true
 
