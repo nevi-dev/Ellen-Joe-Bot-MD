@@ -9,7 +9,7 @@ let handler = async (m, { conn, text }) => {
 
 handler.help = ['setwelcome'];
 handler.tags = ['admin'];
-handler.command = ['setwelcome'];
+handler.command = /^setwelcome$/i
 handler.admin = true
 handler.group = true
 
