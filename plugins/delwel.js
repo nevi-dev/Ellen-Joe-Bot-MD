@@ -3,23 +3,22 @@ let handler = async (m, { conn, command }) => {
   let chat = global.db.data.chats[m.chat]
   let e = '🦈'
 
-  // Determinamos qué estamos borrando según el comando usado
+  // Detectamos cuál borrar según el comando que se activó
   let isWelcome = /welcome/i.test(command)
   let type = isWelcome ? 'bienvenida' : 'despedida'
   let dbKey = isWelcome ? 'sWelcome' : 'sBye'
 
   if (!chat[dbKey]) {
-    return m.reply(`${e} No hay un mensaje de ${type} personalizado configurado en este grupo.`)
+    return m.reply(`${e} No hay un mensaje de ${type} personalizado en este grupo.`)
   }
 
   delete chat[dbKey]
   
-  await m.reply(`${e} *Éxito:* El mensaje de ${type} ha sido eliminado. Ahora se usará el mensaje predeterminado del bot.`)
+  await m.reply(`${e} *Éxito:* El mensaje de ${type} ha sido eliminado correctamente.`)
 }
 
-handler.help = ['delwelcome', 'delbye']
-handler.tags = ['admin']
-handler.command = ['delwelcome', 'delbye', 'deldespedida'] 
+// Usando solo RegExp como pediste para evitar errores de carga
+handler.command = /^(delwelcome|delbye)$/i 
 
 handler.admin = true
 handler.group = true
