@@ -116,6 +116,8 @@ ${sep}`.trim();
   const textoFinal = `${encabezado}\n${secciones}\n\n*— No me pidas nada más fuera de mi horario.*`;
 
   // Multimedia
+  const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
+  const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
 const response = await axios.get(miniaturaRandom, { responseType: 'arraybuffer' });
 const bufferThumbnail = Buffer.from(response.data, 'binary');
 
