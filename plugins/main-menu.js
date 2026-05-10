@@ -137,10 +137,16 @@ const contextInfo = {
 };
 
 // 2. ENVIAR EL MENÚ (MULTIMEDIA)
+// 1. Enviar el video solo (sin contextInfo para que no falle)
 await conn.sendMessage(m.chat, { 
   video: { url: videoGifURL }, 
   caption: textoFinal, 
-  gifPlayback: true,
+  gifPlayback: true 
+}, { quoted: m });
+
+// 2. Enviar el banner en un mensaje de texto corto e invisible
+await conn.sendMessage(m.chat, { 
+  text: 'Sʜᴀʀᴋ Sᴇʀᴠɪᴄᴇ Oɴʟɪɴᴇ 🦈', 
   contextInfo 
 }, { quoted: m });
   
