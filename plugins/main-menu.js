@@ -120,32 +120,34 @@ ${sep}`.trim();
   const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
 
   const contextInfo = {
-  mentionedJid: [m.sender],
-  isForwarded: true,
-  forwardingScore: 99,
-  forwardedNewsletterMessageInfo: { 
-    newsletterJid, 
-    newsletterName, 
-    serverMessageId: 1 // IMPORTANTE: Cambiado de -1 a 1
-  },
-  externalAdReply: {
-    title: '𝐕𝐈𝐂𝐓𝐎𝐑𝐈𝐀 𝐇𝐎𝐔𝐒𝐄𝐊𝐄𝐄𝐏𝐈𝐍𝐆 𝐂𝐎.',
-    body: `Shark Service | Pag. ${paginaActual}`,
-    thumbnailUrl: miniaturaRandom,
-    sourceUrl: redes,
-    mediaType: 1,
-    renderLargerThumbnail: false,
-    showAdAttribution: true 
-  }
-};
+    mentionedJid: [m.sender],
+    isForwarded: true,
+    forwardingScore: 99,
+    forwardedNewsletterMessageInfo: { 
+      newsletterJid: newsletterJid, 
+      newsletterName: newsletterName, 
+      serverMessageId: 1 
+    },
+    externalAdReply: {
+      title: '𝐕𝐈𝐂𝐓𝐎𝐑𝐈𝐀 𝐇𝐎𝐔𝐒𝐄𝐊𝐄𝐄𝐏𝐈𝐍𝐆 𝐂𝐎.',
+      body: `Shark Service | Pag. ${paginaActual}`,
+      thumbnailUrl: miniaturaRandom,
+      sourceUrl: redes,
+      mediaType: 1, // 1 es Texto, necesario para que el banner no choque con el video
+      renderLargerThumbnail: false,
+      showAdAttribution: true 
+    }
+  };
 
-// 1. ENVIAR EL MENÚ (MULTIMEDIA)
-await conn.sendMessage(m.chat, { 
-  video: { url: videoGifURL }, 
-  caption: textoFinal, 
-  gifPlayback: true,
-  contextInfo 
-}, { quoted: m });
+  // 1. ENVIAR EL MENÚ (MULTIMEDIA)
+  // Nota: Si usas video + gifPlayback, Baileys a veces ignora el externalAdReply
+  // Para asegurar que se vea, enviamos el objeto contextInfo completo.
+  await conn.sendMessage(m.chat, { 
+    video: { url: videoGifURL }, 
+    caption: textoFinal, 
+    gifPlayback: true,
+    contextInfo: contextInfo // Asegúrate de que se pase aquí
+  }, { quoted: m });
 
   // 2. ENVIAR LOS BOTONES (MENSAJE APARTE)
   let buttons = [
