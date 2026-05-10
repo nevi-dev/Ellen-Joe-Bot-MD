@@ -116,31 +116,29 @@ ${sep}`.trim();
   const textoFinal = `${encabezado}\n${secciones}\n\n*— No me pidas nada más fuera de mi horario.*`;
 
   // Multimedia
-  const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
-  const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
+const response = await axios.get(miniaturaRandom, { responseType: 'arraybuffer' });
+const bufferThumbnail = Buffer.from(response.data, 'binary');
 
-  const contextInfo = {
+const contextInfo = {
   mentionedJid: [m.sender],
-  isForwarded: true,
-  forwardingScore: 1, // Bajalo a 1, a veces 99 activa filtros de spam
-  forwardedNewsletterMessageInfo: { 
-    newsletterJid: '120363418071540900@newsletter', 
-    newsletterName: "⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄's 𝐒ervice", 
-    serverMessageId: 100 // Intenta con 100, es un valor más estándar
-  },
+  isForwarded: false, // Quitamos el forwarding para limpiar el mensaje
   externalAdReply: {
     title: '𝐕𝐈𝐂𝐓𝐎𝐑𝐈𝐀 𝐇𝐎𝐔𝐒𝐄𝐊𝐄𝐄𝐏𝐈𝐍𝐆 𝐂𝐎.',
     body: `Shark Service | Pag. ${paginaActual}`,
-    thumbnailUrl: miniaturaRandom,
-    sourceUrl: redes,
     mediaType: 1,
-    renderLargerThumbnail: true, // En texto el "true" suele forzar el renderizado
-    showAdAttribution: false // Prueba en false, a veces el true bloquea el banner del canal
+    previewType: 0,
+    renderLargerThumbnail: true, // Esto hace que se vea el banner grande (si la imagen es buena)
+    thumbnail: bufferThumbnail, // Usar el buffer en lugar de la URL
+    sourceUrl: redes,
+    showAdAttribution: true // Añade el mensaje de "Anuncio" arriba
   }
 };
 
+// 2. ENVIAR EL MENÚ (MULTIMEDIA)
 await conn.sendMessage(m.chat, { 
-  text: textoFinal, 
+  video: { url: videoGifURL }, 
+  caption: textoFinal, 
+  gifPlayback: true,
   contextInfo 
 }, { quoted: m });
   
