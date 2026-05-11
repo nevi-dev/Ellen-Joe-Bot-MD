@@ -1,4 +1,6 @@
 import { WAMessageStubType } from '@whiskeysockets/baileys'
+import pkg from '@whiskeysockets/baileys'
+const { generateWAMessageContent } = pkg
 
 export async function before(m, { conn, participants, groupMetadata }) {
   try {
@@ -18,7 +20,6 @@ export async function before(m, { conn, participants, groupMetadata }) {
       for (const user of users) {
         const jid = user.includes('@') ? user : `${user}@s.whatsapp.net`
         
-        // Buscamos primero en la base de datos del chat (individual), luego en la global
         let txt = chat.sWelcome || global.welcom1 || `
 > ꒰🦈꒱ ¡𝓞𝐡! 𝓤𝐧 𝐧𝐮𝐞𝐯𝐨 𝐣𝐮𝐠𝐮𝐞𝐭𝐞 𝐬𝐞́ 𝐮𝐧𝐢𝐨́... 𝐪𝐮𝐞́ 𝐦𝐨𝐥𝐞𝐬𝐭𝐢𝐚.
 ➥ 𝓑𝒊𝒆𝒏𝒗𝒆𝒏𝒊𝒅𝒂/𝒐 𝒂 *#group*
@@ -28,7 +29,6 @@ export async function before(m, { conn, participants, groupMetadata }) {
 ∫ 👥 *𝐌𝐢𝐞𝐦𝐛𝐫𝐨𝐬:* #members
 ∫ 🆔 *𝐈𝐃:* @user`.trim()
 
-        // Reemplazo usando expresiones regulares para que funcione aunque se repitan
         txt = txt.replace(/@user/g, `@${jid.split('@')[0]}`)
                  .replace(/#group/g, groupName)
                  .replace(/#desc/g, groupDesc)
@@ -70,32 +70,71 @@ export async function before(m, { conn, participants, groupMetadata }) {
 }
 
 async function sendEllenMsg(m, conn, text, user, title) {
-  let pp = 'https://github.com/nevi-dev/nevi-dev/blob/main/src/%E2%98%85%20Ellen%20Joe.jpeg?raw=true'
-  try {
-    pp = await conn.profilePictureUrl(user, 'image')
-  } catch (e) {}
+  // Imagen de respaldo oficial de Ellen
+  const ellenImg = 'https://raw.githubusercontent.com/nevi-dev/nevi-dev/refs/heads/main/src/%E2%98%85%20Ellen%20Joe.jpeg'
+  const githubLink = 'https://github.com/nevi-dev'
+  let targetImg = ellenImg
 
-  await conn.sendMessage(m.chat, {
-    text: text,
-    contextInfo: {
-      mentionedJid: [user],
-      forwardingScore: 999,
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363418071540900@newsletter',
-        newsletterName: '⸙ְ̻࠭ꪆ 🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice',
-        serverMessageId: -1
-      },
-      externalAdReply: {
+  try {
+    // Intentamos obtener la foto del usuario, si no puede, cae al catch
+    targetImg = await conn.profilePictureUrl(user, 'image').catch(() => ellenImg)
+  } catch (e) {
+    targetImg = ellenImg
+  }
+
+  try {
+    // 1. Buffer para el thumbnail
+    const { data: thumb } = await conn.getFile(targetImg)
+
+    // 2. Generamos contenido para subir al servidor de WA y obtener metadatos reales (Nitidez)
+    const mediaContent = await generateWAMessageContent(
+      { image: { url: targetImg } },
+      { upload: conn.waUploadToServer }
+    )
+    const imageMsg = mediaContent.imageMessage
+
+    // 3. Texto final con el link de GitHub para forzar el tamaño grande
+    const finalTxt = `${text}\n\n${githubLink}`
+
+    const content = {
+      extendedTextMessage: {
+        text: finalTxt,
+        matchedText: githubLink,
+        description: 'Victoria Housekeeping - Zenless Zone Zero',
         title: title,
-        body: 'Ellen Joe Service | Descanso...',
-        thumbnailUrl: pp,
-        sourceUrl: 'https://whatsapp.com/channel/0029VbBw362A2pL9BOnpbP0H',
-        renderLargerThumbnail: true,
-        mediaType: 1
+        jpegThumbnail: thumb,
+        // Inyectamos los datos del servidor de WhatsApp
+        thumbnailDirectPath: imageMsg.directPath,
+        thumbnailSha256: imageMsg.fileSha256,
+        thumbnailEncSha256: imageMsg.fileEncSha256,
+        mediaKey: imageMsg.mediaKey,
+        mediaKeyTimestamp: imageMsg.mediaKeyTimestamp,
+        thumbnailHeight: 720,
+        thumbnailWidth: 1280,
+        contextInfo: {
+          mentionedJid: [user],
+          forwardingScore: 999,
+          isForwarded: true,
+          forwardedNewsletterMessageInfo: {
+            newsletterJid: '120363418071540900@newsletter',
+            newsletterName: '⸙ְ̻࠭ꪆ 🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice',
+            serverMessageId: -1
+          }
+        }
       }
     }
-  }, { quoted: null })
+
+    // Enviamos el nodo crudo
+    await conn.relayMessage(m.chat, content, { quoted: null })
+
+  } catch (e) {
+    console.error('Error en Relay Bienvenida:', e)
+    // Fallback por si falla el proceso de metadatos
+    await conn.sendMessage(m.chat, { 
+        text: text + '\n\n' + githubLink, 
+        contextInfo: { mentionedJid: [user] } 
+    }, { quoted: null })
+  }
 }
 
 function clockString(ms) {
