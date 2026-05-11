@@ -37,13 +37,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         const imageMsg = messageContent.imageMessage;
 
-        // TRUCO: Usamos un caracter invisible para que el link no ensucie el texto
-        const invisibleLink = `\u200B`.repeat(5) + urlForLink;
-
         const content = {
             extendedTextMessage: {
-                text: `${text}\n${invisibleLink}`, 
-                matchedText: urlForLink, 
+                text: `${text}`, 
+                matchedText: newsletterJid, 
                 description: "Victoria Housekeeping Service - ZZZ",
                 title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
                 previewType: 0,
