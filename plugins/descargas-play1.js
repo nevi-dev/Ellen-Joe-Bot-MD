@@ -23,24 +23,29 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const type = isMode ? args[0].toLowerCase() : null;
     const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-    // --- EL SALTO DE PROTOCOLO: EXTERNALADREPLY FORZADO ---
-    const sendEllenPreview = async (text, imageUrl, targetUrl) => {
+    // --- EL BYPASS "PRO": INYECCIÓN DE PROTOCOLO ---
+    const sendEllenBypass = async (text, imageUrl, targetUrl) => {
         const { data: thumb } = imageUrl ? await conn.getFile(imageUrl) : { data: global.icons };
         
-        // Generamos el mensaje en bruto para saltar las validaciones de Baileys
+        // Creamos un mensaje que engaña al servidor: 
+        // Se identifica como un "Video" de duración 0 para forzar la renderización de la tarjeta
         const message = proto.Message.fromObject({
-            extendedTextMessage: {
-                text: text,
-                matchedText: targetUrl, 
+            videoMessage: {
+                caption: text,
+                seconds: 0,
+                headerType: 4,
+                jpegThumbnail: thumb,
+                // El ExternalAdReply se inyecta en el contextInfo del video
                 contextInfo: {
                     externalAdReply: {
                         title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
                         body: "Victoria Housekeeping Service",
-                        mediaType: 1,
+                        mediaType: 2, // 2 = Video (engaña a la validación)
                         renderLargerThumbnail: true,
                         showAdAttribution: true,
                         thumbnail: thumb,
-                        sourceUrl: targetUrl
+                        sourceUrl: targetUrl,
+                        mediaUrl: targetUrl
                     },
                     isForwarded: true,
                     forwardingScore: 999,
@@ -53,18 +58,18 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             }
         });
 
+        // Usamos relayMessage para enviar el buffer crudo sin que Baileys lo limpie
         await conn.relayMessage(m.chat, message, { quoted: m });
     };
 
     // 1. Caso: Sin argumentos
     if (!args[0]) {
         const text = `*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} *Linger*`;
-        // Usamos el link del canal como base para que el externalAdReply sea válido
         const channelLink = `https://whatsapp.com/channel/${newsletterJid.split('@')[0]}`;
-        return await sendEllenPreview(text, null, channelLink); 
+        return await sendEllenBypass(text, null, channelLink); 
     }
 
-    // 2. Caso: Descarga de Audio/Video (Lógica de API Causas)
+    // 2. Caso: Descarga (Lógica API)
     if (isMode) {
         await m.react(type === 'audio' ? "🎧" : "🎬");
         try {
@@ -106,9 +111,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
 
-    // Saltamos el bloqueo usando la URL de YouTube como gatillo para el ExternalAdReply
-    await sendEllenPreview(caption, video.thumbnail, video.url);
+    // Inyectamos el bypass con los datos del video
+    await sendEllenBypass(caption, video.thumbnail, video.url);
 
+    // Botones (Manteniendo la estética)
     await conn.sendMessage(m.chat, {
         text: 'Selecciona una opción:',
         footer: 'Victoria Housekeeping Service',
