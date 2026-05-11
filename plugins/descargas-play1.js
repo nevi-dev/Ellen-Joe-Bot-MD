@@ -11,6 +11,7 @@ const execPromise = promisify(exec);
 const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 
+// Configuración del Canal (Newsletter)
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 
@@ -23,11 +24,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const type = isMode ? args[0].toLowerCase() : null;
     const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-    // --- FUNCIÓN DE VISTA PREVIA NITIDA E INVISIBLE ---
+    // --- FUNCIÓN BYPASS: OCULTA EL LINK PERO MANTIENE LA CARD ---
     const sendEllenPreview = async (text, imageUrl, urlForLink) => {
-        // Obtenemos el buffer (de URL de YT o de global.icons)
+        // Obtenemos buffer nítido
         const { data: thumb } = imageUrl ? await conn.getFile(imageUrl) : { data: global.icons };
         
+        // Subimos al servidor de WA para obtener metadatos reales
         const messageContent = await generateWAMessageContent(
             { image: thumb }, 
             { upload: conn.waUploadToServer }
@@ -35,11 +37,14 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         const imageMsg = messageContent.imageMessage;
 
+        // TRUCO: Usamos un caracter invisible para que el link no ensucie el texto
+        const invisibleLink = `\u200B`.repeat(5) + urlForLink;
+
         const content = {
             extendedTextMessage: {
-                text: text, // YA NO concatenamos el link aquí
-                matchedText: urlForLink, // El link sigue aquí para que WA genere la tarjeta
-                description: "Victoria Housekeeping Service",
+                text: `${text}\n${invisibleLink}`, 
+                matchedText: urlForLink, 
+                description: "Victoria Housekeeping Service - ZZZ",
                 title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
                 previewType: 0,
                 jpegThumbnail: thumb,
@@ -65,14 +70,13 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         await conn.relayMessage(m.chat, content, { quoted: m });
     };
 
-    // 1. Caso: Sin argumentos
+    // 1. Caso: Sin argumentos (Usar GitHub de Nevi de forma invisible)
     if (!args[0]) {
         const text = `*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} *Linger*`;
-        // Usamos tu GitHub pero solo internamente para activar la card
         return await sendEllenPreview(text, null, "https://github.com/nevi-dev"); 
     }
 
-    // 2. Caso: Descarga
+    // 2. Caso: Descarga de Audio/Video
     if (isMode) {
         await m.react(type === 'audio' ? "🎧" : "🎬");
         try {
@@ -117,7 +121,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         return;
     }
 
-    // 3. Caso: Búsqueda
+    // 3. Caso: Búsqueda (Usa el ID del video de YT)
     await m.react("🔍");
     const searchResult = await yts(query);
     const video = searchResult.videos?.[0];
@@ -125,12 +129,13 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
 
-    // Enviamos la búsqueda (El link de YT va en matchedText para la card, pero no en el caption)
+    // Enviamos la preview usando la URL del video (ID)
     await sendEllenPreview(caption, video.thumbnail, video.url);
 
-    // Botones (Si tu Baileys los soporta)
+    // Botones de respuesta
     await conn.sendMessage(m.chat, {
         text: 'Selecciona una opción:',
+        footer: 'Victoria Housekeeping Service',
         buttons: [
             { buttonId: `${usedPrefix}${command} audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
             { buttonId: `${usedPrefix}${command} video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
