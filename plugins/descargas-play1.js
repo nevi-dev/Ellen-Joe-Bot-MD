@@ -11,7 +11,6 @@ const execPromise = promisify(exec);
 const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 
-const githubLink = 'https://github.com/nevi-dev';
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ 🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
@@ -22,16 +21,13 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
   args = args.filter(v => v?.trim());
 
-  // --- Función de Respuesta con Bypass Ellen ---
+  // --- Respuesta Base Ellen (Errores/Guía) ---
   const sendEllenReply = async (txt) => {
     const mediaContent = await generateWAMessageContent({ image: global.icons }, { upload: conn.waUploadToServer });
     const imageMsg = mediaContent.imageMessage;
     await conn.relayMessage(m.chat, {
       extendedTextMessage: {
-        text: `${txt}\n\n${githubLink}`,
-        matchedText: githubLink,
-        description: 'Victoria Housekeeping Service',
-        title: '𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice 🦈',
+        text: txt,
         jpegThumbnail: global.icons,
         thumbnailDirectPath: imageMsg.directPath,
         thumbnailSha256: imageMsg.fileSha256,
@@ -51,20 +47,19 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   };
 
   if (!args[0]) {
-    return sendEllenReply(`『🦈』*— (Bostezo)*... ¿Ni siquiera sabes qué escuchar, *${name}*?\n\n🎧 *Ejemplo:*\n${usedPrefix}${command} *Linger*`);
+    return sendEllenReply(`『🦈』*— (Bostezo)*... ¿Qué quieres escuchar ahora, *${name}*?\n\n🎧 *Usa:* ${usedPrefix}${command} <nombre o link>`);
   }
 
   const isMode = ["audio", "video"].includes(args[0].toLowerCase());
   const type = isMode ? args[0].toLowerCase() : null;
   const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-  // --- LÓGICA DE DESCARGA DIRECTA ---
+  // --- DESCARGA DIRECTA ---
   if (isMode) {
     await m.react(type === 'audio' ? "🎧" : "🎬");
     try {
       const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
       const res = response.data;
-
       if (res.status && res.data.download.url) {
         const { title, download: { url: downloadUrl } } = res.data;
         const fileName = `${Date.now()}`;
@@ -78,44 +73,32 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         if (type === 'audio') {
           await execPromise(`ffmpeg -i "${inputPath}" -c copy -movflags +faststart "${outputPath}"`);
-          await conn.sendMessage(m.chat, { 
-            audio: fs.readFileSync(outputPath), 
-            mimetype: 'audio/mp4', 
-            fileName: `${title}.m4a`,
-            ptt: false 
-          }, { quoted: m });
+          await conn.sendMessage(m.chat, { audio: fs.readFileSync(outputPath), mimetype: 'audio/mp4', fileName: `${title}.m4a`, ptt: false }, { quoted: m });
         } else {
-          await conn.sendMessage(m.chat, { 
-            video: { url: downloadUrl }, 
-            caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}`, 
-            mimetype: "video/mp4" 
-          }, { quoted: m });
+          await conn.sendMessage(m.chat, { video: { url: downloadUrl }, caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}`, mimetype: "video/mp4" }, { quoted: m });
         }
         if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
         if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
         await m.react("✅");
       }
-    } catch (error) {
-      return sendEllenReply(`『❌』*— Tsk...* Algo salió mal con la descarga.`);
-    }
+    } catch (e) { return sendEllenReply(`『❌』*— Tsk...* Algo salió mal.`); }
     return;
   }
 
-  // --- LÓGICA DE BÚSQUEDA ---
+  // --- BÚSQUEDA Y RENDERIZADO ---
   await m.react("🔍");
   const isUrl = query.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   let video;
-  
   if (isUrl) {
-    const searchResult = await yts({ videoId: isUrl[1] });
-    video = searchResult;
+    video = await yts({ videoId: isUrl[1] });
   } else {
     const searchResult = await yts(query);
     video = searchResult.videos?.[0];
   }
 
-  if (!video) return sendEllenReply(`『🦈』*— No encontré nada.* Intenta con algo que sí exista.`);
+  if (!video) return sendEllenReply(`『🦈』*— No encontré nada.*`);
 
+  // DECO BONITA
   const caption = `
 『🦈』 *𝙀𝙇𝙇𝙀𝙉 𝙋𝙇𝘼𝙔 𝙎𝙀𝙍𝙑𝙄𝘾𝙀*
 ⏤͟͞ू⃪፝͜⁞⟡ Victoria Housekeeping
@@ -123,15 +106,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 ∫ 🎬 *Título:* ${video.title}
 ∫ 👤 *Autor:* ${video.author.name}
 ∫ ⌛ *Duración:* ${video.timestamp}
-∫ 🔗 *Link:* ${video.url}
 
-*— Elige una opción antes de que me arrepienta.*`.trim();
+*— Elige rápido, tengo un batido esperando.*`.trim();
 
-  // Generamos el Bypass de Ellen para el ExtendedText
-  const ellenBypass = await generateWAMessageContent({ image: global.icons }, { upload: conn.waUploadToServer });
-  const ellenMsg = ellenBypass.imageMessage;
-
-  // Botones e Imagen de YouTube
+  // IMAGEN DE YOUTUBE (Cabecera)
   const mediaYT = await prepareWAMessageMedia({ image: { url: video.thumbnail } }, { upload: conn.waUploadToServer });
 
   const message = generateWAMessageFromContent(m.chat, {
@@ -139,7 +117,8 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       message: {
         interactiveMessage: proto.Message.InteractiveMessage.fromObject({
           body: proto.Message.InteractiveMessage.Body.fromObject({
-            text: caption
+            // Solo URL de YT para renderizado nítido
+            text: `${caption}\n\n${video.url}` 
           }),
           footer: proto.Message.InteractiveMessage.Footer.fromObject({
             text: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈"
@@ -171,12 +150,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             isForwarded: true,
             forwardingScore: 999,
             forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
-            // Metadatos de Ellen Joe en el bypass de miniatura (se ve si el link de GitHub se renderiza)
+            // Bypass de Ellen en el AdReply
             externalAdReply: {
               title: '𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice 🦈',
               body: 'Victoria Housekeeping Service',
               thumbnail: global.icons,
-              sourceUrl: githubLink,
+              sourceUrl: video.url, // Usamos la URL del video también aquí
               mediaType: 1,
               renderLargerThumbnail: true
             }
@@ -189,7 +168,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
   await conn.relayMessage(m.chat, message.message, { messageId: message.key.id });
 };
 
-handler.help = ['play <búsqueda>'];
+handler.help = ['play'];
 handler.tags = ['descargas'];
 handler.command = ['play'];
 handler.register = true;
