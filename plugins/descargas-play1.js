@@ -23,29 +23,39 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const type = isMode ? args[0].toLowerCase() : null;
     const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-    // --- EL BYPASS "PRO": INYECCIÓN DE PROTOCOLO ---
-    const sendEllenBypass = async (text, imageUrl, targetUrl) => {
+    // --- MODO DIOS: BYPASS CON METADATOS DE CDN OFICIALES ---
+    const sendEllenGodMode = async (text, imageUrl, targetUrl) => {
         const { data: thumb } = imageUrl ? await conn.getFile(imageUrl) : { data: global.icons };
         
-        // Creamos un mensaje que engaña al servidor: 
-        // Se identifica como un "Video" de duración 0 para forzar la renderización de la tarjeta
+        // 1. LA CLAVE: Subimos la imagen a los servidores de WhatsApp primero
+        const mediaContent = await generateWAMessageContent(
+            { image: thumb }, 
+            { upload: conn.waUploadToServer }
+        );
+        const imgMeta = mediaContent.imageMessage;
+
+        // 2. Construimos el mensaje inyectando las llaves del servidor de Meta
         const message = proto.Message.fromObject({
-            videoMessage: {
-                caption: text,
-                seconds: 0,
-                headerType: 4,
-                jpegThumbnail: thumb,
-                // El ExternalAdReply se inyecta en el contextInfo del video
+            extendedTextMessage: {
+                text: text,
+                matchedText: targetUrl, 
                 contextInfo: {
                     externalAdReply: {
                         title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
                         body: "Victoria Housekeeping Service",
-                        mediaType: 2, // 2 = Video (engaña a la validación)
+                        mediaType: 1, // 1 = Tarjeta de enlace estándar (la más estable)
                         renderLargerThumbnail: true,
-                        showAdAttribution: true,
-                        thumbnail: thumb,
+                        showAdAttribution: true, // Etiqueta "Anuncio"
                         sourceUrl: targetUrl,
-                        mediaUrl: targetUrl
+                        
+                        // AQUÍ ESTÁ EL HACK DE PROTOCOLO:
+                        // Le damos a WhatsApp sus propias rutas para que confíe en la imagen
+                        thumbnailDirectPath: imgMeta.directPath,
+                        mediaKey: imgMeta.mediaKey,
+                        thumbnailSha256: imgMeta.fileSha256,
+                        thumbnailEncSha256: imgMeta.fileEncSha256,
+                        
+                        thumbnail: thumb // Fallback en buffer por si falla la red
                     },
                     isForwarded: true,
                     forwardingScore: 999,
@@ -58,7 +68,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             }
         });
 
-        // Usamos relayMessage para enviar el buffer crudo sin que Baileys lo limpie
+        // Enviamos el paquete binario puro
         await conn.relayMessage(m.chat, message, { quoted: m });
     };
 
@@ -66,7 +76,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     if (!args[0]) {
         const text = `*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} *Linger*`;
         const channelLink = `https://whatsapp.com/channel/${newsletterJid.split('@')[0]}`;
-        return await sendEllenBypass(text, null, channelLink); 
+        return await sendEllenGodMode(text, null, channelLink); 
     }
 
     // 2. Caso: Descarga (Lógica API)
@@ -111,10 +121,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
 
-    // Inyectamos el bypass con los datos del video
-    await sendEllenBypass(caption, video.thumbnail, video.url);
+    // Inyectamos el God Mode
+    await sendEllenGodMode(caption, video.thumbnail, video.url);
 
-    // Botones (Manteniendo la estética)
+    // Botones
     await conn.sendMessage(m.chat, {
         text: 'Selecciona una opción:',
         footer: 'Victoria Housekeeping Service',
