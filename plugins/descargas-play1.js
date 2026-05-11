@@ -11,7 +11,6 @@ const execPromise = promisify(exec);
 const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 
-// Configuración del Canal/Newsletter
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 
@@ -24,13 +23,13 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const type = isMode ? args[0].toLowerCase() : null;
     const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-    // --- FUNCIÓN PARA EL BYPASS DE VISTA PREVIA ---
+    // --- FUNCIÓN DE VISTA PREVIA NITIDA E INVISIBLE ---
     const sendEllenPreview = async (text, imageUrl, urlForLink) => {
-        // Usar global.icons (buffer) si no hay imageUrl, o descargar la de YT
+        // Obtenemos el buffer (de URL de YT o de global.icons)
         const { data: thumb } = imageUrl ? await conn.getFile(imageUrl) : { data: global.icons };
         
         const messageContent = await generateWAMessageContent(
-            { image: imageUrl ? { url: imageUrl } : global.icons },
+            { image: thumb }, 
             { upload: conn.waUploadToServer }
         );
 
@@ -38,9 +37,9 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         const content = {
             extendedTextMessage: {
-                text: `${text}\n\n${urlForLink}`,
-                matchedText: urlForLink,
-                description: "Victoria Housekeeping Service - ZZZ",
+                text: text, // YA NO concatenamos el link aquí
+                matchedText: urlForLink, // El link sigue aquí para que WA genere la tarjeta
+                description: "Victoria Housekeeping Service",
                 title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
                 previewType: 0,
                 jpegThumbnail: thumb,
@@ -49,7 +48,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
                 thumbnailEncSha256: imageMsg.fileEncSha256,
                 mediaKey: imageMsg.mediaKey,
                 mediaKeyTimestamp: imageMsg.mediaKeyTimestamp,
-                thumbnailHeight: 720,
+                thumbnailHeight: 720, 
                 thumbnailWidth: 1280,
                 contextInfo: {
                     mentionedJid: [m.sender],
@@ -66,14 +65,14 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         await conn.relayMessage(m.chat, content, { quoted: m });
     };
 
-    // 1. Caso: Sin argumentos (Usa imagen de Ellen / Github)
+    // 1. Caso: Sin argumentos
     if (!args[0]) {
         const text = `*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} *Linger*`;
-        const githubUrl = "https://github.com/nevi-dev"; // Enlace necesario para que el bypass funcione
-        return await sendEllenPreview(text, null, githubUrl); 
+        // Usamos tu GitHub pero solo internamente para activar la card
+        return await sendEllenPreview(text, null, "https://github.com/nevi-dev"); 
     }
 
-    // 2. Caso: Descarga de Audio/Video
+    // 2. Caso: Descarga
     if (isMode) {
         await m.react(type === 'audio' ? "🎧" : "🎬");
         try {
@@ -112,14 +111,13 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
                 await m.react("✅");
             }
         } catch (error) {
-            console.error(error);
             await m.react("❌");
             return conn.reply(m.chat, `*— Tsk...* Algo salió mal.`, m);
         }
         return;
     }
 
-    // 3. Caso: Búsqueda (Usa miniatura de YT pero estilo Ellen)
+    // 3. Caso: Búsqueda
     await m.react("🔍");
     const searchResult = await yts(query);
     const video = searchResult.videos?.[0];
@@ -127,13 +125,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
 
-    // Enviamos la búsqueda con el estilo bypass
+    // Enviamos la búsqueda (El link de YT va en matchedText para la card, pero no en el caption)
     await sendEllenPreview(caption, video.thumbnail, video.url);
 
-    // Botones adicionales (Opcional, si tu versión de Baileys los soporta)
+    // Botones (Si tu Baileys los soporta)
     await conn.sendMessage(m.chat, {
         text: 'Selecciona una opción:',
-        footer: 'Victoria Housekeeping Service',
         buttons: [
             { buttonId: `${usedPrefix}${command} audio ${video.url}`, buttonText: { displayText: '🎧 𝘼𝙐𝘿𝙄𝙊' }, type: 1 },
             { buttonId: `${usedPrefix}${command} video ${video.url}`, buttonText: { displayText: '🎬 𝙑𝙄𝘿𝙀𝙊' }, type: 1 }
