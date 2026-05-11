@@ -11,7 +11,6 @@ const execPromise = promisify(exec);
 const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 
-// Configuración del Canal (Newsletter)
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 
@@ -24,36 +23,25 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const type = isMode ? args[0].toLowerCase() : null;
     const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-    // --- FUNCIÓN BYPASS: OCULTA EL LINK PERO MANTIENE LA CARD ---
-    const sendEllenPreview = async (text, imageUrl, urlForLink) => {
-        // Obtenemos buffer nítido
+    // --- EL SALTO DE PROTOCOLO: EXTERNALADREPLY FORZADO ---
+    const sendEllenPreview = async (text, imageUrl, targetUrl) => {
         const { data: thumb } = imageUrl ? await conn.getFile(imageUrl) : { data: global.icons };
         
-        // Subimos al servidor de WA para obtener metadatos reales
-        const messageContent = await generateWAMessageContent(
-            { image: thumb }, 
-            { upload: conn.waUploadToServer }
-        );
-
-        const imageMsg = messageContent.imageMessage;
-
-        const content = {
+        // Generamos el mensaje en bruto para saltar las validaciones de Baileys
+        const message = proto.Message.fromObject({
             extendedTextMessage: {
-                text: `${text}`, 
-                matchedText: newsletterJid, 
-                description: "Victoria Housekeeping Service - ZZZ",
-                title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
-                previewType: 0,
-                jpegThumbnail: thumb,
-                thumbnailDirectPath: imageMsg.directPath,
-                thumbnailSha256: imageMsg.fileSha256,
-                thumbnailEncSha256: imageMsg.fileEncSha256,
-                mediaKey: imageMsg.mediaKey,
-                mediaKeyTimestamp: imageMsg.mediaKeyTimestamp,
-                thumbnailHeight: 720, 
-                thumbnailWidth: 1280,
+                text: text,
+                matchedText: targetUrl, 
                 contextInfo: {
-                    mentionedJid: [m.sender],
+                    externalAdReply: {
+                        title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
+                        body: "Victoria Housekeeping Service",
+                        mediaType: 1,
+                        renderLargerThumbnail: true,
+                        showAdAttribution: true,
+                        thumbnail: thumb,
+                        sourceUrl: targetUrl
+                    },
                     isForwarded: true,
                     forwardingScore: 999,
                     forwardedNewsletterMessageInfo: {
@@ -63,23 +51,25 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
                     }
                 }
             }
-        };
-        await conn.relayMessage(m.chat, content, { quoted: m });
+        });
+
+        await conn.relayMessage(m.chat, message, { quoted: m });
     };
 
-    // 1. Caso: Sin argumentos (Usar GitHub de Nevi de forma invisible)
+    // 1. Caso: Sin argumentos
     if (!args[0]) {
         const text = `*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} *Linger*`;
-        return await sendEllenPreview(text, null, "https://github.com/nevi-dev"); 
+        // Usamos el link del canal como base para que el externalAdReply sea válido
+        const channelLink = `https://whatsapp.com/channel/${newsletterJid.split('@')[0]}`;
+        return await sendEllenPreview(text, null, channelLink); 
     }
 
-    // 2. Caso: Descarga de Audio/Video
+    // 2. Caso: Descarga de Audio/Video (Lógica de API Causas)
     if (isMode) {
         await m.react(type === 'audio' ? "🎧" : "🎬");
         try {
             const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
             const res = response.data;
-
             if (res.status && res.data.download.url) {
                 const { title, download: { url: downloadUrl } } = res.data;
                 const fileName = `${Date.now()}`;
@@ -93,20 +83,10 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
                 if (type === 'audio') {
                     await execPromise(`ffmpeg -i "${inputPath}" -c copy -movflags +faststart "${outputPath}"`);
-                    await conn.sendMessage(m.chat, { 
-                        audio: fs.readFileSync(outputPath), 
-                        mimetype: 'audio/mp4', 
-                        fileName: `${title}.m4a`,
-                        ptt: false 
-                    }, { quoted: m });
+                    await conn.sendMessage(m.chat, { audio: fs.readFileSync(outputPath), mimetype: 'audio/mp4', fileName: `${title}.m4a`, ptt: false }, { quoted: m });
                 } else {
-                    await conn.sendMessage(m.chat, { 
-                        video: { url: downloadUrl }, 
-                        caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}`, 
-                        mimetype: "video/mp4" 
-                    }, { quoted: m });
+                    await conn.sendMessage(m.chat, { video: { url: downloadUrl }, caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}`, mimetype: "video/mp4" }, { quoted: m });
                 }
-
                 if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
                 if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
                 await m.react("✅");
@@ -118,7 +98,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         return;
     }
 
-    // 3. Caso: Búsqueda (Usa el ID del video de YT)
+    // 3. Caso: Búsqueda
     await m.react("🔍");
     const searchResult = await yts(query);
     const video = searchResult.videos?.[0];
@@ -126,10 +106,9 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
 
-    // Enviamos la preview usando la URL del video (ID)
+    // Saltamos el bloqueo usando la URL de YouTube como gatillo para el ExternalAdReply
     await sendEllenPreview(caption, video.thumbnail, video.url);
 
-    // Botones de respuesta
     await conn.sendMessage(m.chat, {
         text: 'Selecciona una opción:',
         footer: 'Victoria Housekeeping Service',
