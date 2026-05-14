@@ -95,7 +95,7 @@ handler.all = async function (m) {
   let canal2 = 'https://whatsapp.com/channel/0029VbAuMiNCBtxOKcBfw71x'
   var git = 'https://github.com/nevi-dev'
   var github = 'https://github.com/nevi-dev/Ellen-Joe-Bot-MD' 
-  let correo = 'nevijose4@gmail.com'
+  let correo = 'ellen@nose.com'
   global.redes = [canal, canal2, git, github, correo].getRandom()
 
   // Imagen aleatoria para global.icons
