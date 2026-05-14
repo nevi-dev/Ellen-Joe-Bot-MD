@@ -1,19 +1,28 @@
 //nevi-dev
 import fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch';
 import axios from 'axios';
 import moment from 'moment-timezone';
 import phoneNumber from 'awesome-phonenumber';
+import pkg from '@whiskeysockets/baileys';
+const { generateWAMessageContent } = pkg;
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = "⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄's 𝐒ervice";
 const packname = '˚🄴🄻🄻🄴🄽-🄹🄾🄴-🄱🄾🅃';
 const redes = 'https://github.com/nevi-dev';
 
-const GITHUB_REPO_OWNER = 'nevi-dev';
-const GITHUB_REPO_NAME = 'Ellen-Joe-Bot-MD';
-const GITHUB_BRANCH = 'main';
+// Las imágenes que pasaste para el bypass aleatorio
+const images = [
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/086ec8e8-c373-45b6-ad51-3cdaef9cd3e6.jpg?raw=true",
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/c99835de-0c28-4e27-93a0-422df6cca849.jpg?raw=true",
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/6eee1198-1b0f-4cfe-b6c0-2fb82dc0bdc5.jpg?raw=true",
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/18b2ad5d-a091-4267-8903-bb895dbefe6c.jpg?raw=true",
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/23912e87-2b42-468c-bfd4-a4df62951c10.jpg?raw=true",
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/7d874ab7-8a4c-4d76-b7dc-dfbcb589bd9b.jpg?raw=true",
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/42f1cc96-bcd5-4c43-ac58-96883dba3047.jpg?raw=true",
+    "https://github.com/nevi-dev/nevi-dev/blob/main/src/407e16b8-89d4-4d09-bd2f-a606ccc0e53c.jpg?raw=true"
+];
 
 const CATEGORY_GROUPS = {
   '🦈 VICTORIA HOUSEKEEPING | OWNER': ['owner'],
@@ -41,16 +50,8 @@ for (const [groupName, tags] of Object.entries(CATEGORY_GROUPS)) {
 }
 
 let handler = async (m, { conn, usedPrefix, text }) => {
-  let enlacesMultimedia;
-  try {
-    const dbPath = path.join(process.cwd(), 'src', 'database', 'db.json');
-    enlacesMultimedia = JSON.parse(fs.readFileSync(dbPath, 'utf-8')).links;
-  } catch (e) {
-    return conn.reply(m.chat, '❌ Error al leer la base de datos.', m);
-  }
-
   let nombre = await conn.getName(m.sender);
-
+  
   // Lógica de hora
   let userTime;
   try {
@@ -88,9 +89,7 @@ let handler = async (m, { conn, usedPrefix, text }) => {
     return `\n🔷 *${groupName}*\n${commandList}`;
   }).join('\n');
 
-  // Info del Sistema
   let localVersion = '1.0.0';
-  let updateStatus = '✅ Operativo';
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
     localVersion = pkg.version;
@@ -115,42 +114,55 @@ ${sep}`.trim();
 
   const textoFinal = `${encabezado}\n${secciones}\n\n*— No me pidas nada más fuera de mi horario.*`;
 
-  // Multimedia
-  const videoGifURL = enlacesMultimedia.video[Math.floor(Math.random() * enlacesMultimedia.video.length)];
-  const miniaturaRandom = enlacesMultimedia.imagen[Math.floor(Math.random() * enlacesMultimedia.imagen.length)];
-const response = await axios.get(miniaturaRandom, { responseType: 'arraybuffer' });
-const bufferThumbnail = Buffer.from(response.data, 'binary');
+  // --- LÓGICA DE BYPASS (COMO EN ROBARWAIFU) ---
+  const sendBypassMenu = async (text) => {
+    try {
+      const randomImage = images[Math.floor(Math.random() * images.length)];
+      const { data: thumb } = await conn.getFile(randomImage);
+      const messageContent = await generateWAMessageContent(
+        { image: { url: randomImage } },
+        { upload: conn.waUploadToServer }
+      );
+      const imageMsg = messageContent.imageMessage;
 
-const contextInfo = {
-  mentionedJid: [m.sender],
-  isForwarded: false, // Quitamos el forwarding para limpiar el mensaje
-  externalAdReply: {
-    title: '𝐕𝐈𝐂𝐓𝐎𝐑𝐈𝐀 𝐇𝐎𝐔𝐒𝐄𝐊𝐄𝐄𝐏𝐈𝐍𝐆 𝐂𝐎.',
-    body: `Shark Service | Pag. ${paginaActual}`,
-    mediaType: 1,
-    previewType: 0,
-    renderLargerThumbnail: true, // Esto hace que se vea el banner grande (si la imagen es buena)
-    thumbnail: bufferThumbnail, // Usar el buffer en lugar de la URL
-    sourceUrl: redes,
-    showAdAttribution: true // Añade el mensaje de "Anuncio" arriba
-  }
-};
+      const content = {
+        extendedTextMessage: {
+          text: `${text}\n\n${redes}`,
+          matchedText: redes,
+          description: "Victoria Housekeeping Service - ZZZ",
+          title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
+          previewType: 0,
+          jpegThumbnail: thumb,
+          thumbnailDirectPath: imageMsg.directPath,
+          thumbnailSha256: imageMsg.fileSha256,
+          thumbnailEncSha256: imageMsg.fileEncSha256,
+          mediaKey: imageMsg.mediaKey,
+          mediaKeyTimestamp: imageMsg.mediaKeyTimestamp,
+          thumbnailHeight: 720,
+          thumbnailWidth: 1280,
+          contextInfo: {
+            mentionedJid: [m.sender],
+            isForwarded: true,
+            forwardingScore: 1,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid,
+              newsletterName,
+              serverMessageId: -1
+            }
+          }
+        }
+      };
+      await conn.relayMessage(m.chat, content, { quoted: m });
+    } catch (e) {
+      console.error('Error menu bypass:', e);
+      await conn.reply(m.chat, text, m);
+    }
+  };
 
-// 2. ENVIAR EL MENÚ (MULTIMEDIA)
-// 1. Enviar el video solo (sin contextInfo para que no falle)
-await conn.sendMessage(m.chat, { 
-  video: { url: videoGifURL }, 
-  caption: textoFinal, 
-  gifPlayback: true 
-}, { quoted: m });
+  // 1. Enviar el menú con bypass
+  await sendBypassMenu(textoFinal);
 
-// 2. Enviar el banner en un mensaje de texto corto e invisible
-await conn.sendMessage(m.chat, { 
-  text: 'Sʜᴀʀᴋ Sᴇʀᴠɪᴄᴇ Oɴʟɪɴᴇ 🦈', 
-  contextInfo 
-}, { quoted: m });
-  
-  // 2. ENVIAR LOS BOTONES (MENSAJE APARTE)
+  // 2. Enviar botones (Mensaje aparte)
   let buttons = [
     { buttonId: `${usedPrefix}menu`, buttonText: { displayText: '🔄 REFRESCAR' }, type: 1 }
   ];
@@ -163,7 +175,7 @@ await conn.sendMessage(m.chat, {
   }
 
   await conn.sendMessage(m.chat, {
-    text: `*Selecciona una opción para navegar:*`,
+    text: `*Navegación de Sectores:*`,
     footer: packname,
     buttons: buttons,
     headerType: 1
