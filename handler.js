@@ -15,6 +15,29 @@ const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, m
 const cleanJid = jid => jid?.split(':')[0] || ''
 
 const groupCache = new Map()
+const processedMessageCache = new Map()
+const MAX_TRACKED_MESSAGES = 5000
+
+function rememberProcessedMessage(id) {
+    if (!id) return false
+    if (processedMessageCache.has(id)) return true
+    processedMessageCache.set(id, Date.now())
+    if (processedMessageCache.size > MAX_TRACKED_MESSAGES) {
+        const overflow = processedMessageCache.size - MAX_TRACKED_MESSAGES
+        for (const key of processedMessageCache.keys()) {
+            processedMessageCache.delete(key)
+            if (processedMessageCache.size <= MAX_TRACKED_MESSAGES - overflow) break
+        }
+    }
+    return false
+}
+
+setInterval(() => {
+    const expireAt = Date.now() - 10 * 60 * 1000
+    for (const [id, createdAt] of processedMessageCache) {
+        if (createdAt < expireAt) processedMessageCache.delete(id)
+    }
+}, 5 * 60 * 1000).unref?.()
 
 global.dfail = (type, m, conn) => {
     failureHandler(type, conn, m, global.comando)
@@ -27,10 +50,12 @@ export async function handler(chatUpdate) {
     
     if (!chatUpdate) return
 
+    if (Array.isArray(this.msgqueque) && this.msgqueque.length > 2000) this.msgqueque.splice(0, this.msgqueque.length - 1000)
     this.pushMessage(chatUpdate.messages).catch(console.error)
     let m = chatUpdate.messages[chatUpdate.messages.length - 1]
     if (!m) return
 
+    if (rememberProcessedMessage(m.key.id || m.id)) return
     if (m.key.id.startsWith('BAE5') || m.key.id.startsWith('3EB0') || m.id?.startsWith('NJX-') || m.isBaileys) return
 
     if (global.db.data == null) await global.loadDatabase()

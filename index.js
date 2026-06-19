@@ -12,6 +12,9 @@ import yargs from 'yargs';
 import {spawn} from 'child_process'
 import lodash from 'lodash'
 import { EllenJadiBot } from './plugins/jadibot-serbot.js';
+import { purgeLegacyFiles, useSQLiteAuthState } from './auth.js'
+import { createMessageQueue } from './lib/messageQueue.js'
+import { MAIN_BOT_SESSION_DIR, SUB_BOTS_SESSION_ROOT, startSubBot } from './manager.js'
 import chalk from 'chalk'
 import syntaxerror from 'syntax-error'
 import {tmpdir} from 'os'
@@ -32,7 +35,7 @@ const {proto} = (await import('@whiskeysockets/baileys')).default
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
-const {DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
+const {DisconnectReason, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
 import readline, { createInterface } from 'readline'
 import NodeCache from 'node-cache'
 const {CONNECTING} = ws
@@ -145,7 +148,7 @@ global.db.chain = chain(global.db.data)
 }
 loadDatabase()
 
-const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
+const {state, saveCreds, cleanupObsoleteData} = useSQLiteAuthState(MAIN_BOT_SESSION_DIR)
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
@@ -164,13 +167,13 @@ let opcion
 if (methodCodeQR) {
 opcion = '1'
 }
-if (!methodCodeQR && !methodCode && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !fs.existsSync(path.join(MAIN_BOT_SESSION_DIR, 'auth.db'))) {
 do {
 opcion = await question(colores('⌨ Seleccione una opción:\n') + opcionQR('1. Con código QR\n') + opcionTexto('2. Con código de texto de 8 dígitos\n--> '))
 
 if (!/^[1-2]$/.test(opcion)) {
 console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se admiten letras ni símbolos especiales.`))
-}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${Ellensessions}/creds.json`))
+}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(path.join(MAIN_BOT_SESSION_DIR, 'auth.db')))
 }
 
 console.info = () => {}
@@ -200,7 +203,7 @@ version,
 
 global.conn = makeWASocket(connectionOptions);
 
-if (!fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!fs.existsSync(path.join(MAIN_BOT_SESSION_DIR, 'auth.db'))) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
@@ -307,7 +310,7 @@ conn.ev.off('connection.update', conn.connectionUpdate)
 conn.ev.off('creds.update', conn.credsUpdate)
 }
 
-conn.handler = handler.handler.bind(global.conn)
+conn.handler = createMessageQueue(handler.handler, { maxSize: 1500, timeoutMs: 45000 }).bind(global.conn)
 
 global.dispatchCommandFromButton = async (fakeMessage) => {
   try {
@@ -337,7 +340,7 @@ return true
 
 //Arranque nativo para sub-bots por - ReyEndymion >> https://github.com/ReyEndymion
 
-global.rutaJadiBot = join(__dirname, './EllenJadiBots')
+global.rutaJadiBot = SUB_BOTS_SESSION_ROOT
 
 if (global.EllenJadibts) {
 if (!existsSync(global.rutaJadiBot)) {
@@ -349,12 +352,11 @@ console.log(chalk.bold.cyan(`La carpeta: ${jadi} ya está creada.`))
 
 const readRutaJadiBot = readdirSync(rutaJadiBot)
 if (readRutaJadiBot.length > 0) {
-const creds = 'creds.json'
 for (const gjbts of readRutaJadiBot) {
 const botPath = join(rutaJadiBot, gjbts)
 const readBotPath = readdirSync(botPath)
-if (readBotPath.includes(creds)) {
-EllenJadiBot({pathEllenJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot'})
+if (readBotPath.includes('auth.db')) {
+startSubBot(gjbts, { onMessage: (message) => console.log('[sub-bot]', gjbts, message?.type || message) })
 }
 }
 }
@@ -436,55 +438,36 @@ unlinkSync(filePath)})
 }
 
 function purgeEllenSession() {
-let prekey = []
-let directorio = readdirSync(`./${Ellensessions}`)
-let filesFolderPreKeys = directorio.filter(file => {
-return file.startsWith('pre-key-')
-})
-prekey = [...prekey, ...filesFolderPreKeys]
-filesFolderPreKeys.forEach(files => {
-unlinkSync(`./${Ellensessions}/${files}`)
-})
+purgeLegacyFiles(MAIN_BOT_SESSION_DIR)
+cleanupObsoleteData?.()
 }
 
 function purgeEllenSessionSB() {
 try {
-const listaDirectorios = readdirSync(`./${jadi}/`);
-let SBprekey = [];
-listaDirectorios.forEach(directorio => {
-if (statSync(`./${jadi}/${directorio}`).isDirectory()) {
-const DSBPreKeys = readdirSync(`./${jadi}/${directorio}`).filter(fileInDir => {
-return fileInDir.startsWith('pre-key-')
-})
-SBprekey = [...SBprekey, ...DSBPreKeys];
-DSBPreKeys.forEach(fileInDir => {
-if (fileInDir !== 'creds.json') {
-unlinkSync(`./${jadi}/${directorio}/${fileInDir}`)
-}})
-}})
-if (SBprekey.length === 0) {
-console.log(chalk.bold.green(`\n╭» ❍ ${jadi} ❍\n│→ NADA POR ELIMINAR \n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻︎`))
-} else {
-console.log(chalk.bold.cyanBright(`\n╭» ❍ ${jadi} ❍\n│→ ARCHIVOS NO ESENCIALES ELIMINADOS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻︎︎`))
-}} catch (err) {
-console.log(chalk.bold.red(`\n╭» ❍ ${jadi} ❍\n│→ OCURRIÓ UN ERROR\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻\n` + err))
-}}
+if (!existsSync(SUB_BOTS_SESSION_ROOT)) return
+const listaDirectorios = readdirSync(SUB_BOTS_SESSION_ROOT)
+for (const directorio of listaDirectorios) {
+const subDir = join(SUB_BOTS_SESSION_ROOT, directorio)
+if (statSync(subDir).isDirectory()) purgeLegacyFiles(subDir)
+}
+console.log(chalk.bold.cyanBright(`
+╭» ❍ SUB-BOTS SQLITE ❍
+│→ JSON LEGACY PURGADOS SIN TOCAR auth.db
+╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻︎︎`))
+} catch (err) {
+console.log(chalk.bold.red(`
+╭» ❍ SUB-BOTS SQLITE ❍
+│→ OCURRIÓ UN ERROR
+╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻
+` + err))
+}
+}
 
 function purgeOldFiles() {
-const directories = [`./${Ellensessions}/`, `./${jadi}/`]
-directories.forEach(dir => {
-readdirSync(dir, (err, files) => {
-if (err) throw err
-files.forEach(file => {
-if (file !== 'creds.json') {
-const filePath = path.join(dir, file);
-unlinkSync(filePath, err => {
-if (err) {
-console.log(chalk.bold.red(`\n╭» ❍ ARCHIVO ❍\n│→ ${file} NO SE LOGRÓ BORRAR\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ✘\n` + err))
-} else {
-console.log(chalk.bold.green(`\n╭» ❍ ARCHIVO ❍\n│→ ${file} BORRADO CON ÉXITO\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))
-} }) }
-}) }) }) }
+purgeLegacyFiles(MAIN_BOT_SESSION_DIR)
+purgeEllenSessionSB()
+return 'Limpieza SQLite/legacy completada sin borrar auth.db'
+}
 
 function redefineConsoleMethod(methodName, filterStrings) {
 const originalConsoleMethod = console[methodName]
