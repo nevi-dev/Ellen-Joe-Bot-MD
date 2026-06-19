@@ -8,8 +8,9 @@ import pkg from '@whiskeysockets/baileys';
 const { prepareWAMessageMedia, proto } = pkg;
 
 const execPromise = promisify(exec);
-const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
+const API_XD = 'https://rest.apicausas.xyz/api/v1/descargas/xd';
+const API_OLD = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
@@ -23,10 +24,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const type = isMode ? args[0].toLowerCase() : null;
     const query = isMode ? args.slice(1).join(" ") : args.join(" ");
 
-    // --- LA EVOLUCIÓN: TARJETA INTERACTIVA NATIVA ---
-    // Esto crea un bloque único con Imagen Gigante + Texto + Botones
     const sendEllenCard = async (text, imageUrl, buttons = []) => {
-        // Preparamos la imagen para subirla a los servidores de Meta
         const mediaConfig = imageUrl ? { image: { url: imageUrl } } : { image: global.icons };
         const media = await prepareWAMessageMedia(mediaConfig, { upload: conn.waUploadToServer });
 
@@ -36,7 +34,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             header: proto.Message.InteractiveMessage.Header.create({
                 title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
                 hasMediaAttachment: true,
-                ...media // Inyectamos la imagen directamente en la cabecera
+                ...media
             }),
             contextInfo: {
                 isForwarded: true,
@@ -45,11 +43,8 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             }
         };
 
-        // Si hay botones, los agregamos a la tarjeta
         if (buttons.length > 0) {
-            interactiveObj.nativeFlowMessage = proto.Message.InteractiveMessage.NativeFlowMessage.create({
-                buttons: buttons
-            });
+            interactiveObj.nativeFlowMessage = proto.Message.InteractiveMessage.NativeFlowMessage.create({ buttons: buttons });
         }
 
         const message = {
@@ -60,71 +55,60 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
                 }
             }
         };
-
         await conn.relayMessage(m.chat, message, { quoted: m });
     };
 
-    // 1. Caso: Sin argumentos
     if (!args[0]) {
-        const text = `*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} *Linger*`;
-        return await sendEllenCard(text, null); 
+        return await sendEllenCard(`*— (Bostezo)*... Dame algo que buscar.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} *Linger*`, null); 
     }
 
-    // 2. Caso: Descarga (Lógica API)
     if (isMode) {
         await m.react(type === 'audio' ? "🎧" : "🎬");
+        let finalUrl = null;
+
+        // 1. Intentar con API XD
         try {
-            const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
-            const res = response.data;
-            if (res.status && res.data.download.url) {
-                const { title, download: { url: downloadUrl } } = res.data;
-                const fileName = `${Date.now()}`;
-                const inputPath = path.join(tmpDir, `${fileName}_in`);
-                const outputPath = path.join(tmpDir, `${fileName}.${type === 'audio' ? 'm4a' : 'mp4'}`);
+            const { data } = await axios.get(`${API_XD}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
+            if (data.status) finalUrl = data.data.url;
+        } catch (e) { console.log("API XD falló, probando Old..."); }
 
-                const fileRes = await axios({ url: downloadUrl, method: 'GET', responseType: 'stream' });
-                const writer = fs.createWriteStream(inputPath);
-                fileRes.data.pipe(writer);
-                await new Promise(res => writer.on('finish', res));
-
-                if (type === 'audio') {
-                    await execPromise(`ffmpeg -i "${inputPath}" -c copy -movflags +faststart "${outputPath}"`);
-                    await conn.sendMessage(m.chat, { audio: fs.readFileSync(outputPath), mimetype: 'audio/mp4', fileName: `${title}.m4a`, ptt: false }, { quoted: m });
-                } else {
-                    await conn.sendMessage(m.chat, { video: { url: downloadUrl }, caption: `🎬 *Aquí tienes.*\n\n> *Contenido:* ${title}`, mimetype: "video/mp4" }, { quoted: m });
-                }
-                if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
-                if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-                await m.react("✅");
+        // 2. Fallback a API OLD
+        if (!finalUrl) {
+            try {
+                const { data } = await axios.get(`${API_OLD}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
+                if (data.status && data.data.download.url) finalUrl = data.data.download.url;
+            } catch (e) {
+                await m.react("❌");
+                return conn.reply(m.chat, `*— Tsk...* Ambas APIs fallaron.`, m);
             }
-        } catch (error) {
-            await m.react("❌");
-            return conn.reply(m.chat, `*— Tsk...* Algo salió mal.`, m);
+        }
+
+        if (finalUrl) {
+            try {
+                if (type === 'audio') {
+                    await conn.sendMessage(m.chat, { audio: { url: finalUrl }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
+                } else {
+                    await conn.sendMessage(m.chat, { video: { url: finalUrl }, caption: `🎬 *Aquí tienes.*`, mimetype: "video/mp4" }, { quoted: m });
+                }
+                await m.react("✅");
+            } catch (e) {
+                await m.react("❌");
+            }
         }
         return;
     }
 
-    // 3. Caso: Búsqueda
     await m.react("🔍");
     const searchResult = await yts(query);
     const video = searchResult.videos?.[0];
     if (!video) return conn.reply(m.chat, `*— No encontré nada.*`, m);
 
     const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
-
-    // Botones con formato nativo (NativeFlow)
     const botonesNativos = [
-        {
-            name: "quick_reply",
-            buttonParamsJson: JSON.stringify({ display_text: "🎧 𝘼𝙐𝘿𝙄𝙊", id: `${usedPrefix}${command} audio ${video.url}` })
-        },
-        {
-            name: "quick_reply",
-            buttonParamsJson: JSON.stringify({ display_text: "🎬 𝙑𝙄𝘿𝙀𝙊", id: `${usedPrefix}${command} video ${video.url}` })
-        }
+        { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "🎧 𝘼𝙐𝘿𝙄𝙊", id: `${usedPrefix}${command} audio ${video.url}` }) },
+        { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "🎬 𝙑𝙄𝘿𝙀𝙊", id: `${usedPrefix}${command} video ${video.url}` }) }
     ];
 
-    // Enviamos TODO en una sola tarjeta masiva
     await sendEllenCard(caption, video.thumbnail, botonesNativos);
 };
 
