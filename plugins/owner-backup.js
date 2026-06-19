@@ -6,10 +6,11 @@ try {
 await m.react(rwait)
 let d = new Date
 let date = d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
-let database = await fs.readFileSync(`./src/database/database.json`)
+await global.db.write()
+let database = await fs.readFileSync(`./src/database/database.sqlite`)
 let creds = await fs.readFileSync(`./EllenSessions/creds.json`)
 await conn.reply(m.chat, `*• Fecha:* ${date}`, m)
-await conn.sendMessage(m.sender, {document: database, mimetype: 'application/json', fileName: `database.json`}, { quoted: fkontak })
+await conn.sendMessage(m.sender, {document: database, mimetype: 'application/vnd.sqlite3', fileName: `database.sqlite`}, { quoted: fkontak })
 await m.react(done)
 await conn.sendMessage(m.sender, {document: creds, mimetype: 'application/json', fileName: `creds.json`}, { quoted: fkontak })
 await m.react(done)
