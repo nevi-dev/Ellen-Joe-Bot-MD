@@ -11,7 +11,7 @@ Contenido adaptado por:
 - elrebelde21 >> https://github.com/elrebelde21
 */
 
-const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import("@whiskeysockets/baileys"));
+const { DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import("@whiskeysockets/baileys"));
 import qrcode from "qrcode"
 import NodeCache from "node-cache"
 import fs from "fs"
@@ -23,6 +23,9 @@ import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
+import { useSQLiteAuthState } from '../auth.js'
+import { createMessageQueue } from '../lib/messageQueue.js'
+import { SUB_BOTS_SESSION_ROOT, startSubBot } from '../manager.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
@@ -95,18 +98,40 @@ return m.reply(`${emoji2} No se han encontrado espacios para *Sub-Bots* disponib
 }*/
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let id = `${who.split`@`[0]}`  //conn.getName(who)
-let pathEllenJadiBot = path.join(`./${jadi}/`, id)
+let pathEllenJadiBot = path.join(SUB_BOTS_SESSION_ROOT, id)
 if (!fs.existsSync(pathEllenJadiBot)){
 fs.mkdirSync(pathEllenJadiBot, { recursive: true })
 }
-EllenJBOptions.pathEllenJadiBot = pathEllenJadiBot
-EllenJBOptions.m = m
-EllenJBOptions.conn = conn
-EllenJBOptions.args = args
-EllenJBOptions.usedPrefix = usedPrefix
-EllenJBOptions.command = command
-EllenJBOptions.fromCommand = true
-EllenJadiBot(EllenJBOptions)
+const mcode = command === 'code' || args.some((arg) => /^(--code|code)$/.test(String(arg).trim()))
+const worker = startSubBot(id, {
+messageTimeoutMs: 45000,
+queueMaxSize: 1500,
+pairingMode: mcode,
+onMessage: async (message) => {
+if (message.type === 'qr' && !mcode) {
+const sent = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(message.qr, { scale: 8 }), caption: rtx.trim() }, { quoted: m })
+if (sent?.key) setTimeout(() => conn.sendMessage(m.sender, { delete: sent.key }), 30000)
+}
+if (message.type === 'qr' && mcode) {
+const sent = await conn.sendMessage(m.chat, { text: rtx2 }, { quoted: m })
+if (sent?.key) setTimeout(() => conn.sendMessage(m.sender, { delete: sent.key }), 30000)
+}
+if (message.type === 'pairing.code') {
+const sentCode = await conn.sendMessage(m.chat, { text: message.code }, { quoted: m })
+if (sentCode?.key) setTimeout(() => conn.sendMessage(m.sender, { delete: sentCode.key }), 30000)
+}
+if (message.type === 'pairing.error') {
+await conn.sendMessage(m.chat, { text: `${emoji2} No se pudo generar el código: ${message.error}` }, { quoted: m })
+}
+if (message.type === 'connection.update' && message.connection === 'open') {
+await conn.sendMessage(m.chat, { text: `@${m.sender.split('@')[0]}, tu Sub-Bot worker está conectado y aislado en SQLite.`, mentions: [m.sender] }, { quoted: m })
+}
+if (message.type === 'disconnect') {
+await conn.sendMessage(m.chat, { text: `${emoji2} Sub-Bot desconectado. Código: ${message.code || 'desconocido'}` }, { quoted: m })
+}
+}
+})
+worker.postMessage({ type: 'mode', mcode })
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
 handler.help = ['qr', 'code']
@@ -126,13 +151,10 @@ args[0] = args[0].replace(/^--code$|^code$/, "").trim()
 if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
-const pathCreds = path.join(pathEllenJadiBot, "creds.json")
 if (!fs.existsSync(pathEllenJadiBot)){
 fs.mkdirSync(pathEllenJadiBot, { recursive: true })}
-try {
-args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
-} catch {
-conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} code`, m)
+if (args[0] && !mcode) {
+conn.reply(m.chat, `${emoji2} Los tokens creds.json legacy fueron desactivados. Usa ${usedPrefix + command} --code o ${usedPrefix}qr para crear una sesión SQLite.`, m)
 return
 }
 
@@ -143,7 +165,7 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 let { version, isLatest } = await fetchLatestBaileysVersion()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
+const { state, saveCreds } = useSQLiteAuthState(pathEllenJadiBot)
 
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
@@ -310,7 +332,7 @@ sock.ev.off("connection.update", sock.connectionUpdate)
 sock.ev.off('creds.update', sock.credsUpdate)
 }
 
-sock.handler = handler.handler.bind(sock)
+sock.handler = createMessageQueue(handler.handler, { maxSize: 1500, timeoutMs: 45000 }).bind(sock)
 sock.connectionUpdate = connectionUpdate.bind(sock)
 sock.credsUpdate = saveCreds.bind(sock, true)
 sock.ev.on("messages.upsert", sock.handler)
