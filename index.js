@@ -23,7 +23,9 @@ import Pino from 'pino'
 import path, { join, dirname } from 'path'
 import {Boom} from '@hapi/boom'
 import {makeWASocket, protoType, serialize} from './lib/simple.js'
-import {Low, JSONFile} from 'lowdb'
+import {Low} from 'lowdb'
+import BetterSQLiteAdapter from './lib/sqliteDB.js'
+import cloudDBAdapter from './lib/cloudDBAdapter.js'
 import {mongoDB, mongoDBV2} from './lib/mongoDB.js'
 import store from './lib/store.js'
 const {proto} = (await import('@whiskeysockets/baileys')).default
@@ -115,7 +117,7 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.prefix = new RegExp('^[#/!.]')
 // global.opts['db'] = process.env['db']
 
-global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile('./src/database/database.json'))
+global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new BetterSQLiteAdapter('./src/database/database.sqlite', { migrateFrom: './src/database/database.json' }))
 
 global.DATABASE = global.db
 global.loadDatabase = async function loadDatabase() {
