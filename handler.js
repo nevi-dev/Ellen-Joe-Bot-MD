@@ -7,6 +7,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js'
+import { resolveJidAsync, resolveParticipants, setCachedMeta } from './core/jid-utils.js'
 
 const { proto } = (await import('@whiskeysockets/baileys')).default
 
@@ -15,6 +16,29 @@ const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, m
 const cleanJid = jid => jid?.split(':')[0] || ''
 
 const groupCache = new Map()
+const processedMessageCache = new Map()
+const MAX_TRACKED_MESSAGES = 5000
+
+function rememberProcessedMessage(id) {
+    if (!id) return false
+    if (processedMessageCache.has(id)) return true
+    processedMessageCache.set(id, Date.now())
+    if (processedMessageCache.size > MAX_TRACKED_MESSAGES) {
+        const overflow = processedMessageCache.size - MAX_TRACKED_MESSAGES
+        for (const key of processedMessageCache.keys()) {
+            processedMessageCache.delete(key)
+            if (processedMessageCache.size <= MAX_TRACKED_MESSAGES - overflow) break
+        }
+    }
+    return false
+}
+
+setInterval(() => {
+    const expireAt = Date.now() - 10 * 60 * 1000
+    for (const [id, createdAt] of processedMessageCache) {
+        if (createdAt < expireAt) processedMessageCache.delete(id)
+    }
+}, 5 * 60 * 1000).unref?.()
 
 global.dfail = (type, m, conn) => {
     failureHandler(type, conn, m, global.comando)
@@ -27,10 +51,12 @@ export async function handler(chatUpdate) {
     
     if (!chatUpdate) return
 
+    if (Array.isArray(this.msgqueque) && this.msgqueque.length > 2000) this.msgqueque.splice(0, this.msgqueque.length - 1000)
     this.pushMessage(chatUpdate.messages).catch(console.error)
     let m = chatUpdate.messages[chatUpdate.messages.length - 1]
     if (!m) return
 
+    if (rememberProcessedMessage(m.key.id || m.id)) return
     if (m.key.id.startsWith('BAE5') || m.key.id.startsWith('3EB0') || m.id?.startsWith('NJX-') || m.isBaileys) return
 
     if (global.db.data == null) await global.loadDatabase()
@@ -40,6 +66,8 @@ export async function handler(chatUpdate) {
         if (!m) return
 
         let sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid
+        sender = await resolveJidAsync(sender, this, m.isGroup ? m.chat : null) || sender
+        if (m.sender?.endsWith?.('@lid')) m.sender = sender
 
         let groupMetadata = {}
         let participants = []
@@ -53,7 +81,8 @@ export async function handler(chatUpdate) {
                     const meta = await this.groupMetadata(m.chat)
                     groupMetadata = { ...meta }
                     if (meta?.participants) {
-                        groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid }))
+                        groupMetadata.participants = resolveParticipants(meta.participants, this)
+                        setCachedMeta(m.chat, groupMetadata)
                     }
                     groupCache.set(m.chat, groupMetadata)
                     setTimeout(() => groupCache.delete(m.chat), 10 * 60 * 1000)
@@ -63,7 +92,7 @@ export async function handler(chatUpdate) {
             }
 
             participants = groupMetadata.participants || []
-            participants_lid = participants.map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }))
+            participants_lid = participants.map(participant => ({ id: participant.id, jid: participant.jid || participant.id, lid: participant.lid, admin: participant.admin }))
             
             if (sender.endsWith('@lid')) {
                 const participantInfo = participants_lid.find(p => p.lid === sender)

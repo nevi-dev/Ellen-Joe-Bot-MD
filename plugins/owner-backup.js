@@ -1,6 +1,8 @@
 import fs from 'fs'
+import { MAIN_BOT_SESSION_DIR } from '../core/manager.js'
+import path from 'path'
 
-let handler = async (m, { conn, text, usedPrefix, command }) => {
+let handler = async (m, { conn }) => {
 await m.reply(`${emoji} Enviando base de datos de ${packname}...`)
 try {
 await m.react(rwait)
@@ -8,11 +10,11 @@ let d = new Date
 let date = d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
 await global.db.write()
 let database = await fs.readFileSync(`./src/database/database.sqlite`)
-let creds = await fs.readFileSync(`./EllenSessions/creds.json`)
+let authDb = await fs.readFileSync(path.join(MAIN_BOT_SESSION_DIR, 'auth.db'))
 await conn.reply(m.chat, `*• Fecha:* ${date}`, m)
 await conn.sendMessage(m.sender, {document: database, mimetype: 'application/vnd.sqlite3', fileName: `database.sqlite`}, { quoted: fkontak })
 await m.react(done)
-await conn.sendMessage(m.sender, {document: creds, mimetype: 'application/json', fileName: `creds.json`}, { quoted: fkontak })
+await conn.sendMessage(m.sender, {document: authDb, mimetype: 'application/vnd.sqlite3', fileName: `main_auth.db`}, { quoted: fkontak })
 await m.react(done)
 } catch {
 await m.react(error)

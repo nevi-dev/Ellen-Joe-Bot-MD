@@ -1,21 +1,20 @@
 import fs from 'fs'
+import path from 'path'
+import { SUB_BOTS_SESSION_ROOT } from '../core/manager.js'
 
-async function handler(m, {usedPrefix}) {
-
+async function handler(m, { conn }) {
 const user = m.sender.split('@')[0]
-if (fs.existsSync(`./${jadi}/` + user + '/creds.json')) {
-let token = Buffer.from(fs.readFileSync(`./${jadi}/` + user + '/creds.json'), 'utf-8').toString('base64')    
+const authDb = path.join(SUB_BOTS_SESSION_ROOT, user, 'auth.db')
 
-await conn.reply(m.chat, `${emoji} El token te permite iniciar sesion en otros bots, recomendamos no compartirlo con nadie\n\n*Tu token es:*`, m)
-await conn.reply(m.chat, token, m)
+if (fs.existsSync(authDb)) {
+await conn.reply(m.chat, `${emoji} Tu sesión de Sub-Bot está activa en SQLite. Por seguridad ya no se exporta creds.json/token; usa #qr o #code para volver a vincular si necesitas migrar el dispositivo.`, m)
 } else {
-await conn.reply(m.chat, `${emoji2} No tienes ningun token activo, usa #code para crear uno.`, m)
+await conn.reply(m.chat, `${emoji2} No tienes ninguna sesión SQLite activa, usa #code o #qr para crear una.`, m)
 }
-
 }
 handler.help = ['token']
 handler.command = ['token']
 handler.tags = ['serbot']
 handler.private = true
 
-export default handler 
+export default handler
