@@ -15,6 +15,7 @@ const { DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion
 const { useSQLiteAuthState } = await import('@nevi-dev/sqlite-auth')
 import { filterFreshMessages } from '../core/message-filter.js'
 import { purgeLegacyAuthFiles } from '../core/connection-utils.js'
+import { attachSessionState, cleanupSessionState, createMessageRetryCache } from '../src/core/session-manager.js'
 import qrcode from "qrcode"
 import NodeCache from "node-cache"
 import fs from "fs"
@@ -145,7 +146,7 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 
 let { version, isLatest } = await fetchLatestBaileysVersion()
 const msgRetry = (MessageRetryMap) => { }
-const msgRetryCache = new NodeCache()
+const msgRetryCache = createMessageRetryCache()
 const sqliteAuth = useSQLiteAuthState(pathEllenJadiBot, { dbName: 'auth.db', cleanOldFiles: true })
 global.activeSqliteAuthStates?.add(sqliteAuth)
 const { state, saveCreds } = sqliteAuth
@@ -181,6 +182,7 @@ conversation: 'Ellen Joe Bot MD',
 
 purgeLegacyAuthFiles(pathEllenJadiBot)
 let sock = makeWASocket(connectionOptions)
+attachSessionState(sock, { id: path.basename(pathEllenJadiBot), type: 'subbot', parentId: conn?.session?.id || conn?.user?.jid || 'primary', path: pathEllenJadiBot })
 sock.isInit = false
 let isInit = true
 
@@ -222,6 +224,7 @@ sock.ws.close()
 } catch {
 }
 sock.ev.removeAllListeners()
+cleanupSessionState(sock)
 let i = global.conns.indexOf(sock)                
 if (i < 0) return 
 delete global.conns[i]
@@ -312,6 +315,7 @@ const oldChats = sock.chats
 try { sock.ws.close() } catch { }
 sock.ev.removeAllListeners()
 sock = makeWASocket(connectionOptions, { chats: oldChats })
+attachSessionState(sock, { id: path.basename(pathEllenJadiBot), type: 'subbot', parentId: conn?.session?.id || conn?.user?.jid || 'primary', path: pathEllenJadiBot })
 isInit = true
 }
 if (!isInit) {
