@@ -32,7 +32,11 @@ const {proto} = (await import('@whiskeysockets/baileys')).default
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
-const {DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
+const {DisconnectReason, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
+const { useSQLiteAuthState } = await import('@nevi-dev/sqlite-auth')
+import { filterFreshMessages } from './core/message-filter.js'
+import { coreLog, purgeLegacyAuthFiles, schedulePacificMidnight } from './core/connection-utils.js'
+import { JadiBotWorkerBalancer } from './core/jadibot-workers.js'
 import readline, { createInterface } from 'readline'
 import NodeCache from 'node-cache'
 const {CONNECTING} = ws
@@ -145,7 +149,8 @@ global.db.chain = chain(global.db.data)
 }
 loadDatabase()
 
-const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
+const sqliteAuth = useSQLiteAuthState(global.Ellensessions, { dbName: 'auth.db', cleanOldFiles: true })
+const { state, saveCreds } = sqliteAuth
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
@@ -164,13 +169,13 @@ let opcion
 if (methodCodeQR) {
 opcion = '1'
 }
-if (!methodCodeQR && !methodCode && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !fs.existsSync(`./${Ellensessions}/auth.db`) && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
 do {
 opcion = await question(colores('⌨ Seleccione una opción:\n') + opcionQR('1. Con código QR\n') + opcionTexto('2. Con código de texto de 8 dígitos\n--> '))
 
 if (!/^[1-2]$/.test(opcion)) {
 console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se admiten letras ni símbolos especiales.`))
-}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${Ellensessions}/creds.json`))
+}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${Ellensessions}/auth.db`) || fs.existsSync(`./${Ellensessions}/creds.json`))
 }
 
 console.info = () => {}
@@ -200,7 +205,20 @@ version,
 
 global.conn = makeWASocket(connectionOptions);
 
-if (!fs.existsSync(`./${Ellensessions}/creds.json`)) {
+const activeSqliteAuthStates = global.activeSqliteAuthStates = global.activeSqliteAuthStates || new Set()
+activeSqliteAuthStates.add(sqliteAuth)
+schedulePacificMidnight(async () => {
+  coreLog('Mantenimiento', 'Iniciando reciclado 00:00 America/Los_Angeles.', 'info')
+  purgeLegacyAuthFiles(global.Ellensessions)
+  for (const auth of activeSqliteAuthStates) {
+    try { auth.closeDb?.() } catch (error) { coreLog('Mantenimiento', error.message, 'warn') }
+  }
+  try { global.conn?.ws?.close?.() } catch {}
+  setTimeout(() => global.reloadHandler?.(true), 1500).unref()
+})
+
+
+if (!fs.existsSync(`./${Ellensessions}/auth.db`) && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
@@ -307,7 +325,11 @@ conn.ev.off('connection.update', conn.connectionUpdate)
 conn.ev.off('creds.update', conn.credsUpdate)
 }
 
-conn.handler = handler.handler.bind(global.conn)
+conn.handler = (chatUpdate) => {
+  const freshUpdate = filterFreshMessages(chatUpdate, { maxAgeSeconds: 15 })
+  if (!freshUpdate) return
+  return handler.handler.call(global.conn, freshUpdate)
+}
 
 global.dispatchCommandFromButton = async (fakeMessage) => {
   try {
@@ -317,7 +339,7 @@ global.dispatchCommandFromButton = async (fakeMessage) => {
   }
 }
 conn.connectionUpdate = connectionUpdate.bind(global.conn)
-conn.credsUpdate = saveCreds.bind(global.conn, true)
+conn.credsUpdate = saveCreds.bind(global.conn)
 
 const currentDateTime = new Date()
 const messageDateTime = new Date(conn.ev)
@@ -348,12 +370,13 @@ console.log(chalk.bold.cyan(`La carpeta: ${jadi} ya está creada.`))
 }
 
 const readRutaJadiBot = readdirSync(rutaJadiBot)
+new JadiBotWorkerBalancer({ botsPerWorker: 3 }).start(readRutaJadiBot.map((id) => join(rutaJadiBot, id)))
 if (readRutaJadiBot.length > 0) {
 const creds = 'creds.json'
 for (const gjbts of readRutaJadiBot) {
 const botPath = join(rutaJadiBot, gjbts)
 const readBotPath = readdirSync(botPath)
-if (readBotPath.includes(creds)) {
+if (readBotPath.includes(creds) || readBotPath.includes('auth.db')) {
 EllenJadiBot({pathEllenJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot'})
 }
 }

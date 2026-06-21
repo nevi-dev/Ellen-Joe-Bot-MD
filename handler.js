@@ -65,9 +65,9 @@ export async function handler(chatUpdate) {
             participants = groupMetadata.participants || []
             participants_lid = participants.map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }))
             
-            if (sender.endsWith('@lid')) {
-                const participantInfo = participants_lid.find(p => p.lid === sender)
-                if (participantInfo && participantInfo.jid) sender = participantInfo.jid
+            if (sender.endsWith('@lid') || isNaN(sender.split('@')[0])) {
+                const participantInfo = participants_lid.find(p => p.id === sender || p.lid === sender)
+                if (participantInfo?.jid) sender = participantInfo.jid
             }
 
             const chatDb = global.db.data.chats[m.chat] || {}
@@ -77,6 +77,31 @@ export async function handler(chatUpdate) {
                 if (!universalWords.includes(firstWord)) return
             }
         }
+
+        let mentionedJid = m.mentionedJid || []
+        let isSelfTarget = mentionedJid.length === 0 && !m.quoted
+        let userId = isSelfTarget ? sender : (mentionedJid.length > 0 ? mentionedJid[0] : m.quoted.sender)
+
+        if (m.isGroup && userId && (userId.endsWith('@lid') || isNaN(userId.split('@')[0]))) {
+            try {
+                const found = (participants || []).find(p => p.id === userId || p.jid === userId || p.lid === userId)
+                if (found?.jid) userId = found.jid
+            } catch {}
+        }
+
+        const getName = async (jid) => {
+            try {
+                const n = await this.getName(jid)
+                return typeof n === 'string' && n.trim() ? n : jid.split('@')[0]
+            } catch { return jid.split('@')[0] }
+        }
+
+        let from = m.pushName || await getName(sender)
+        let who = await getName(userId)
+        m.sender = sender
+        m.from = from
+        m.who = who
+        m.targetJid = userId
 
         m.exp = 0
         m.coin = false
@@ -239,7 +264,7 @@ export async function handler(chatUpdate) {
             if (!match) continue
 
             if (typeof plugin.before === 'function') {
-                if (await plugin.before.call(this, m, { match, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename })) continue
+                if (await plugin.before.call(this, m, { match, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, from, who, targetJid: userId, chatUpdate, __dirname: ___dirname, __filename })) continue
             }
 
             if (typeof plugin !== 'function') continue
@@ -310,7 +335,7 @@ export async function handler(chatUpdate) {
                     continue
                 }
 
-                let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename }
+                let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, from, who, targetJid: userId, chatUpdate, __dirname: ___dirname, __filename }
                 
                 try {
                     await plugin.call(this, m, extra)

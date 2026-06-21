@@ -11,7 +11,10 @@ Contenido adaptado por:
 - elrebelde21 >> https://github.com/elrebelde21
 */
 
-const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import("@whiskeysockets/baileys"));
+const { DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import("@whiskeysockets/baileys"));
+const { useSQLiteAuthState } = await import('@nevi-dev/sqlite-auth')
+import { filterFreshMessages } from '../core/message-filter.js'
+import { purgeLegacyAuthFiles } from '../core/connection-utils.js'
 import qrcode from "qrcode"
 import NodeCache from "node-cache"
 import fs from "fs"
@@ -143,7 +146,9 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 let { version, isLatest } = await fetchLatestBaileysVersion()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
+const sqliteAuth = useSQLiteAuthState(pathEllenJadiBot, { dbName: 'auth.db', cleanOldFiles: true })
+global.activeSqliteAuthStates?.add(sqliteAuth)
+const { state, saveCreds } = sqliteAuth
 
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
@@ -174,6 +179,7 @@ if (store) {
 conversation: 'Ellen Joe Bot MD',
 }}}*/
 
+purgeLegacyAuthFiles(pathEllenJadiBot)
 let sock = makeWASocket(connectionOptions)
 sock.isInit = false
 let isInit = true
@@ -246,13 +252,15 @@ if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathE
 } catch (error) {
 console.error(chalk.bold.yellow(`Error 405 no se pudo enviar mensaje a: +${path.basename(pathEllenJadiBot)}`))
 }
+sqliteAuth.closeDb?.()
+global.activeSqliteAuthStates?.delete(sqliteAuth)
 fs.rmdirSync(pathEllenJadiBot, { recursive: true })
 }
 if (reason === 500) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathEllenJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathEllenJadiBot)}@s.whatsapp.net`, {text : '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
 return creloadHandler(true).catch(console.error)
-//fs.rmdirSync(pathEllenJadiBot, { recursive: true })
+// sqliteAuth.closeDb?.()
 }
 if (reason === 515) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reinicio automático para la sesión (+${path.basename(pathEllenJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
@@ -260,6 +268,8 @@ await creloadHandler(true).catch(console.error)
 }
 if (reason === 403) {
 console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathEllenJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+sqliteAuth.closeDb?.()
+global.activeSqliteAuthStates?.delete(sqliteAuth)
 fs.rmdirSync(pathEllenJadiBot, { recursive: true })
 }}
 if (global.db.data == null) loadDatabase()
@@ -310,9 +320,13 @@ sock.ev.off("connection.update", sock.connectionUpdate)
 sock.ev.off('creds.update', sock.credsUpdate)
 }
 
-sock.handler = handler.handler.bind(sock)
+sock.handler = (chatUpdate) => {
+const freshUpdate = filterFreshMessages(chatUpdate, { maxAgeSeconds: 15 })
+if (!freshUpdate) return
+return handler.handler.call(sock, freshUpdate)
+}
 sock.connectionUpdate = connectionUpdate.bind(sock)
-sock.credsUpdate = saveCreds.bind(sock, true)
+sock.credsUpdate = saveCreds.bind(sock)
 sock.ev.on("messages.upsert", sock.handler)
 sock.ev.on("connection.update", sock.connectionUpdate)
 sock.ev.on("creds.update", sock.credsUpdate)
