@@ -37,6 +37,7 @@ const { useSQLiteAuthState } = await import('@nevi-dev/sqlite-auth')
 import { filterFreshMessages } from './core/message-filter.js'
 import { coreLog, purgeLegacyAuthFiles, schedulePacificMidnight } from './core/connection-utils.js'
 import { JadiBotWorkerBalancer } from './core/jadibot-workers.js'
+import { attachSessionState, createMessageRetryCache } from './src/core/session-manager.js'
 import readline, { createInterface } from 'readline'
 import NodeCache from 'node-cache'
 const {CONNECTING} = ws
@@ -150,7 +151,7 @@ global.db.chain = chain(global.db.data)
 loadDatabase()
 
 const msgRetryCounterMap = (MessageRetryMap) => { };
-const msgRetryCounterCache = new NodeCache()
+const msgRetryCounterCache = createMessageRetryCache()
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
 const sessionRoot = `./${global.Ellensessions}`
@@ -207,6 +208,7 @@ version,
 }
 
 global.conn = makeWASocket(connectionOptions);
+attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Ellensessions })
 
 const activeSqliteAuthStates = global.activeSqliteAuthStates = global.activeSqliteAuthStates || new Set()
 activeSqliteAuthStates.add(sqliteAuth)
@@ -320,6 +322,7 @@ global.conn.ws.close()
 } catch { }
 conn.ev.removeAllListeners()
 global.conn = makeWASocket(connectionOptions, {chats: oldChats})
+attachSessionState(global.conn, { id: 'primary', type: 'standard', path: global.Ellensessions })
 isInit = true
 }
 if (!isInit) {
