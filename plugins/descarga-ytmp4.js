@@ -1,7 +1,8 @@
 import axios from 'axios';
+import fs from 'fs';
 
 // --- Configuración API Causas ---
-const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
+const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 const SIZE_LIMIT_MB = 100; 
 
@@ -12,7 +13,42 @@ const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒erv
 var handler = async (m, { conn, args, usedPrefix, command }) => {
     const name = conn.getName(m.sender);
     const url = args[0];
+    const matchedUrl = 'https://github.com/nevi-dev';
 
+    // Conversión segura de global.icons a Buffer binario para el jpegThumbnail
+    const thumbnailBuffer = Buffer.isBuffer(global.icons) 
+        ? global.icons 
+        : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
+
+    // --- ÚNICO EXTERNAL LINK MESSAGE CON LA ESTÉTICA DE VICTORIA HOUSEKEEPING ---
+    const sendExternalMessage = async (msgText) => {
+        await conn.relayMessage(m.chat, {
+            extendedTextMessage: {
+                text: `${matchedUrl}\n\n${msgText}`,
+                matchedText: matchedUrl,
+                canonicalUrl: matchedUrl,
+                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', // Título que querías mantener
+                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`, // Cuerpo que querías mantener
+                previewType: 'shadow',
+                jpegThumbnail: thumbnailBuffer,
+                contextInfo: {
+                    quotedMessage: m.message,
+                    participant: m.sender,
+                    stanzaId: m.id,
+                    remoteJid: m.chat,
+                    isForwarded: true,
+                    forwardingScore: 999,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid,
+                        newsletterName,
+                        serverMessageId: -1
+                    }
+                }
+            }
+        }, { quoted: m });
+    };
+
+    // ContextInfo limpio (solo para reenvío de canal) usado al enviar el video/documento
     const contextInfo = {
         mentionedJid: [m.sender],
         isForwarded: true,
@@ -21,37 +57,19 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
             newsletterJid,
             newsletterName,
             serverMessageId: -1
-        },
-        externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
-            thumbnail: global.icons,
-            sourceUrl: global.redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
         }
     };
 
     if (!url) {
-        return conn.reply(
-            m.chat,
-            `🦈 *— (Bostezo)*... Qué molesto. Si quieres un video, dame el enlace. No puedo trabajar con el aire.\n\n_Uso: ${usedPrefix + command} https://youtube.com/watch?v=..._`,
-            m,
-            { contextInfo, quoted: m }
-        );
+        return sendExternalMessage(`🦈 *— (Bostezo)*... Qué molesto. Si quieres un video, dame el enlace. No puedo trabajar con el aire.\n\n_Uso: ${usedPrefix + command} https://youtube.com/watch?v=..._`);
     }
 
     await m.react("📽️");
-    await conn.reply(
-        m.chat,
-        `✦ *Procesando...* Estoy preparando el video con los servidores de Causas. No me presiones.`,
-        m,
-        { contextInfo, quoted: m }
-    );
+    await sendExternalMessage(`✦ *Procesando...* Estoy preparando el video con los servidores de Causas. No me presiones.`);
 
     try {
-        // Petición exclusiva a API Causas con type=video
-        const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(url)}&type=video&apikey=${API_KEY}`);
+        // Petición a la API usando la v1 limpia
+        const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(url)}&type=video&quality=720&apikey=${API_KEY}`);
         const res = response.data;
 
         if (res.status && res.data.download.url) {
@@ -70,11 +88,12 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                     document: { url: downloadUrl },
                     fileName: `${title}.mp4`,
                     mimetype: 'video/mp4',
-                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nSupera mi límite de carga, así que va como documento para no forzar el equipo.\n\n🎬 *Video:* ${title}`
+                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nSupera mi límite de carga, así que va como documento para no forzar el equipo.\n\n🎬 *Video:* ${title}`,
+                    contextInfo
                 }, { quoted: m });
                 await m.react("📄");
             } else {
-                // Enviar como video normal
+                // Enviar como video normal usando el contextInfo limpio del canal
                 await conn.sendMessage(m.chat, { 
                     video: { url: downloadUrl }, 
                     mimetype: 'video/mp4', 
@@ -92,12 +111,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     } catch (error) {
         console.error("Error en API Causas (Video):", error.message);
         await m.react("❌");
-        await conn.reply(
-            m.chat, 
-            `🦈 *Tsk...* El servidor de Causas no respondió correctamente. El enlace está roto o mi acceso fue denegado.`, 
-            m, 
-            { contextInfo }
-        );
+        await sendExternalMessage(`🦈 *Tsk...* El enlace está roto o mi acceso fue denegado.`);
     }
 };
 
