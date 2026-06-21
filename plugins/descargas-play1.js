@@ -9,8 +9,8 @@ const { prepareWAMessageMedia, proto } = pkg;
 
 const execPromise = promisify(exec);
 const API_KEY = 'causa-ee5ee31dcfc79da4';
-const API_XD = 'https://rest.apicausas.xyz/api/v1/descargas/xd';
-const API_OLD = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
+// Apuntamos directamente a tu nuevo endpoint híbrido/directo de Savenow
+const API_SAVENOW = 'https://rest.apicausas.xyz/api/v1/descargas/youtubev2';
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
@@ -66,21 +66,16 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         await m.react(type === 'audio' ? "🎧" : "🎬");
         let finalUrl = null;
 
-        // 1. Intentar con API XD
+        // Intentar obtener el enlace procesado en tiempo real por Savenow
         try {
-            const { data } = await axios.get(`${API_XD}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
-            if (data.status) finalUrl = data.data.url;
-        } catch (e) { console.log("API XD falló, probando Old..."); }
-
-        // 2. Fallback a API OLD
-        if (!finalUrl) {
-            try {
-                const { data } = await axios.get(`${API_OLD}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
-                if (data.status && data.data.download.url) finalUrl = data.data.download.url;
-            } catch (e) {
-                await m.react("❌");
-                return conn.reply(m.chat, `*— Tsk...* Ambas APIs fallaron.`, m);
+            const { data } = await axios.get(`${API_SAVENOW}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
+            
+            // Estructura según tu router modificado (data.download.url)
+            if (data.status && data.data?.download?.url) {
+                finalUrl = data.data.download.url;
             }
+        } catch (e) { 
+            console.error("Error al obtener descarga de Savenow:", e.message); 
         }
 
         if (finalUrl) {
@@ -92,8 +87,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
                 }
                 await m.react("✅");
             } catch (e) {
+                console.error("Error enviando el archivo multimedia:", e.message);
                 await m.react("❌");
             }
+        } else {
+            await m.react("❌");
+            return conn.reply(m.chat, `*— Tsk...* El servidor de descargas Savenow no pudo procesar este flujo de inmediato.`, m);
         }
         return;
     }
@@ -103,7 +102,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const video = searchResult.videos?.[0];
     if (!video) return conn.reply(m.chat, `*— No encontré nada.*`, m);
 
-    const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
+    const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀 N 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
     const botonesNativos = [
         { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "🎧 𝘼𝙐𝘿𝙄𝙊", id: `${usedPrefix}${command} audio ${video.url}` }) },
         { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "🎬 𝙑𝙄𝘿𝙀𝙊", id: `${usedPrefix}${command} video ${video.url}` }) }
