@@ -27,8 +27,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                 text: `${matchedUrl}\n\n${msgText}`,
                 matchedText: matchedUrl,
                 canonicalUrl: matchedUrl,
-                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', // Título que querías mantener
-                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`, // Cuerpo que querías mantener
+                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄?? 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', 
+                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`, 
                 previewType: 'shadow',
                 jpegThumbnail: thumbnailBuffer,
                 contextInfo: {
@@ -48,7 +48,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
         }, { quoted: m });
     };
 
-    // ContextInfo limpio (solo para reenvío de canal) usado al enviar el video/documento
+    // ContextInfo limpio usado al enviar el video/documento
     const contextInfo = {
         mentionedJid: [m.sender],
         isForwarded: true,
@@ -65,10 +65,10 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     }
 
     await m.react("📽️");
-    await sendExternalMessage(`✦ *Procesando...* Estoy preparando el video con los servidores de Causas. No me presiones.`);
+    await sendExternalMessage(`✦ *Procesando...* Estoy preparando el video. No me presiones.`);
 
     try {
-        // Petición a la API usando la v1 limpia
+        // Petición a la API usando tu v1 limpia
         const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(url)}&type=video&quality=720&apikey=${API_KEY}`);
         const res = response.data;
 
@@ -78,27 +78,30 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
 
             await m.react("📥");
 
-            // Verificar tamaño del archivo antes de enviar
-            const checkHeader = await axios.head(downloadUrl);
-            const fileSizeMb = (checkHeader.headers['content-length'] || 0) / (1024 * 1024);
+            // Validar el tamaño del archivo usando HEAD de forma rápida para no descargar el archivo en el bot
+            const checkHeader = await axios.head(downloadUrl).catch(() => null);
+            const fileSizeMb = checkHeader 
+                ? (checkHeader.headers['content-length'] || 0) / (1024 * 1024) 
+                : 0;
 
             if (fileSizeMb > SIZE_LIMIT_MB) {
-                // Enviar como documento si es muy pesado
+                // Enviar como documento si es muy pesado usando solo la URL directa
                 await conn.sendMessage(m.chat, {
                     document: { url: downloadUrl },
                     fileName: `${title}.mp4`,
                     mimetype: 'video/mp4',
-                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb.toFixed(2)} MB).\n\nSupera mi límite de carga, así que va como documento para no forzar el equipo.\n\n🎬 *Video:* ${title}`,
+                    caption: `🦈 *Demasiado pesado...* (${fileSizeMb > 0 ? fileSizeMb.toFixed(2) + ' MB' : 'Desconocido'}).\n\nSupera mi límite de carga, así que va como documento para no forzar el equipo.\n\n🎬 *Video:* ${title}`,
                     contextInfo
                 }, { quoted: m });
                 await m.react("📄");
             } else {
-                // Enviar como video normal usando el contextInfo limpio del canal
+                // Enviar como video normal pasando la URL y forzando parámetros de reproducción limpia
                 await conn.sendMessage(m.chat, { 
                     video: { url: downloadUrl }, 
                     mimetype: 'video/mp4', 
                     fileName: `${title}.mp4`,
                     caption: `🦈 *Aquí tienes tu pedido.* 🎞️\n\n🎬 *Título:* ${title}\n✦ *Servicio:* Victoria Housekeeping`,
+                    asDocument: false, // Forzar que Baileys lo envíe como flujo de video nativo
                     contextInfo
                 }, { quoted: m });
                 await m.react("✅");
