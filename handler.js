@@ -16,6 +16,19 @@ const cleanJid = jid => jid?.split(':')[0] || ''
 
 const groupCache = new Map()
 
+function createMutableMessage(message) {
+    if (!message || typeof message !== 'object') return message
+    const clone = Object.create(Object.getPrototypeOf(message))
+    Object.defineProperties(clone, Object.getOwnPropertyDescriptors(message))
+    return clone
+}
+
+function setMessageContext(message, context) {
+    for (const [key, value] of Object.entries(context)) {
+        Object.defineProperty(message, key, { value, writable: true, configurable: true, enumerable: true })
+    }
+}
+
 global.dfail = (type, m, conn) => {
     failureHandler(type, conn, m, global.comando)
 }
@@ -36,7 +49,7 @@ export async function handler(chatUpdate) {
     if (global.db.data == null) await global.loadDatabase()
 
     try {
-        m = smsg(this, m) || m
+        m = createMutableMessage(smsg(this, m) || m)
         if (!m) return
 
         let sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid
@@ -98,13 +111,7 @@ export async function handler(chatUpdate) {
 
         let from = m.pushName || await getName(sender)
         let who = await getName(userId)
-        m.sender = sender
-        m.from = from
-        m.who = who
-        m.targetJid = userId
-
-        m.exp = 0
-        m.coin = false
+        setMessageContext(m, { sender, from, who, targetJid: userId, exp: 0, coin: false })
 
         let user = global.db.data.users[sender]
         if (typeof user !== 'object') global.db.data.users[sender] = {}

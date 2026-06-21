@@ -1,8 +1,11 @@
 const handler = (m) => m;
 handler.before = async function(m) {
   this.suit = this.suit ? this.suit : {};
+  if (!m?.sender) return false;
   if (!db.data.users) db.data.users = {};
-  if (!db.data.users[m.sender]) db.data.users[m.sender] = {};
+  if (!db.data.users[m.sender]?.suit) {
+    db.data.users[m.sender] = { ...(db.data.users[m.sender] || {}), suit: 0 };
+  }
   if (typeof db.data.users[m.sender].suit !== 'number') db.data.users[m.sender].suit = 0;
   if (db.data.users[m.sender].suit < 0) db.data.users[m.sender].suit = 0;
   const room = Object.values(this.suit).find((room) => room.id && room.status && [room.p, room.p2].includes(m.sender));
