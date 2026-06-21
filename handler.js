@@ -26,6 +26,7 @@ global.dfail = (type, m, conn) => {
 }
 
 export async function handler(chatUpdate) {
+    let sender = '';
     this.msgqueque = this.msgqueque || []
     this.uptime = this.uptime || Date.now()
     
