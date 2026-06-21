@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 let handler = async (m, { conn }) => {
   m.reply(`🌷 Actualizando la bot...`);
 
-  const comando = 'find src -type f | xargs git update-index --assume-unchanged && git pull';
+  const comando = 'git pull';
 
   exec(comando, (err, stdout, stderr) => {
     if (err) {
