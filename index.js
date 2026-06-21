@@ -149,12 +149,12 @@ global.db.chain = chain(global.db.data)
 }
 loadDatabase()
 
-const sqliteAuth = useSQLiteAuthState(global.Ellensessions, { dbName: 'auth.db', cleanOldFiles: true })
-const { state, saveCreds } = sqliteAuth
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
+const sessionRoot = `./${global.Ellensessions}`
+const hasExistingSession = () => fs.existsSync(`${sessionRoot}/auth.db`) || fs.existsSync(`${sessionRoot}/creds.json`)
 
 const methodCodeQR = process.argv.includes("qr")
 const methodCode = !!phoneNumber || process.argv.includes("code")
@@ -169,14 +169,17 @@ let opcion
 if (methodCodeQR) {
 opcion = '1'
 }
-if (!methodCodeQR && !methodCode && !fs.existsSync(`./${Ellensessions}/auth.db`) && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !hasExistingSession()) {
 do {
 opcion = await question(colores('⌨ Seleccione una opción:\n') + opcionQR('1. Con código QR\n') + opcionTexto('2. Con código de texto de 8 dígitos\n--> '))
 
 if (!/^[1-2]$/.test(opcion)) {
 console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se admiten letras ni símbolos especiales.`))
-}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${Ellensessions}/auth.db`) || fs.existsSync(`./${Ellensessions}/creds.json`))
+}} while (opcion !== '1' && opcion !== '2')
 }
+
+const sqliteAuth = useSQLiteAuthState(global.Ellensessions, { dbName: 'auth.db', cleanOldFiles: true })
+const { state, saveCreds } = sqliteAuth
 
 console.info = () => {}
 console.debug = () => {}
@@ -218,7 +221,7 @@ schedulePacificMidnight(async () => {
 })
 
 
-if (!fs.existsSync(`./${Ellensessions}/auth.db`) && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!hasExistingSession() || !conn.authState.creds.registered) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
