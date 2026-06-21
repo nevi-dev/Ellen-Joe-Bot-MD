@@ -69,7 +69,7 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
 
     try {
         // Petición a la API usando tu v1 limpia
-        const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(url)}&type=video&quality=720&apikey=${API_KEY}`);
+        const response = await axios.get(`${API_BASE}?url=${encodeURIComponent(url)}&type=video&quality=420&apikey=${API_KEY}`);
         const res = response.data;
 
         if (res.status && res.data.download.url) {
