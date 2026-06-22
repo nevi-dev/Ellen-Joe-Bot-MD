@@ -1,6 +1,7 @@
 import moment from 'moment-timezone';
 import PhoneNumber from 'awesome-phonenumber';
 import fetch from 'node-fetch';
+import fs from 'fs';
 
 let handler = async (m, { conn, args }) => {
     let userId;
@@ -31,11 +32,59 @@ let handler = async (m, { conn, args }) => {
     let coins = user.coin || 0;
     let bankCoins = user.bank || 0;
 
-    let perfil = await conn.profilePictureUrl(userId, 'image').catch(_ => 'https://files.catbox.moe/xr2m6u.jpg');
+    // --- CONFIGURACIÓN DEL MENSAJE EXTERNO DE VICTORIA HOUSEKEEPING ---
+    const matchedUrl = 'https://github.com/nevi-dev';
 
-    // Personalidad de Ellen Joe: Cortante, perezosa pero eficiente.
-    let profileText = `
-🦈 *Expediente de Servicio: @${userId.split('@')[0]}*
+    // Función unificada para responder con el external link de alta fidelidad
+    const sendExternalMessage = async (msgText) => {
+        const newsletterJid = global.newsletterJid || '120363198533816654@newsletter';
+        const newsletterName = global.newsletterName || 'Ellen Joe Bot Updates 🦈';
+
+        // Intentar obtener foto del usuario inspeccionado, o fallback a global.icons
+        let thumbnailBuffer;
+        try {
+            const profileImgUrl = await conn.profilePictureUrl(userId, 'image').catch(() => null);
+            if (profileImgUrl) {
+                const response = await fetch(profileImgUrl);
+                thumbnailBuffer = await response.buffer();
+            } else {
+                throw new Error();
+            }
+        } catch {
+            thumbnailBuffer = Buffer.isBuffer(global.icons) 
+                ? global.icons 
+                : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
+        }
+
+        await conn.relayMessage(m.chat, {
+            extendedTextMessage: {
+                text: `${matchedUrl}\n\n${msgText}`,
+                matchedText: matchedUrl,
+                canonicalUrl: matchedUrl,
+                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', 
+                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`, 
+                previewType: 'shadow',
+                jpegThumbnail: thumbnailBuffer,
+                contextInfo: {
+                    mentionedJid: mentions,
+                    quotedMessage: m.message,
+                    participant: m.sender,
+                    stanzaId: m.id,
+                    remoteJid: m.chat,
+                    isForwarded: true,
+                    forwardingScore: 999,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid,
+                        newsletterName,
+                        serverMessageId: -1
+                    }
+                }
+            }
+        }, { quoted: m });
+    };
+
+    // Personalidad de Ellen Joe intacta
+    let profileText = `🦈 *Expediente de Servicio: @${userId.split('@')[0]}*
 > "Ugh, ¿otra vez pidiendo datos? Terminaré esto rápido, mi turno casi acaba..."
 
 *「 Datos del Cliente 」*
@@ -58,24 +107,11 @@ let handler = async (m, { conn, args }) => {
 *「 Notas adicionales 」*
 📝 ${description}
 
-_— Solo no me pidas nada más durante mi descanso..._ 🍭
-`.trim();
+_— Solo no me pidas nada más durante mi descanso..._ 🍭`.trim();
 
-    await conn.sendMessage(m.chat, { 
-        text: profileText,
-        mentions,
-        contextInfo: {
-            mentionedJid: mentions,
-            externalAdReply: {
-                title: '🦈 V.H.P.S - Ellen Joe Service',
-                body: '¿Ya terminaste? Quiero un helado.',
-                thumbnailUrl: perfil,
-                mediaType: 1,
-                showAdAttribution: false,
-                renderLargerThumbnail: true
-            }
-        }
-    }, { quoted: m });
+    // Lanzar el nuevo formato de respuesta externa
+    await sendExternalMessage(profileText);
+    await m.react('🦈');
 };
 
 handler.help = ['profile'];
