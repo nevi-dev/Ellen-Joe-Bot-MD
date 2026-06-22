@@ -50,19 +50,28 @@ const resolveRuntimeJid = (jid, participants = []) => {
     return participants.find(p => cleanJid(p.lid) === normalized || cleanJid(p.id) === normalized || cleanJid(p.jid) === normalized)?.jid || global.db?.adapter?.resolveJid?.(normalized) || normalized
 }
 
-const resolveMessageMentions = (m, participants = []) => {
+function resolveMessageMentions(m, participants_lid) {
     try {
-        const mentions = Array.isArray(m.mentionedJid) ? m.mentionedJid : []
-        const resolved = mentions.map(jid => resolveRuntimeJid(jid, participants)).filter(Boolean)
-        if (resolved.length) m.mentionedJid = [...new Set(resolved)]
-        if (m.msg?.contextInfo?.mentionedJid) m.msg.contextInfo.mentionedJid = m.mentionedJid
-        if (m.message) {
-            for (const payload of Object.values(m.message)) {
-                if (payload?.contextInfo?.mentionedJid) payload.contextInfo.mentionedJid = m.mentionedJid
+        // Obtener las menciones crudas que vienen en el mensaje de Baileys
+        const rawMentions = m.message?.extendedTextMessage?.contextInfo?.mentionedJid || 
+                            m.message?.contactsArrayMessage?.contacts || [];
+        
+        // Normalizar mapeando de LID a JID real usando la lista de participantes
+        const normalized = rawMentions.map(mention => {
+            if (mention.endsWith('@lid')) {
+                const found = participants_lid.find(p => p.lid === mention);
+                return found ? found.jid : mention.replace('@lid', '@s.whatsapp.net');
             }
-        }
+            return mention;
+        });
+
+        // SOLUCIÓN: En lugar de modificar m.mentionedJid que tiene getter,
+        // creamos una propiedad nueva y totalmente mutable en la raíz del mensaje
+        m.mentions = normalized;
+
     } catch (error) {
-        console.error('No se pudieron normalizar menciones LID/JID:', error)
+        console.error("Error al normalizar menciones:", error);
+        m.mentions = []; // Fallback seguro para que nunca sea undefined
     }
 }
 
