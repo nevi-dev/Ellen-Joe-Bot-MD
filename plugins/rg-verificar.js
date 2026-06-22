@@ -16,9 +16,26 @@ let handler = async function (m, { conn, text, args, usedPrefix, command }) {
     const matchedUrl = 'https://github.com/nevi-dev';
 
     // Conversión segura de global.icons a Buffer binario para el jpegThumbnail
-    const thumbnailBuffer = Buffer.isBuffer(global.icons) 
-        ? global.icons 
-        : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
+    // --- OBTENCIÓN DINÁMICA DE MINIATURA (Foto de perfil o Ellen fallback) ---
+    let thumbnailBuffer;
+    try {
+        // Intentamos obtener la URL de la foto de perfil del usuario (o el objetivo 'whe')
+        const profileImgUrl = await conn.profilePictureUrl(whe, 'image').catch(() => null);
+        
+        if (profileImgUrl) {
+            // Si tiene foto, la descargamos y la convertimos en Buffer
+            const response = await fetch(profileImgUrl);
+            thumbnailBuffer = await response.buffer();
+        } else {
+            // Si no tiene foto de perfil, forzamos el lanzamiento al bloque catch para usar global.icons
+            throw new Error('No profile picture');
+        }
+    } catch {
+        // FALLBACK: Si falla o no tiene foto, procesamos global.icons de forma segura
+        thumbnailBuffer = Buffer.isBuffer(global.icons) 
+            ? global.icons 
+            : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
+    }
 
     // Función unificada para responder con la estética de Ellen Joe
     const sendExternalMessage = async (msgText) => {
