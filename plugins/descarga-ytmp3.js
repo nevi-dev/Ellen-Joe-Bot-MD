@@ -4,7 +4,7 @@ import fs from 'fs';
 // --- Configuración API Causas ---
 const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
-const SIZE_LIMIT_MB = 100; 
+const SIZE_LIMIT_MB = 100;
 
 // Configuración de Ellen Joe / Victoria Housekeeping
 const newsletterJid = '120363418071540900@newsletter';
@@ -15,8 +15,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     const url = args[0];
     const matchedUrl = 'https://github.com/nevi-dev';
 
-    const thumbnailBuffer = Buffer.isBuffer(global.icons) 
-        ? global.icons 
+    const thumbnailBuffer = Buffer.isBuffer(global.icons)
+        ? global.icons
         : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
 
     const sendExternalMessage = async (msgText) => {
@@ -25,8 +25,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                 text: `${matchedUrl}\n\n${msgText}`,
                 matchedText: matchedUrl,
                 canonicalUrl: matchedUrl,
-                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', 
-                description: `✦ ¿Solo quieres escuchar, ${name}? Qué raro...`, 
+                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
                 previewType: 'shadow',
                 jpegThumbnail: thumbnailBuffer,
                 contextInfo: {
@@ -75,20 +75,12 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
 
             await m.react("📥");
 
-            await conn.sendMessage(m.chat, { 
-                audio: { url: downloadUrl }, 
-                mimetype: 'audio/mpeg', 
+            await conn.sendMessage(m.chat, {
+                audio: { url: downloadUrl },
+                mimetype: 'audio/mpeg',
                 ptt: false, // Cambia a true si quieres que se envíe como nota de voz
                 fileName: `${title}.mp3`,
-                contextInfo: {
-                    ...contextInfo,
-                    externalAdReply: {
-                        title: title,
-                        body: 'Victoria Housekeeping - Audio Service',
-                        thumbnail: thumbnailBuffer,
-                        sourceUrl: url
-                    }
-                }
+                contextInfo
             }, { quoted: m });
 
             await m.react("✅");
