@@ -1,9 +1,21 @@
 const handler = (m) => m;
 handler.before = async function(m) {
   this.suit = this.suit ? this.suit : {};
-  if (db.data.users[m.sender].suit < 0) db.data.users[m.sender].suit = 0;
+  const users = global.db.data.users;
+  if (!users[m.sender]) users[m.sender] = { exp: 0, coin: 10, suit: 0 };
+  if (typeof users[m.sender].suit !== 'number' || users[m.sender].suit < 0) users[m.sender].suit = 0;
+  global.db?.adapter?.ensureGamePvpUser?.(m.sender, m.name || m.pushName || '');
+  const ensureUser = (jid) => {
+    if (!users[jid]) users[jid] = { exp: 0, coin: 10, suit: 0 };
+    if (typeof users[jid].exp !== 'number') users[jid].exp = 0;
+    return users[jid];
+  };
   const room = Object.values(this.suit).find((room) => room.id && room.status && [room.p, room.p2].includes(m.sender));
   if (room) {
+    ensureUser(room.p);
+    ensureUser(room.p2);
+    global.db?.adapter?.ensureGamePvpUser?.(room.p, '');
+    global.db?.adapter?.ensureGamePvpUser?.(room.p2, '');
     let win = '';
     let tie = false;
     if (m.sender == room.p2 && /^(acc(ept)?|terima|aceptar|gas|aceptare?|nao|gamau|rechazar|ga(k.)?bisa)/i.test(m.text) && m.isGroup && room.status == 'wait') {
@@ -38,9 +50,9 @@ tijera\nGanador +${room.poin}XP\nPerdedor ${room.poin_lose}XP\n*responda al mens
           win = !room.pilih ? room.p2 : room.p;
           const textnull = `${emoji2} @${(room.pilih ? room.p2 : room.p).split`@`[0]} No elegiste ninguna opción, fin del PVP.`;
           this.sendMessage(m.chat, {text: textnull}, {quoted: m}, {mentions: this.parseMention(textnull)});
-          db.data.users[win == room.p ? room.p : room.p2].exp += room.poin;
-          db.data.users[win == room.p ? room.p : room.p2].exp += room.poin_bot;
-          db.data.users[win == room.p ? room.p2 : room.p].exp -= room.poin_lose;
+          global.db.data.users[win == room.p ? room.p : room.p2].exp += room.poin;
+          global.db.data.users[win == room.p ? room.p : room.p2].exp += room.poin_bot;
+          global.db.data.users[win == room.p ? room.p2 : room.p].exp -= room.poin_lose;
         }
         delete this.suit[room.id];
         return !0;
@@ -81,9 +93,9 @@ tijera\nGanador +${room.poin}XP\nPerdedor ${room.poin_lose}XP\n*responda al mens
 *@${room.p2.split`@`[0]} (${room.text2})* ${tie ? '' : room.p2 == win ? ` *Gano 🥳 +${room.poin}XP*` : ` *Perdio 🤡 ${room.poin_lose}XP*`}
 `.trim(), m, {mentions: [room.p, room.p2]} );
       if (!tie) {
-        db.data.users[win == room.p ? room.p : room.p2].exp += room.poin;
-        db.data.users[win == room.p ? room.p : room.p2].exp += room.poin_bot;
-        db.data.users[win == room.p ? room.p2 : room.p].exp += room.poin_lose;
+        global.db.data.users[win == room.p ? room.p : room.p2].exp += room.poin;
+        global.db.data.users[win == room.p ? room.p : room.p2].exp += room.poin_bot;
+        global.db.data.users[win == room.p ? room.p2 : room.p].exp += room.poin_lose;
       }
       delete this.suit[room.id];
     }
