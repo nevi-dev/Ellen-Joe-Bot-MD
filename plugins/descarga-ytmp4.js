@@ -4,7 +4,7 @@ import fs from 'fs';
 // --- Configuración API Causas ---
 const API_BASE = 'https://rest.apicausas.xyz/api/v1/descargas/youtube';
 const API_KEY = 'causa-ee5ee31dcfc79da4';
-const SIZE_LIMIT_MB = 100; 
+const SIZE_LIMIT_MB = 100;
 
 // Configuración de Ellen Joe / Victoria Housekeeping
 const newsletterJid = '120363418071540900@newsletter';
@@ -16,8 +16,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
     const matchedUrl = 'https://github.com/nevi-dev';
 
     // Conversión segura de global.icons a Buffer binario para el jpegThumbnail
-    const thumbnailBuffer = Buffer.isBuffer(global.icons) 
-        ? global.icons 
+    const thumbnailBuffer = Buffer.isBuffer(global.icons)
+        ? global.icons
         : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
 
     // --- ÚNICO EXTERNAL LINK MESSAGE CON LA ESTÉTICA DE VICTORIA HOUSEKEEPING ---
@@ -27,8 +27,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                 text: `${matchedUrl}\n\n${msgText}`,
                 matchedText: matchedUrl,
                 canonicalUrl: matchedUrl,
-                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄?? 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', 
-                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`, 
+                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
                 previewType: 'shadow',
                 jpegThumbnail: thumbnailBuffer,
                 contextInfo: {
@@ -80,8 +80,8 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
 
             // Validar el tamaño del archivo usando HEAD de forma rápida para no descargar el archivo en el bot
             const checkHeader = await axios.head(downloadUrl).catch(() => null);
-            const fileSizeMb = checkHeader 
-                ? (checkHeader.headers['content-length'] || 0) / (1024 * 1024) 
+            const fileSizeMb = checkHeader
+                ? (checkHeader.headers['content-length'] || 0) / (1024 * 1024)
                 : 0;
 
             if (fileSizeMb > SIZE_LIMIT_MB) {
@@ -96,9 +96,9 @@ var handler = async (m, { conn, args, usedPrefix, command }) => {
                 await m.react("📄");
             } else {
                 // Enviar como video normal pasando la URL y forzando parámetros de reproducción limpia
-                await conn.sendMessage(m.chat, { 
-                    video: { url: downloadUrl }, 
-                    mimetype: 'video/mp4', 
+                await conn.sendMessage(m.chat, {
+                    video: { url: downloadUrl },
+                    mimetype: 'video/mp4',
                     fileName: `${title}.mp4`,
                     caption: `🦈 *Aquí tienes tu pedido.* 🎞️\n\n🎬 *Título:* ${title}\n✦ *Servicio:* Victoria Housekeeping`,
                     asDocument: false, // Forzar que Baileys lo envíe como flujo de video nativo

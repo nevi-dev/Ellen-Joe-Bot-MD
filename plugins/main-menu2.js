@@ -1,26 +1,13 @@
 //nevi-dev
 import fs from 'fs';
 import path from 'path';
-import axios from 'axios';
 import moment from 'moment-timezone';
-import pkg from '@whiskeysockets/baileys';
-const { generateWAMessageContent } = pkg;
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 const packname = '˚🄴🄻🄻🄴🄽-🄹🄾🄴-🄱🄾🅃';
 const redes = 'https://github.com/nevi-dev';
 
-const images = [
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/086ec8e8-c373-45b6-ad51-3cdaef9cd3e6.jpg?raw=true",
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/c99835de-0c28-4e27-93a0-422df6cca849.jpg?raw=true",
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/6eee1198-1b0f-4cfe-b6c0-2fb82dc0bdc5.jpg?raw=true",
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/18b2ad5d-a091-4267-8903-bb895dbefe6c.jpg?raw=true",
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/23912e87-2b42-468c-bfd4-a4df62951c10.jpg?raw=true",
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/7d874ab7-8a4c-4d76-b7dc-dfbcb589bd9b.jpg?raw=true",
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/42f1cc96-bcd5-4c43-ac58-96883dba3047.jpg?raw=true",
-    "https://github.com/nevi-dev/nevi-dev/blob/main/src/407e16b8-89d4-4d09-bd2f-a606ccc0e53c.jpg?raw=true"
-];
 
 let handler = async (m, { conn, usedPrefix, text, command }) => {
   let chat = global.db.data.chats[m.chat];
@@ -75,35 +62,29 @@ ${listaAudios}
 ${sep}
 *— Si no respondo, es que estoy en mi descanso.*`.trim();
 
-  // 4. Lógica de Bypass Newsletter (Igual que robarwaifu)
-  try {
-    const randomImage = images[Math.floor(Math.random() * images.length)];
-    const { data: thumb } = await conn.getFile(randomImage);
-    const messageContent = await generateWAMessageContent(
-      { image: { url: randomImage } },
-      { upload: conn.waUploadToServer }
-    );
-    const imageMsg = messageContent.imageMessage;
+  const name = await conn.getName(m.sender);
+  const matchedUrl = redes;
+  const thumbnailBuffer = Buffer.isBuffer(global.icons)
+    ? global.icons
+    : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
 
-    const content = {
+  const sendExternalMessage = async (msgText) => {
+    await conn.relayMessage(m.chat, {
       extendedTextMessage: {
-        text: `${encabezado}\n\n${redes}`,
-        matchedText: redes,
-        description: "Victoria Housekeeping Audio System",
-        title: "𝐄llen 𝐉ᴏ𝐄's 𝐕𝐨𝐢𝐜𝐞 🦈",
-        previewType: 0,
-        jpegThumbnail: thumb,
-        thumbnailDirectPath: imageMsg.directPath,
-        thumbnailSha256: imageMsg.fileSha256,
-        thumbnailEncSha256: imageMsg.fileEncSha256,
-        mediaKey: imageMsg.mediaKey,
-        mediaKeyTimestamp: imageMsg.mediaKeyTimestamp,
-        thumbnailHeight: 720,
-        thumbnailWidth: 1280,
+        text: `${matchedUrl}\n\n${msgText}`,
+        matchedText: matchedUrl,
+        canonicalUrl: matchedUrl,
+        title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+        description: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
+        previewType: 'shadow',
+        jpegThumbnail: thumbnailBuffer,
         contextInfo: {
-          mentionedJid: [m.sender],
+          quotedMessage: m.message,
+          participant: m.sender,
+          stanzaId: m.id,
+          remoteJid: m.chat,
           isForwarded: true,
-          forwardingScore: 1,
+          forwardingScore: 999,
           forwardedNewsletterMessageInfo: {
             newsletterJid,
             newsletterName,
@@ -111,12 +92,10 @@ ${sep}
           }
         }
       }
-    };
-    await conn.relayMessage(m.chat, content, { quoted: m });
-  } catch (e) {
-    console.error(e);
-    await conn.reply(m.chat, encabezado, m);
-  }
+    }, { quoted: m });
+  };
+
+  await sendExternalMessage(encabezado);
 };
 
 handler.help = ['menu2', 'audios on', 'audios off'];
