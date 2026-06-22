@@ -142,8 +142,10 @@ global.db.chain = chain(global.db.data)
 }
 loadDatabase()
 
-const authDb = new Database('./src/database/auth.sqlite')
-const {state, saveCreds} = useSQLiteAuthState(authDb, global.Ellensessions || 'EllenSession')
+if (!existsSync(global.Ellensessions || 'ellensesions')) mkdirSync(global.Ellensessions || 'ellensesions', { recursive: true })
+const authDbPath = join(global.Ellensessions || 'ellensesions', 'auth.sqlite')
+const authDb = new Database(authDbPath)
+const {state, saveCreds} = useSQLiteAuthState(authDb, 'main')
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
@@ -272,7 +274,7 @@ console.log(chalk.bold.cyanBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄�
 await global.reloadHandler(true).catch(console.error)
 } else if (reason === DisconnectReason.timedOut) {
 console.log(chalk.bold.yellowBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸\n┆ ⧖ TIEMPO DE CONEXIÓN AGOTADO, RECONECTANDO....\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸`))
-await global.reloadHandler(true).catch(console.error) //process.send('reset')
+await global.reloadHandler(true).catch(console.error)
 } else {
 console.log(chalk.bold.redBright(`\n⚠️！ RAZÓN DE DESCONEXIÓN DESCONOCIDA: ${reason || 'No Encontrado'} >> ${connection || 'No Encontrado'}`))
 }}
@@ -344,13 +346,9 @@ console.log(chalk.bold.cyan(`La carpeta: ${jadi} ya está creada.`))
 
 const readRutaJadiBot = readdirSync(rutaJadiBot)
 if (readRutaJadiBot.length > 0) {
-const creds = 'creds.json'
 for (const gjbts of readRutaJadiBot) {
 const botPath = join(rutaJadiBot, gjbts)
-const readBotPath = readdirSync(botPath)
-if (readBotPath.includes(creds)) {
-EllenJadiBot({pathEllenJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot'})
-}
+if (statSync(botPath).isDirectory()) EllenJadiBot({pathEllenJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot'})
 }
 }
 }
@@ -525,3 +523,56 @@ return phoneUtil.isValidNumber(parsedNumber)
 } catch (error) {
 return false
 }}
+
+async function midnightHotReload() {
+if (global.__midnightHotReloadRunning) return
+global.__midnightHotReloadRunning = true
+try {
+const sockets = [global.conn, ...(Array.isArray(global.conns) ? global.conns : [])].filter(Boolean)
+for (const sock of sockets) {
+try { sock.ev?.removeAllListeners?.() } catch {}
+try { sock.ws?.close?.() } catch {}
+}
+if (Array.isArray(global.conns)) global.conns.splice(0, global.conns.length)
+try { await purgeEllenSession() } catch {}
+try { await purgeEllenSessionSB() } catch {}
+removeSessionJson(global.Ellensessions || 'ellensesions')
+removeSessionJson(global.jadi || 'EllenJadiBots')
+const hotRequire = global.__require(import.meta.url)
+for (const key of Object.keys(hotRequire.cache || {})) delete hotRequire.cache[key]
+if (global.gc) global.gc()
+await global.reloadHandler(true).catch(console.error)
+await reloadJadiBotSessions()
+console.log(chalk.bold.cyanBright('\n╭» ❍ HOT-RELOAD ❍\n│→ REINICIO EN CALIENTE COMPLETADO SIN APAGAR NODE.JS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻'))
+} finally {
+global.__midnightHotReloadRunning = false
+}
+}
+function removeSessionJson(dir) {
+if (!dir || !existsSync(dir)) return
+for (const file of readdirSync(dir)) {
+const full = join(dir, file)
+try {
+if (statSync(full).isDirectory()) removeSessionJson(full)
+else if (file.endsWith('.json')) rmSync(full, { force: true })
+} catch {}
+}
+}
+async function reloadJadiBotSessions() {
+if (!global.EllenJadibts || !existsSync(global.rutaJadiBot)) return
+for (const id of readdirSync(global.rutaJadiBot)) {
+const botPath = join(global.rutaJadiBot, id)
+if (statSync(botPath).isDirectory()) EllenJadiBot({ pathEllenJadiBot: botPath, m: null, conn: global.conn, args: [], usedPrefix: '/', command: 'serbot' })
+}
+}
+function scheduleMidnightHotReload() {
+const now = new Date()
+const next = new Date(now)
+next.setHours(24, 0, 0, 0)
+setTimeout(() => {
+midnightHotReload().catch(console.error)
+setInterval(() => midnightHotReload().catch(console.error), 24 * 60 * 60 * 1000)
+}, next - now)
+}
+global.midnightHotReload = midnightHotReload
+scheduleMidnightHotReload()
