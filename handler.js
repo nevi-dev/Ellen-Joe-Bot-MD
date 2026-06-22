@@ -258,7 +258,7 @@ let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: thi
 
 try {
 if (shouldRunInWorker(plugin, name)) {
-const result = await runWorkerJob({ pluginPath: __filename, message: JSON.parse(JSON.stringify(m)), extra: { usedPrefix, noPrefix, _args, args, command, text } }, plugin.workerTimeout || 120000)
+const result = await runWorkerJob({ pluginPath: __filename, message: JSON.parse(JSON.stringify(m)), extra: { usedPrefix, noPrefix, _args, args, command, text } }, plugin.workerTimeout || 120000, { conn: this, m })
 for (const reply of result?.replies || []) {
 if (reply.type === 'reply') await this.reply(reply.chat || m.chat, reply.text, m)
 if (reply.type === 'message') await this.sendMessage(reply.chat || m.chat, reply.content, { quoted: m })
