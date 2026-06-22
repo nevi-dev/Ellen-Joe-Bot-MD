@@ -32,63 +32,61 @@ const {proto} = (await import('@whiskeysockets/baileys')).default
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
-const {DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
+const {DisconnectReason, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
+import Database from 'better-sqlite3'
+import useSQLiteAuthState from './lib/sqliteAuthState.js'
 import readline, { createInterface } from 'readline'
 import NodeCache from 'node-cache'
 const {CONNECTING} = ws
 const {chain} = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
 
-//const yuw = dirname(fileURLToPath(import.meta.url))
-//let require = createRequire(megu)
 let { say } = cfonts
 
 
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'
 
-// ASCII Art representando a Ellen-Joe
 console.log(chalk.cyan(`
-                                                                    
-                                     @@.                            
-                                     @@,                            
-                                     @@,                            
-                                   @@@%                             
-                                 @@@@@,                             
-                             @@@@@@@.                               
-                         #@@@@@@@@,                                 
-                       @@@@@@@@@                                    
-                    ,@@@@@@@@@@                                     
-                  &@@@@@@@@@@@                                      
-                @@@@@@@@@@@@@                                       
-          %@@@@@@@@@@@@@@@@                                         
-        @@@@@@@@@@@@@@@@@@                                          
-       @@@@@@@@@@@@@@@@@@@                                          
-      @@@@@@@@@@@@@@@@@@@@@                                         
-     @@@@@@@@@@@@@@@@@@@@@@@                                        
-    @@@@@@@@@@@@@@@@@@@@@@@@#                                       
-   @@@@@@@@@@@@@@@@@@@@@@@@@@* #@@@@@@@@@@@@@@@@@@@@@@@@@@@                                      
-  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                     
-  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                    
-  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                   
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,                                  
-    .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                 
-       /@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@* &@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,                         
-              %@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                      
+
+@@.
+@@,
+@@,
+@@@%
+@@@@@,
+@@@@@@@.
+#@@@@@@@@,
+@@@@@@@@@
+,@@@@@@@@@@
+&@@@@@@@@@@@
+@@@@@@@@@@@@@
+%@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@#
+@@@@@@@@@@@@@@@@@@@@@@@@@@* #@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,
+.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+/@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@* &@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,
+%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 `))
 
 cfonts.say('Ellen-Joe Bot', {
-  font: 'chrome',
-  align: 'center',
-  gradient: ['#00FFFF', '#8A2BE2'], // Colores cyberpunk: Cian y Azul-Violeta
-  transition: true,
-  env: 'node'
+font: 'chrome',
+align: 'center',
+gradient: ['#00FFFF', '#8A2BE2'],
+transition: true,
+env: 'node'
 })
 
-// Créditos
 cfonts.say('Adaptado para Ellen-Joe por: Nevi-dev', {
-  font: 'console',
-  align: 'center',
-  colors: ['cyan']
+font: 'console',
+align: 'center',
+colors: ['cyan']
 })
 
 console.log(chalk.magentaBright('═════════════════════════════════════════════════════════════════════'))
@@ -115,7 +113,6 @@ const __dirname = global.__dirname(import.meta.url)
 
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 global.prefix = new RegExp('^[#/!.]')
-// global.opts['db'] = process.env['db']
 
 global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new BetterSQLiteAdapter('./src/database/database.sqlite', { migrateFrom: './src/database/database.json' }))
 
@@ -145,7 +142,8 @@ global.db.chain = chain(global.db.data)
 }
 loadDatabase()
 
-const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
+const authDb = new Database('./src/database/auth.sqlite')
+const {state, saveCreds} = useSQLiteAuthState(authDb, global.Ellensessions || 'EllenSession')
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
@@ -164,13 +162,13 @@ let opcion
 if (methodCodeQR) {
 opcion = '1'
 }
-if (!methodCodeQR && !methodCode && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !state.creds.registered) {
 do {
 opcion = await question(colores('⌨ Seleccione una opción:\n') + opcionQR('1. Con código QR\n') + opcionTexto('2. Con código de texto de 8 dígitos\n--> '))
 
 if (!/^[1-2]$/.test(opcion)) {
 console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se admiten letras ni símbolos especiales.`))
-}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${Ellensessions}/creds.json`))
+}} while (opcion !== '1' && opcion !== '2' || state.creds.registered)
 }
 
 console.info = () => {}
@@ -200,7 +198,7 @@ version,
 
 global.conn = makeWASocket(connectionOptions);
 
-if (!fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!state.creds.registered) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
@@ -227,7 +225,6 @@ console.log(chalk.bold.white(chalk.bgMagenta(`✧ CÓDIGO DE VINCULACIÓN ✧`))
 
 conn.isInit = false;
 conn.well = false;
-//conn.logger.info(`✦  H E C H O\n`)
 
 if (!opts['test']) {
 if (global.db) setInterval(async () => {
@@ -236,7 +233,6 @@ if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 't
 }, 30 * 1000);
 }
 
-// if (opts['server']) (await import('./server.js')).default(global.conn, PORT);
 
 async function connectionUpdate(update) {
 const {connection, lastDisconnect, isNewLogin} = update;
@@ -310,11 +306,11 @@ conn.ev.off('creds.update', conn.credsUpdate)
 conn.handler = handler.handler.bind(global.conn)
 
 global.dispatchCommandFromButton = async (fakeMessage) => {
-  try {
-    await handler.handler.call(conn, { messages: [fakeMessage] })
-  } catch (err) {
-    console.error("❌ Error al ejecutar comando desde botón:", err)
-  }
+try {
+await handler.handler.call(conn, { messages: [fakeMessage] })
+} catch (err) {
+console.error("❌ Error al ejecutar comando desde botón:", err)
+}
 }
 conn.connectionUpdate = connectionUpdate.bind(global.conn)
 conn.credsUpdate = saveCreds.bind(global.conn, true)
@@ -335,7 +331,6 @@ isInit = false
 return true
 };
 
-//Arranque nativo para sub-bots por - ReyEndymion >> https://github.com/ReyEndymion
 
 global.rutaJadiBot = join(__dirname, './EllenJadiBots')
 
@@ -499,12 +494,12 @@ originalConsoleMethod.apply(console, arguments)
 setInterval(async () => {
 if (stopped === 'close' || !conn || !conn.user) return
 await clearTmp()
-console.log(chalk.bold.cyanBright(`\n╭» ❍ MULTIMEDIA ❍\n│→ ARCHIVOS DE LA CARPETA TMP ELIMINADOS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 4) // 4 min
+console.log(chalk.bold.cyanBright(`\n╭» ❍ MULTIMEDIA ❍\n│→ ARCHIVOS DE LA CARPETA TMP ELIMINADOS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 4)
 
 setInterval(async () => {
 if (stopped === 'close' || !conn || !conn.user) return
 await purgeEllenSession()
-console.log(chalk.bold.cyanBright(`\n╭» ❍ ${global.Ellensessions} ❍\n│→ SESIONES NO ESENCIALES ELIMINADAS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 10) // 10 min
+console.log(chalk.bold.cyanBright(`\n╭» ❍ ${global.Ellensessions} ❍\n│→ SESIONES NO ESENCIALES ELIMINADAS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 10)
 
 setInterval(async () => {
 if (stopped === 'close' || !conn || !conn.user) return
