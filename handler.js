@@ -136,7 +136,6 @@ async function processChatUpdate(chatUpdate) {
             participants_lid = participants.map(p => ({ id: p.jid, jid: p.jid, lid: p.lid, admin: p.admin }))
             sender = resolveRuntimeJid(sender, participants_lid)
             
-            // SOLUClÓN: Inyección forzada y segura para evitar el TypeError de Baileys
             Object.defineProperty(m, 'sender', {
                 value: sender,
                 writable: true,
@@ -153,7 +152,9 @@ async function processChatUpdate(chatUpdate) {
                 })
             }
             
+            // Aquí se ejecuta de forma segura y te crea m.mentions
             resolveMessageMentions(m, participants_lid)
+            
             global.db?.adapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
 
             const chatDb = global.db.data.chats[m.chat] || {}
