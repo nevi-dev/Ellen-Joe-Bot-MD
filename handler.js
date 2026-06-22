@@ -8,21 +8,62 @@ import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js'
 
-const { proto } = (await import('@whiskeysockets/baileys')).default
+const { proto, WAMessageStubType } = (await import('@whiskeysockets/baileys')).default
 
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, ms))
 const cleanJid = jid => jid?.split(':')[0] || ''
 
 const groupCache = new Map()
-const eventQueues = new WeakMap()
+const backgroundTasks = new WeakMap()
+const IGNORED_STUB_TYPES = new Set([
+    WAMessageStubType.CIPHERTEXT,
+    WAMessageStubType.E2E_DEVICE_CHANGED,
+    WAMessageStubType.E2E_IDENTITY_CHANGED,
+    WAMessageStubType.E2E_ENCRYPTED,
+    WAMessageStubType.E2E_ENCRYPTED_NOW,
+    WAMessageStubType.BIZ_PRIVACY_MODE_TO_BSP,
+    WAMessageStubType.BIZ_PRIVACY_MODE_TO_FB
+].filter(type => typeof type === 'number'))
 
-const enqueueChatUpdate = (conn, chatUpdate) => {
-    const current = eventQueues.get(conn) || Promise.resolve()
-    const next = current.catch(() => {}).then(() => processChatUpdate.call(conn, chatUpdate))
-    eventQueues.set(conn, next)
-    next.catch(error => console.error('Error procesando cola de mensajes:', error))
-    return next
+const runDetached = (conn, task, label = 'background-task') => {
+    const tasks = backgroundTasks.get(conn) || new Set()
+    backgroundTasks.set(conn, tasks)
+    const promise = new Promise(resolve => setImmediate(resolve))
+        .then(task)
+        .catch(error => console.error(`Error en ${label}:`, error))
+        .finally(() => tasks.delete(promise))
+    tasks.add(promise)
+    return promise
+}
+
+const normalizeTimestamp = timestamp => {
+    const value = Number(timestamp || 0)
+    if (!Number.isFinite(value) || value <= 0) return Math.floor(Date.now() / 1000)
+    return value > 1e12 ? Math.floor(value / 1000) : value > 1e10 ? Math.floor(value / 1000) : Math.floor(value)
+}
+
+const resolveRuntimeJid = (jid, participants = []) => {
+    const normalized = cleanJid(jid)
+    if (!normalized) return normalized
+    if (!normalized.endsWith('@lid')) return global.db?.adapter?.resolveJid?.(normalized) || normalized
+    return participants.find(p => cleanJid(p.lid) === normalized || cleanJid(p.id) === normalized || cleanJid(p.jid) === normalized)?.jid || global.db?.adapter?.resolveJid?.(normalized) || normalized
+}
+
+const resolveMessageMentions = (m, participants = []) => {
+    try {
+        const mentions = Array.isArray(m.mentionedJid) ? m.mentionedJid : []
+        const resolved = mentions.map(jid => resolveRuntimeJid(jid, participants)).filter(Boolean)
+        if (resolved.length) m.mentionedJid = [...new Set(resolved)]
+        if (m.msg?.contextInfo?.mentionedJid) m.msg.contextInfo.mentionedJid = m.mentionedJid
+        if (m.message) {
+            for (const payload of Object.values(m.message)) {
+                if (payload?.contextInfo?.mentionedJid) payload.contextInfo.mentionedJid = m.mentionedJid
+            }
+        }
+    } catch (error) {
+        console.error('No se pudieron normalizar menciones LID/JID:', error)
+    }
 }
 
 // 1. ESQUEMAS POR DEFECTO FUERA DEL HANDLER (Optimización de CPU y RAM)
@@ -35,13 +76,14 @@ global.dfail = (type, m, conn) => {
 }
 
 export function handler(chatUpdate) {
-    return enqueueChatUpdate(this, chatUpdate)
+    return runDetached(this, () => processChatUpdate.call(this, chatUpdate), 'handler')
 }
 
 async function processChatUpdate(chatUpdate) {
     let sender = '';
     this.msgqueque = this.msgqueque || []
     this.uptime = this.uptime || Date.now()
+    this.connectionStartedAt = this.connectionStartedAt || this.uptime
     
     if (!chatUpdate) return
     this.pushMessage(chatUpdate.messages).catch(console.error)
@@ -49,11 +91,11 @@ async function processChatUpdate(chatUpdate) {
     let m = chatUpdate.messages[chatUpdate.messages.length - 1]
     if (!m) return
 
-    // 2. BLOQUEO DE MENSAJES VIEJOS Y DE SISTEMA (Adiós a cargar historial)
-    const msgTimestamp = m.messageTimestamp || 0
-    const nowSecs = Math.floor(Date.now() / 1000)
-    if (msgTimestamp < nowSecs - 60) return 
+    const msgTimestamp = normalizeTimestamp(m.messageTimestamp)
+    const connectionStartedAt = normalizeTimestamp(this.connectionStartedAt)
+    if (msgTimestamp < connectionStartedAt) return
 
+    if (m.messageStubType && IGNORED_STUB_TYPES.has(m.messageStubType)) return
     if (m.key.id.startsWith('BAE5') || m.key.id.startsWith('3EB0') || m.id?.startsWith('NJX-') || m.isBaileys) return
 
     if (global.db.data == null) await global.loadDatabase()
@@ -92,11 +134,10 @@ async function processChatUpdate(chatUpdate) {
 
             participants = groupMetadata.participants || []
             participants_lid = participants.map(p => ({ id: p.jid, jid: p.jid, lid: p.lid, admin: p.admin }))
-            
-            if (sender.endsWith('@lid')) {
-                const participantInfo = participants_lid.find(p => p.lid === sender)
-                sender = participantInfo?.jid || global.db?.adapter?.resolveJid?.(sender) || sender
-            }
+            sender = resolveRuntimeJid(sender, participants_lid)
+            m.sender = sender
+            if (m.key?.participant?.endsWith?.('@lid')) m.key.participant = sender
+            resolveMessageMentions(m, participants_lid)
             global.db?.adapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
 
             const chatDb = global.db.data.chats[m.chat] || {}
@@ -107,7 +148,7 @@ async function processChatUpdate(chatUpdate) {
                 if (!primaryPresent && Array.isArray(chatDb.per) && chatDb.per.length) {
                     const activeBots = [global.conn, ...(global.conns || [])]
                         .filter(bot => bot?.user?.jid && bot?.ws?.socket?.readyState !== ws.CLOSED && chatDb.per.includes(bot.user.jid))
-                    const selected = activeBots.length ? activeBots[Math.abs([...String(m.id || m.key.id || Date.now())].reduce((a, c) => a + c.charCodeAt(0), 0)) % activeBots.length]?.user?.jid : null
+                    const selected = activeBots.length ? activeBots[Math.floor(Math.random() * activeBots.length)]?.user?.jid : null
                     if (selected && cleanJid(this.user.jid) !== cleanJid(selected) && !universalWords.includes(firstWord)) return
                 } else if (!universalWords.includes(firstWord)) return
             }
@@ -195,7 +236,7 @@ async function processChatUpdate(chatUpdate) {
 
             if (typeof plugin.all === 'function') {
                 try {
-                    await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename })
+                    await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename, conn: this })
                 } catch (e) {
                     console.error(e)
                 }
