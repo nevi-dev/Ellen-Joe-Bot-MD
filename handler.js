@@ -15,6 +15,15 @@ const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, m
 const cleanJid = jid => jid?.split(':')[0] || ''
 
 const groupCache = new Map()
+const eventQueues = new WeakMap()
+
+const enqueueChatUpdate = (conn, chatUpdate) => {
+    const current = eventQueues.get(conn) || Promise.resolve()
+    const next = current.catch(() => {}).then(() => processChatUpdate.call(conn, chatUpdate))
+    eventQueues.set(conn, next)
+    next.catch(error => console.error('Error procesando cola de mensajes:', error))
+    return next
+}
 
 // 1. ESQUEMAS POR DEFECTO FUERA DEL HANDLER (Optimización de CPU y RAM)
 const defaultUser = { exp: 0, coin: 10, joincount: 1, diamond: 3, lastadventure: 0, lastclaim: 0, health: 100, crime: 0, lastcofre: 0, lastdiamantes: 0, lastpago: 0, lastcode: 0, lastcodereg: 0, lastduel: 0, lastmining: 0, muto: false, premium: false, premiumTime: 0, registered: false, genre: '', birth: '', marry: '', description: '', packstickers: null, age: -1, regTime: -1, afk: -1, afkReason: '', role: 'Nuv', banned: false, useDocument: false, level: 0, bank: 0, warn: 0, spam: 0 }
@@ -25,7 +34,11 @@ global.dfail = (type, m, conn) => {
     failureHandler(type, conn, m, global.comando)
 }
 
-export async function handler(chatUpdate) {
+export function handler(chatUpdate) {
+    return enqueueChatUpdate(this, chatUpdate)
+}
+
+async function processChatUpdate(chatUpdate) {
     let sender = '';
     this.msgqueque = this.msgqueque || []
     this.uptime = this.uptime || Date.now()
@@ -48,6 +61,7 @@ export async function handler(chatUpdate) {
     try {
         m = smsg(this, m) || m
         if (!m) return
+        global.db?.adapter?.cacheMessage?.(m)
 
         let sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid
 
@@ -70,6 +84,7 @@ export async function handler(chatUpdate) {
                         groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid }))
                     }
                     groupCache.set(m.chat, { data: groupMetadata, timestamp: now })
+                    global.db?.adapter?.upsertGroup?.(groupMetadata)
                 } catch (e) {
                     groupMetadata = {}
                 }
@@ -80,14 +95,21 @@ export async function handler(chatUpdate) {
             
             if (sender.endsWith('@lid')) {
                 const participantInfo = participants_lid.find(p => p.lid === sender)
-                if (participantInfo && participantInfo.jid) sender = participantInfo.jid
+                sender = participantInfo?.jid || global.db?.adapter?.resolveJid?.(sender) || sender
             }
+            global.db?.adapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
 
             const chatDb = global.db.data.chats[m.chat] || {}
             if (chatDb.primaryBot && this.user.jid !== chatDb.primaryBot) {
                 const universalWords = ['resetbot', 'resetprimario', 'botreset']
                 const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : ''
-                if (!universalWords.includes(firstWord)) return
+                const primaryPresent = participants.some(p => cleanJid(p.jid) === cleanJid(chatDb.primaryBot))
+                if (!primaryPresent && Array.isArray(chatDb.per) && chatDb.per.length) {
+                    const activeBots = [global.conn, ...(global.conns || [])]
+                        .filter(bot => bot?.user?.jid && bot?.ws?.socket?.readyState !== ws.CLOSED && chatDb.per.includes(bot.user.jid))
+                    const selected = activeBots.length ? activeBots[Math.abs([...String(m.id || m.key.id || Date.now())].reduce((a, c) => a + c.charCodeAt(0), 0)) % activeBots.length]?.user?.jid : null
+                    if (selected && cleanJid(this.user.jid) !== cleanJid(selected) && !universalWords.includes(firstWord)) return
+                } else if (!universalWords.includes(firstWord)) return
             }
         }
 
@@ -254,6 +276,8 @@ export async function handler(chatUpdate) {
                     conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user.level}*\n\n• Usa este comando para subir de nivel:\n*${usedPrefix}levelup*`, m)       
                     continue
                 }
+
+                if (name.includes('game') || name.includes('pvp')) global.db?.adapter?.ensureGamePvpUser?.(sender, user.name || m.name || '')
 
                 let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename }
                 
