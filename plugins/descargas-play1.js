@@ -68,7 +68,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         // Intentar obtener el enlace procesado en tiempo real por Savenow
         try {
-            const { data } = await axios.get(`${API_SAVENOW}?url=${encodeURIComponent(query)}&type=${type}&apikey=${API_KEY}`);
+            const { data } = await axios.get(`${API_SAVENOW}?url=${encodeURIComponent(query)}&type=${type}&quality=360&apikey=${API_KEY}`);
             
             // Estructura según tu router modificado (data.download.url)
             if (data.status && data.data?.download?.url) {
