@@ -16,6 +16,7 @@ import chalk from 'chalk'
 import syntaxerror from 'syntax-error'
 import {tmpdir} from 'os'
 import {format} from 'util'
+import {monitorEventLoopDelay} from 'perf_hooks'
 import boxen from 'boxen'
 import P from 'pino'
 import pino from 'pino'
@@ -38,6 +39,15 @@ import NodeCache from 'node-cache'
 const {CONNECTING} = ws
 const {chain} = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
+
+const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 })
+eventLoopDelay.enable()
+setInterval(() => {
+const p95 = Math.round(eventLoopDelay.percentile(95) / 1e6)
+const p99 = Math.round(eventLoopDelay.percentile(99) / 1e6)
+if (p95 > 100 || p99 > 250) console.log(chalk.yellow(`⚠️ Event Loop delay p95=${p95}ms p99=${p99}ms`))
+eventLoopDelay.reset()
+}, 60 * 1000).unref?.()
 
 //const yuw = dirname(fileURLToPath(import.meta.url))
 //let require = createRequire(megu)
@@ -121,17 +131,10 @@ global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(op
 
 global.DATABASE = global.db
 global.loadDatabase = async function loadDatabase() {
-if (global.db.READ) {
-return new Promise((resolve) => setInterval(async function() {
-if (!global.db.READ) {
-clearInterval(this)
-resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
-}}, 1 * 1000))
-}
-if (global.db.data !== null) return
-global.db.READ = true
+if (global.db.data !== null) return global.db.data
+if (global.db.READ) return global.db.READ
+global.db.READ = (async () => {
 await global.db.read().catch(console.error)
-global.db.READ = null
 global.db.data = {
 users: {},
 chats: {},
@@ -142,6 +145,10 @@ settings: {},
 ...(global.db.data || {}),
 }
 global.db.chain = chain(global.db.data)
+global.db.READ = null
+return global.db.data
+})()
+return global.db.READ
 }
 loadDatabase()
 
@@ -184,6 +191,8 @@ const BROWSER_FINGERPRINTS = [
 ['Ubuntu', 'Firefox', '121.0'],
 ]
 const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)]
+global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
+global.getRandomBrowser = getRandomBrowser
 
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
@@ -205,6 +214,21 @@ msgRetryCounterCache,
 msgRetryCounterMap,
 defaultQueryTimeoutMs: undefined,
 version,
+}
+
+
+const MAIN_MAX_RECONNECT_RETRIES = 5
+let mainReconnectAttempts = 0
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+const getReconnectDelay = (attempt) => Math.min(5000 * (2 ** Math.max(attempt - 1, 0)), 20000)
+const deleteSessionFolder = async (folderPath) => {
+try {
+await fs.promises.rm(folderPath, { recursive: true, force: true })
+console.log(chalk.bold.redBright(`
+⚠️ Sesión eliminada: ${folderPath}`))
+} catch (error) {
+console.error(`No se pudo eliminar la sesión ${folderPath}:`, error)
+}
 }
 
 global.conn = makeWASocket(connectionOptions);
@@ -241,6 +265,7 @@ conn.well = false;
 if (!opts['test']) {
 if (global.db) setInterval(async () => {
 if (global.db.data) await global.db.write()
+global.db?.adapter?.deleteOldMessages?.()
 if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', `${jadi}`], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
 }, 30 * 1000);
 }
@@ -251,45 +276,44 @@ async function connectionUpdate(update) {
 const {connection, lastDisconnect, isNewLogin} = update;
 global.stopped = connection;
 if (isNewLogin) conn.isInit = true;
-const code = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
-if (code && code !== DisconnectReason.loggedOut && conn?.ws.socket == null) {
-await global.reloadHandler(true).catch(console.error);
-global.timestamp.connect = new Date;
-}
 if (global.db.data == null) loadDatabase();
 if (update.qr != 0 && update.qr != undefined || methodCodeQR) {
 if (opcion == '1' || methodCodeQR) {
-console.log(chalk.bold.yellow(`\n❐ ESCANEA EL CÓDIGO QR, EXPIRA EN 45 SEGUNDOS`))}
+console.log(chalk.bold.yellow(`
+❐ ESCANEA EL CÓDIGO QR, EXPIRA EN 45 SEGUNDOS`))}
 }
 if (connection == 'open') {
+mainReconnectAttempts = 0
 console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 }
 
-let reason = new Boom(lastDisconnect?.error)?.output?.statusCode
+const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
-if (reason === DisconnectReason.badSession) {
-console.log(chalk.bold.cyanBright(`\n⚠️ SIN CONEXIÓN, BORRE LA CARPETA ${global.Ellensessions} Y ESCANEE EL CÓDIGO QR ⚠️`))
-} else if (reason === DisconnectReason.connectionClosed) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ☹\n┆ ⚠️ CONEXIÓN CERRADA, RECONECTANDO....\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ☹`))
-await global.reloadHandler(true).catch(console.error)
-} else if (reason === DisconnectReason.connectionLost) {
-console.log(chalk.bold.blueBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ☂\n┆ ⚠️ CONEXIÓN PERDIDA CON EL SERVIDOR, RECONECTANDO....\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ☂`))
-await global.reloadHandler(true).catch(console.error)
-} else if (reason === DisconnectReason.connectionReplaced) {
-console.log(chalk.bold.yellowBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ✗\n┆ ⚠️ CONEXIÓN REEMPLAZADA, SE HA ABIERTO OTRA NUEVA SESIÓN, POR FAVOR, CIERRE LA SESIÓN ACTUAL PRIMERO.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ✗`))
-} else if (reason === DisconnectReason.loggedOut) {
-console.log(chalk.bold.redBright(`\n⚠️ SIN CONEXIÓN, BORRE LA CARPETA ${global.Ellensessions} Y ESCANEE EL CÓDIGO QR ⚠️`))
-await global.reloadHandler(true).catch(console.error)
-} else if (reason === DisconnectReason.restartRequired) {
-console.log(chalk.bold.cyanBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ✓\n┆ ✧ CONECTANDO AL SERVIDOR...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ✓`))
-await global.reloadHandler(true).catch(console.error)
-} else if (reason === DisconnectReason.timedOut) {
-console.log(chalk.bold.yellowBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸\n┆ ⧖ TIEMPO DE CONEXIÓN AGOTADO, RECONECTANDO....\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸`))
-await global.reloadHandler(true).catch(console.error) //process.send('reset')
-} else {
-console.log(chalk.bold.redBright(`\n⚠️！ RAZÓN DE DESCONEXIÓN DESCONOCIDA: ${reason || 'No Encontrado'} >> ${connection || 'No Encontrado'}`))
-}}
+if (statusCode === 401 || statusCode === 403) {
+console.log(chalk.bold.redBright(`
+⚠️ SESIÓN DEL BOT PRINCIPAL CERRADA O BANEADA (${statusCode}). BORRANDO ${global.Ellensessions} Y DETENIENDO RECONEXIÓN ⚠️`))
+await deleteSessionFolder(`./${global.Ellensessions}`)
+return
 }
+
+if (mainReconnectAttempts >= MAIN_MAX_RECONNECT_RETRIES) {
+console.log(chalk.bold.redBright(`
+⚠️ RECONEXIÓN CANCELADA: ${MAIN_MAX_RECONNECT_RETRIES} intentos fallidos consecutivos para el bot principal. Último código: ${statusCode || 'No Encontrado'}`))
+return
+}
+
+mainReconnectAttempts += 1
+const delayMs = getReconnectDelay(mainReconnectAttempts)
+console.log(chalk.bold.yellowBright(`
+╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸
+┆ ⚠️ CONEXIÓN CERRADA (${statusCode || 'No Encontrado'}). Reintento ${mainReconnectAttempts}/${MAIN_MAX_RECONNECT_RETRIES} en ${delayMs / 1000}s...
+╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸`))
+await wait(delayMs)
+await global.reloadHandler(true).catch(console.error)
+global.timestamp.connect = new Date
+}
+}
+
 process.on('uncaughtException', console.error)
 
 let isInit = true;
@@ -328,15 +352,6 @@ global.dispatchCommandFromButton = async (fakeMessage) => {
 conn.connectionUpdate = connectionUpdate.bind(global.conn)
 conn.credsUpdate = saveCreds.bind(global.conn, true)
 
-const currentDateTime = new Date()
-const messageDateTime = new Date(conn.ev)
-if (currentDateTime >= messageDateTime) {
-const chats = Object.entries(conn.chats).filter(([jid, chat]) => !jid.endsWith('@g.us') && chat.isChats).map((v) => v[0])
-
-} else {
-const chats = Object.entries(conn.chats).filter(([jid, chat]) => !jid.endsWith('@g.us') && chat.isChats).map((v) => v[0])
-}
-
 conn.ev.on('messages.upsert', conn.handler)
 conn.ev.on('connection.update', conn.connectionUpdate)
 conn.ev.on('creds.update', conn.credsUpdate)
@@ -372,12 +387,14 @@ EllenJadiBot({pathEllenJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
+global.pluginsVersion = 0
 async function filesInit() {
 for (const filename of readdirSync(pluginFolder).filter(pluginFilter)) {
 try {
 const file = global.__filename(join(pluginFolder, filename))
 const module = await import(file)
 global.plugins[filename] = module.default || module
+global.pluginsVersion++
 } catch (e) {
 conn.logger.error(e)
 delete global.plugins[filename]
@@ -391,6 +408,7 @@ if (filename in global.plugins) {
 if (existsSync(dir)) conn.logger.info(` plugin actualizado - '${filename}'`)
 else {
 conn.logger.warn(` plugin eliminado - '${filename}'`)
+global.pluginsVersion++
 return delete global.plugins[filename]
 }} else conn.logger.info(`nuevo plugin - '${filename}'`);
 const err = syntaxerror(readFileSync(dir), filename, {
@@ -402,6 +420,7 @@ else {
 try {
 const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`));
 global.plugins[filename] = module.default || module;
+global.pluginsVersion++
 } catch (e) {
 conn.logger.error(`error al requerir el plugin '${filename}\n${format(e)}'`)
 } finally {
@@ -409,7 +428,17 @@ global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b
 }}
 }}
 Object.freeze(global.reload)
-watch(pluginFolder, global.reload)
+const pluginReloadTimers = new Map()
+watch(pluginFolder, (event, filename) => {
+if (!filename) return
+clearTimeout(pluginReloadTimers.get(filename))
+const timer = setTimeout(() => {
+pluginReloadTimers.delete(filename)
+global.reload(event, filename)
+}, 300)
+timer.unref?.()
+pluginReloadTimers.set(filename, timer)
+})
 await global.reloadHandler()
 async function _quickTest() {
 const test = await Promise.all([

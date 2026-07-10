@@ -28,6 +28,62 @@ const IGNORED_STUB_TYPES = new Set([
     WAMessageStubType.BIZ_PRIVACY_MODE_TO_FB
 ].filter(type => typeof type === 'number'))
 
+let pluginRegistryCache = { version: -1, registry: null }
+
+const matchPrefixFast = (text = '', prefix) => {
+    if (!text) return null
+    if (prefix instanceof RegExp) {
+        prefix.lastIndex = 0
+        return prefix.exec(text)?.[0] || null
+    }
+    if (Array.isArray(prefix)) {
+        for (const item of prefix) {
+            const matched = matchPrefixFast(text, item)
+            if (matched) return matched
+        }
+        return null
+    }
+    if (typeof prefix === 'string') return text.startsWith(prefix) ? prefix : null
+    return null
+}
+
+const getPluginRegistry = () => {
+    const version = global.pluginsVersion || 0
+    if (pluginRegistryCache.registry && pluginRegistryCache.version === version) return pluginRegistryCache.registry
+    const registry = { byCommand: new Map(), regexCommand: [], customPrefix: [] }
+    for (const [name, plugin] of Object.entries(global.plugins || {})) {
+        if (!plugin || plugin.disabled) continue
+        if (plugin.customPrefix) registry.customPrefix.push(name)
+        const commands = Array.isArray(plugin.command) ? plugin.command : plugin.command ? [plugin.command] : []
+        for (const command of commands) {
+            if (typeof command === 'string') {
+                const key = command.toLowerCase()
+                const bucket = registry.byCommand.get(key) || new Set()
+                bucket.add(name)
+                registry.byCommand.set(key, bucket)
+            } else if (command instanceof RegExp) {
+                registry.regexCommand.push(name)
+            }
+        }
+    }
+    pluginRegistryCache = { version, registry }
+    return registry
+}
+
+const getCommandCandidates = (text = '', prefix, registry) => {
+    const usedPrefix = matchPrefixFast(text, prefix)
+    const customMatches = registry.customPrefix.filter(name => matchPrefixFast(text, global.plugins?.[name]?.customPrefix))
+    if (!usedPrefix && customMatches.length === 0) return null
+    const effectivePrefix = usedPrefix || matchPrefixFast(text, global.plugins?.[customMatches[0]]?.customPrefix)
+    const command = effectivePrefix ? (text.slice(effectivePrefix.length).trim().split(/\s+/)[0] || '').toLowerCase() : ''
+    const names = new Set(customMatches)
+    if (command) {
+        for (const name of registry.byCommand.get(command) || []) names.add(name)
+        for (const name of registry.regexCommand) names.add(name)
+    }
+    return names
+}
+
 const runDetached = (conn, task, label = 'background-task') => {
     const tasks = backgroundTasks.get(conn) || new Set()
     backgroundTasks.set(conn, tasks)
@@ -45,11 +101,23 @@ const normalizeTimestamp = timestamp => {
     return value > 1e12 ? Math.floor(value / 1000) : value > 1e10 ? Math.floor(value / 1000) : Math.floor(value)
 }
 
-const resolveRuntimeJid = (jid, participants = []) => {
+const buildParticipantIndexes = (participants = []) => {
+    const byJid = new Map()
+    const byLid = new Map()
+    for (const p of participants) {
+        const jid = cleanJid(p?.jid || p?.id)
+        const lid = cleanJid(p?.lid)
+        if (jid) byJid.set(jid, p)
+        if (lid) byLid.set(lid, p)
+    }
+    return { byJid, byLid }
+}
+
+const resolveRuntimeJid = (jid, indexes = {}) => {
     const normalized = cleanJid(jid)
     if (!normalized) return normalized
     if (!normalized.endsWith('@lid')) return global.db?.adapter?.resolveJid?.(normalized) || normalized
-    return participants.find(p => cleanJid(p.lid) === normalized || cleanJid(p.id) === normalized || cleanJid(p.jid) === normalized)?.jid || global.db?.adapter?.resolveJid?.(normalized) || normalized
+    return indexes.byLid?.get(normalized)?.jid || global.db?.adapter?.resolveJid?.(normalized) || normalized
 }
 
 function resolveMessageMentions(m, participants_lid) {
@@ -115,7 +183,8 @@ async function processChatUpdate(chatUpdate) {
     try {
         m = smsg(this, m) || m
         if (!m) return
-        global.db?.adapter?.cacheMessage?.(m)
+        const dbAdapter = global.db?.adapter
+        dbAdapter?.cacheMessage?.(m)
 
         let sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid
 
@@ -137,16 +206,17 @@ async function processChatUpdate(chatUpdate) {
                     if (meta?.participants) {
                         groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid }))
                     }
-                    groupCache.set(m.chat, { data: groupMetadata, timestamp: now })
-                    if (!groupMetadata.fromCache) global.db?.adapter?.upsertGroup?.(groupMetadata)
+                    groupCache.set(m.chat, { data: groupMetadata, indexes: buildParticipantIndexes(groupMetadata.participants || []), timestamp: now })
+                    if (!groupMetadata.fromCache) dbAdapter?.upsertGroup?.(groupMetadata)
                 } catch (e) {
                     groupMetadata = {}
                 }
             }
 
             participants = groupMetadata.participants || []
+            const participantIndexes = cachedGroup?.indexes || groupCache.get(m.chat)?.indexes || buildParticipantIndexes(participants)
             participants_lid = participants.map(p => ({ id: p.jid, jid: p.jid, lid: p.lid, admin: p.admin }))
-            sender = resolveRuntimeJid(sender, participants_lid)
+            sender = resolveRuntimeJid(sender, participantIndexes)
             
             Object.defineProperty(m, 'sender', {
                 value: sender,
@@ -167,13 +237,13 @@ async function processChatUpdate(chatUpdate) {
             // Aquí se ejecuta de forma segura y te crea m.mentions
             resolveMessageMentions(m, participants_lid)
             
-            global.db?.adapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
+            dbAdapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
 
             const chatDb = global.db.data.chats[m.chat] || {}
             if (chatDb.primaryBot && this.user.jid !== chatDb.primaryBot) {
                 const universalWords = ['resetbot', 'resetprimario', 'botreset']
                 const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : ''
-                const primaryPresent = participants.some(p => cleanJid(p.jid) === cleanJid(chatDb.primaryBot))
+                const primaryPresent = (groupCache.get(m.chat)?.indexes?.byJid?.has(cleanJid(chatDb.primaryBot))) || false
                 if (!primaryPresent && Array.isArray(chatDb.per) && chatDb.per.length) {
                     const activeBots = [global.conn, ...(global.conns || [])]
                         .filter(bot => bot?.user?.jid && bot?.ws?.socket?.readyState !== ws.CLOSED && chatDb.per.includes(bot.user.jid))
@@ -190,31 +260,34 @@ async function processChatUpdate(chatUpdate) {
         let user = global.db.data.users[sender]
         if (!user) {
             global.db.data.users[sender] = { ...defaultUser, name: m.name || '' }
+            dbAdapter?.markDirty?.('users', sender)
             user = global.db.data.users[sender]
         } else {
             for (let key in defaultUser) {
-                if (user[key] === undefined) user[key] = defaultUser[key]
+                if (user[key] === undefined) { user[key] = defaultUser[key]; dbAdapter?.markDirty?.('users', sender) }
             }
-            if (!user.name && m.name) user.name = m.name
+            if (!user.name && m.name) { user.name = m.name; dbAdapter?.markDirty?.('users', sender) }
         }
 
         let chat = global.db.data.chats[m.chat]
         if (!chat) {
             global.db.data.chats[m.chat] = { ...defaultChat }
+            dbAdapter?.markDirty?.('chats', m.chat)
             chat = global.db.data.chats[m.chat]
         } else {
             for (let key in defaultChat) {
-                if (chat[key] === undefined) chat[key] = defaultChat[key]
+                if (chat[key] === undefined) { chat[key] = defaultChat[key]; dbAdapter?.markDirty?.('chats', m.chat) }
             }
         }
 
         let settings = global.db.data.settings[this.user.jid]
         if (!settings) {
             global.db.data.settings[this.user.jid] = { ...defaultSettings }
+            dbAdapter?.markDirty?.('settings', this.user.jid)
             settings = global.db.data.settings[this.user.jid]
         } else {
             for (let key in defaultSettings) {
-                if (settings[key] === undefined) settings[key] = defaultSettings[key]
+                if (settings[key] === undefined) { settings[key] = defaultSettings[key]; dbAdapter?.markDirty?.('settings', this.user.jid) }
             }
         }
 
@@ -230,8 +303,9 @@ async function processChatUpdate(chatUpdate) {
         if (opts['swonly'] && m.chat !== 'status@broadcast') return
         if (typeof m.text !== 'string') m.text = ''
 
-        const userObj = (m.isGroup ? participants.find(u => cleanJid(u.jid) === cleanJid(sender)) : {}) || {}
-        const botObj = (m.isGroup ? participants.find(u => cleanJid(u.jid) === cleanJid(this.user.jid)) : {}) || {}
+        const cachedIndexes = m.isGroup ? groupCache.get(m.chat)?.indexes : null
+        const userObj = (m.isGroup ? cachedIndexes?.byJid?.get(cleanJid(sender)) : {}) || {}
+        const botObj = (m.isGroup ? cachedIndexes?.byJid?.get(cleanJid(this.user.jid)) : {}) || {}
 
         const isRAdmin = userObj?.admin === "superadmin" || false
         const isAdmin = isRAdmin || userObj?.admin === "admin" || false
@@ -258,6 +332,8 @@ async function processChatUpdate(chatUpdate) {
         let usedPrefix
 
         const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
+        const pluginRegistry = getPluginRegistry()
+        const commandCandidates = getCommandCandidates(m.text, conn.prefix || global.prefix, pluginRegistry)
         
         for (let name in global.plugins) {
             let plugin = global.plugins[name]
@@ -272,11 +348,13 @@ async function processChatUpdate(chatUpdate) {
                 }
             }
 
+            if (!commandCandidates || !commandCandidates.has(name)) continue
+
             if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
 
             const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
             let _prefix = plugin.customPrefix ? plugin.customPrefix : conn.prefix ? conn.prefix : global.prefix
-            let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] : Array.isArray(_prefix) ? _prefix.map(p => { let re = p instanceof RegExp ? p : new RegExp(str2Regex(p)); return [re.exec(m.text), re] }) : typeof _prefix === 'string' ? [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]] : [[[], new RegExp]]).find(p => p[1])
+            let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] : Array.isArray(_prefix) ? _prefix.map(p => { let re = p instanceof RegExp ? p : new RegExp(str2Regex(p)); return [re.exec(m.text), re] }) : typeof _prefix === 'string' ? [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]] : [[[], new RegExp]]).find(p => p[0])
 
             if (!match) continue
 
@@ -348,7 +426,7 @@ async function processChatUpdate(chatUpdate) {
                     continue
                 }
 
-                if (name.includes('game') || name.includes('pvp')) global.db?.adapter?.ensureGamePvpUser?.(sender, user.name || m.name || '')
+                if (name.includes('game') || name.includes('pvp')) dbAdapter?.ensureGamePvpUser?.(sender, user.name || m.name || '')
 
                 let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename }
                 
@@ -393,17 +471,21 @@ async function processChatUpdate(chatUpdate) {
             const chatObj = global.db.data.chats[m.chat] ?? {};
             
             if (chatObj.users?.[sender]?.mute2) {
-                const botObjFinal = (m.isGroup ? (groupCache.get(m.chat)?.data?.participants || []).find(u => cleanJid(u.jid) === cleanJid(this.user.jid)) : {}) || {}
+                const botObjFinal = (m.isGroup ? groupCache.get(m.chat)?.indexes?.byJid?.get(cleanJid(this.user.jid)) : {}) || {}
                 if (botObjFinal?.admin) {
                     await this.sendMessage(m.chat, { delete: m.key }).catch(() => {})
                 }
                 return 
             }
 
+            const dbAdapter = global.db?.adapter
             if (sender && (userStats = global.db.data.users[sender])) {
                 userStats.exp += m.exp
                 userStats.coin -= (m.coin ? m.coin * 1 : 0)
+                dbAdapter?.markDirty?.('users', sender)
             }
+            if (m?.chat && global.db.data.chats[m.chat]) dbAdapter?.markDirty?.('chats', m.chat)
+            if (this?.user?.jid && global.db.data.settings[this.user.jid]) dbAdapter?.markDirty?.('settings', this.user.jid)
 
             let stat
             if (m.plugin) {
@@ -423,6 +505,7 @@ async function processChatUpdate(chatUpdate) {
                     stat.success += 1
                     stat.lastSuccess = now
                 }
+                dbAdapter?.markDirty?.('stats', m.plugin)
             }
         }
 

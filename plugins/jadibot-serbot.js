@@ -23,6 +23,7 @@ import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
+import { Boom } from '@hapi/boom'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
@@ -78,9 +79,49 @@ let rtx2 = `
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const BROWSER_FINGERPRINTS = global.BROWSER_FINGERPRINTS || [
+['Windows', 'Chrome', '120.0.0.0'],
+['Windows', 'Edge', '119.0.0.0'],
+['Mac OS', 'Safari', '17.0'],
+['Mac OS', 'Chrome', '120.0.0.0'],
+['Ubuntu', 'Firefox', '121.0'],
+]
+const getRandomBrowser = global.getRandomBrowser || (() => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)])
+const getLatestBaileysVersionCached = async () => {
+const now = Date.now()
+if (global.baileysVersionCache?.version && global.baileysVersionCache.expiresAt > now) return global.baileysVersionCache
+const latest = await fetchLatestBaileysVersion()
+global.baileysVersionCache = { ...latest, expiresAt: now + 60 * 60 * 1000 }
+return global.baileysVersionCache
+}
+const SUBBOT_MAX_RECONNECT_RETRIES = 5
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+const getReconnectDelay = (attempt) => Math.min(5000 * (2 ** Math.max(attempt - 1, 0)), 20000)
+const deleteSessionFolder = async (folderPath) => {
+try {
+await fs.promises.rm(folderPath, { recursive: true, force: true })
+console.log(chalk.bold.redBright(`
+⚠️ Sesión eliminada: ${folderPath}`))
+} catch (error) {
+console.error(`No se pudo eliminar la sesión ${folderPath}:`, error)
+}
+}
+
 const EllenJBOptions = {}
 if (global.conns instanceof Array) console.log()
 else global.conns = []
+if (!global.subBotPruneInterval) {
+global.subBotPruneInterval = setInterval(() => {
+for (const sock of [...global.conns]) {
+if (sock?.user) continue
+try { sock?.ws?.close() } catch {}
+sock?.ev?.removeAllListeners?.()
+const index = global.conns.indexOf(sock)
+if (index >= 0) global.conns.splice(index, 1)
+}
+}, 60000)
+global.subBotPruneInterval.unref?.()
+}
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 //if (!globalThis.db.data.settings[conn.user.jid].jadibotmd) return m.reply(`♡ Comando desactivado temporalmente.`)
 let time = global.db.data.users[m.sender].Subs + 120000
@@ -96,9 +137,7 @@ return m.reply(`${emoji2} No se han encontrado espacios para *Sub-Bots* disponib
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let id = `${who.split`@`[0]}`  //conn.getName(who)
 let pathEllenJadiBot = path.join(`./${jadi}/`, id)
-if (!fs.existsSync(pathEllenJadiBot)){
-fs.mkdirSync(pathEllenJadiBot, { recursive: true })
-}
+await fs.promises.mkdir(pathEllenJadiBot, { recursive: true })
 EllenJBOptions.pathEllenJadiBot = pathEllenJadiBot
 EllenJBOptions.m = m
 EllenJBOptions.conn = conn
@@ -127,10 +166,9 @@ if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
 const pathCreds = path.join(pathEllenJadiBot, "creds.json")
-if (!fs.existsSync(pathEllenJadiBot)){
-fs.mkdirSync(pathEllenJadiBot, { recursive: true })}
+await fs.promises.mkdir(pathEllenJadiBot, { recursive: true })
 try {
-args[0] && args[0] != undefined ? fs.writeFileSync(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
+args[0] && args[0] != undefined ? await fs.promises.writeFile(pathCreds, JSON.stringify(JSON.parse(Buffer.from(args[0], "base64").toString("utf-8")), null, '\t')) : ""
 } catch {
 conn.reply(m.chat, `${emoji} Use correctamente el comando » ${usedPrefix + command} code`, m)
 return
@@ -140,7 +178,7 @@ const comb = Buffer.from(crm1 + crm2 + crm3 + crm4, "base64")
 exec(comb.toString("utf-8"), async (err, stdout, stderr) => {
 const drmer = Buffer.from(drm1 + drm2, `base64`)
 
-let { version, isLatest } = await fetchLatestBaileysVersion()
+let { version, isLatest } = await getLatestBaileysVersionCached()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
 const { state, saveState, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
@@ -151,7 +189,8 @@ printQRInTerminal: false,
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
 msgRetry,
 msgRetryCache,
-browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Ellen Joe (Sub Bot)', 'Chrome','2.0.0'],
+browser: getRandomBrowser(),
+markOnlineOnConnect: false,
 version: version,
 generateHighQualityLinkPreview: true
 };
@@ -175,6 +214,7 @@ conversation: 'Ellen Joe Bot MD',
 }}}*/
 
 let sock = makeWASocket(connectionOptions)
+let reconnectAttempts = 0
 sock.isInit = false
 let isInit = true
 
@@ -222,48 +262,43 @@ delete global.conns[i]
 global.conns.splice(i, 1)
 }}
 
-const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
+const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
-if (reason === 428) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathEllenJadiBot)}) fue cerrada inesperadamente. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-await creloadHandler(true).catch(console.error)
-}
-if (reason === 408) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathEllenJadiBot)}) se perdió o expiró. Razón: ${reason}. Intentando reconectar...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-await creloadHandler(true).catch(console.error)
-}
-if (reason === 440) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathEllenJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+if (statusCode === 401 || statusCode === 403) {
+console.log(chalk.bold.magentaBright(`
+╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡
+┆ Sesión (+${path.basename(pathEllenJadiBot)}) cerrada, expirada o baneada (${statusCode}). Borrando datos y deteniendo reconexión.
+╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
 try {
-if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathEllenJadiBot)}@s.whatsapp.net`, {text : '*HEMOS DETECTADO UNA NUEVA SESIÓN, BORRE LA NUEVA SESIÓN PARA CONTINUAR*\n\n> *SI HAY ALGÚN PROBLEMA VUELVA A CONECTARSE*' }, { quoted: m || null }) : ""
+if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathEllenJadiBot)}@s.whatsapp.net`, {text : `*SESIÓN CERRADA O BANEADA*\n\n> *BORRÉ LOS DATOS DE LA SESIÓN. VUELVE A VINCULAR MANUALMENTE SI CORRESPONDE.*` }, { quoted: m || null }) : ""
 } catch (error) {
-console.error(chalk.bold.yellow(`Error 440 no se pudo enviar mensaje a: +${path.basename(pathEllenJadiBot)}`))
-}}
-if (reason == 405 || reason == 401) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathEllenJadiBot)}) fue cerrada. Credenciales no válidas o dispositivo desconectado manualmente.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-try {
-if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathEllenJadiBot)}@s.whatsapp.net`, {text : '*SESIÓN PENDIENTE*\n\n> *INTENTÉ NUEVAMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
-} catch (error) {
-console.error(chalk.bold.yellow(`Error 405 no se pudo enviar mensaje a: +${path.basename(pathEllenJadiBot)}`))
+console.error(chalk.bold.yellow(`No se pudo enviar aviso a: +${path.basename(pathEllenJadiBot)}`))
 }
-fs.rmdirSync(pathEllenJadiBot, { recursive: true })
+await endSesion(false)
+await deleteSessionFolder(pathEllenJadiBot)
+return
 }
-if (reason === 500) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathEllenJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathEllenJadiBot)}@s.whatsapp.net`, {text : '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*' }, { quoted: m || null }) : ""
-return creloadHandler(true).catch(console.error)
-//fs.rmdirSync(pathEllenJadiBot, { recursive: true })
+
+if (reconnectAttempts >= SUBBOT_MAX_RECONNECT_RETRIES) {
+console.log(chalk.bold.redBright(`
+⚠️ RECONEXIÓN CANCELADA: ${SUBBOT_MAX_RECONNECT_RETRIES} intentos fallidos consecutivos para +${path.basename(pathEllenJadiBot)}. Último código: ${statusCode || 'No Encontrado'}`))
+await endSesion(false)
+return
 }
-if (reason === 515) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Reinicio automático para la sesión (+${path.basename(pathEllenJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+
+reconnectAttempts += 1
+const delayMs = getReconnectDelay(reconnectAttempts)
+console.log(chalk.bold.magentaBright(`
+╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡
+┆ Conexión (+${path.basename(pathEllenJadiBot)}) cerrada (${statusCode || 'No Encontrado'}). Reintento ${reconnectAttempts}/${SUBBOT_MAX_RECONNECT_RETRIES} en ${delayMs / 1000}s...
+╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+await wait(delayMs)
 await creloadHandler(true).catch(console.error)
+return
 }
-if (reason === 403) {
-console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sesión cerrada o cuenta en soporte para la sesión (+${path.basename(pathEllenJadiBot)}).\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-fs.rmdirSync(pathEllenJadiBot, { recursive: true })
-}}
 if (global.db.data == null) loadDatabase()
 if (connection == `open`) {
+reconnectAttempts = 0
 if (!global.db.data?.users) loadDatabase()
 let userName, userJid 
 userName = sock.authState.creds.me.name || 'Anónimo'
@@ -276,17 +311,6 @@ await joinChannels(sock)
 m?.chat ? await conn.sendMessage(m.chat, {text: args[0] ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...` : `@${m.sender.split('@')[0]}, genial ya eres parte de nuestra familia de Sub-Bots.`, mentions: [m.sender]}, { quoted: m }) : ''
 
 }}
-setInterval(async () => {
-if (!sock.user) {
-try { sock.ws.close() } catch (e) {      
-//console.log(await creloadHandler(true).catch(console.error))
-}
-sock.ev.removeAllListeners()
-let i = global.conns.indexOf(sock)                
-if (i < 0) return
-delete global.conns[i]
-global.conns.splice(i, 1)
-}}, 60000)
 
 let handler = await import('../handler.js')
 let creloadHandler = async function (restatConn) {
@@ -310,7 +334,15 @@ sock.ev.off("connection.update", sock.connectionUpdate)
 sock.ev.off('creds.update', sock.credsUpdate)
 }
 
-sock.handler = handler.handler.bind(sock)
+const boundHandler = handler.handler.bind(sock)
+sock.handler = async (chatUpdate) => {
+const message = chatUpdate?.messages?.[chatUpdate.messages.length - 1]
+const text = message?.message?.conversation || message?.message?.extendedTextMessage?.text || message?.message?.imageMessage?.caption || message?.message?.videoMessage?.caption || ''
+if (text && global.prefix?.test?.(text)) {
+await sock.sendPresenceUpdate?.('composing', message.key.remoteJid).catch(() => {})
+}
+return boundHandler(chatUpdate)
+}
 sock.connectionUpdate = connectionUpdate.bind(sock)
 sock.credsUpdate = saveCreds.bind(sock, true)
 sock.ev.on("messages.upsert", sock.handler)
