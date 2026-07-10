@@ -14,6 +14,7 @@ const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, ms))
 const cleanJid = jid => jid?.split(':')[0] || ''
 
+const GROUP_METADATA_TTL = 12 * 60 * 60 * 1000
 const groupCache = new Map()
 const backgroundTasks = new WeakMap()
 const IGNORED_STUB_TYPES = new Set([
@@ -129,13 +130,13 @@ async function processChatUpdate(chatUpdate) {
                 groupMetadata = cachedGroup.data
             } else {
                 try {
-                    const meta = await this.groupMetadata(m.chat)
+                    const meta = await (this.getSmartGroupMetadata ? this.getSmartGroupMetadata(m.chat, { maxAge: GROUP_METADATA_TTL }) : this.groupMetadata(m.chat))
                     groupMetadata = { ...meta }
                     if (meta?.participants) {
                         groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid }))
                     }
                     groupCache.set(m.chat, { data: groupMetadata, timestamp: now })
-                    global.db?.adapter?.upsertGroup?.(groupMetadata)
+                    if (!groupMetadata.fromCache) global.db?.adapter?.upsertGroup?.(groupMetadata)
                 } catch (e) {
                     groupMetadata = {}
                 }
