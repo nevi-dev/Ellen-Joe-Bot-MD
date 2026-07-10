@@ -1,5 +1,6 @@
 import { smsg } from './lib/simple.js'
 import { format } from 'util'
+import { performance } from 'perf_hooks'
 import * as ws from 'ws'
 import { fileURLToPath } from 'url'
 import path, { join } from 'path'
@@ -90,6 +91,7 @@ export function handler(chatUpdate) {
 }
 
 async function processChatUpdate(chatUpdate) {
+    const receivedAt = performance.now()
     let sender = '';
     this.msgqueque = this.msgqueque || []
     this.uptime = this.uptime || Date.now()
@@ -242,13 +244,14 @@ async function processChatUpdate(chatUpdate) {
         const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '')).includes(senderNum) || user.premium === true
 
         if (opts['queque'] && m.text && !(isMods || isPrems)) {
-            let queque = this.msgqueque, time = 5000
-            const previousID = queque[queque.length - 1]
-            queque.push(m.id || m.key.id)
-            setInterval(async function () {
-                if (queque.indexOf(previousID) === -1) clearInterval(this)
-                await delay(time)
-            }, time)
+            const queueId = m.id || m.key.id
+            const time = 5000
+            const previousTask = this.messageQueue || Promise.resolve()
+            this.msgqueque.push(queueId)
+            this.messageQueue = previousTask
+                .catch(() => {})
+                .then(() => delay(time))
+            await previousTask.catch(() => {})
         }
 
         m.exp += Math.ceil(Math.random() * 10)
@@ -371,6 +374,8 @@ async function processChatUpdate(chatUpdate) {
                         }
                     }
                     if (m.coin) conn.reply(m.chat, `❮✦❯ Utilizaste ${+m.coin} monedas`, m)
+                    const elapsed = performance.now() - receivedAt
+                    if (elapsed > 50) console.log(`[⚡ ${Math.round(elapsed)}ms] Comando: ${usedPrefix || ''}${command} | Usuario: ${sender}`)
                 }
                 break
             }

@@ -7,7 +7,7 @@ import {createRequire} from 'module'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {platform} from 'process'
 import * as ws from 'ws'
-import fs, {readdirSync, statSync, unlinkSync, existsSync, mkdirSync, readFileSync, rmSync, watch} from 'fs'
+import fs, {readdirSync, existsSync, mkdirSync, readFileSync, rmSync, watch} from 'fs'
 import yargs from 'yargs';
 import {spawn} from 'child_process'
 import lodash from 'lodash'
@@ -176,16 +176,25 @@ console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se
 console.info = () => {}
 console.debug = () => {}
 
+const BROWSER_FINGERPRINTS = [
+['Windows', 'Chrome', '120.0.0.0'],
+['Windows', 'Edge', '119.0.0.0'],
+['Mac OS', 'Safari', '17.0'],
+['Mac OS', 'Chrome', '120.0.0.0'],
+['Ubuntu', 'Firefox', '121.0'],
+]
+const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)]
+
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: opcion == '1' ? [`${nameqr}`, 'Edge', '20.0.04'] : methodCodeQR ? [`${nameqr}`, 'Edge', '20.0.04'] : ['Ubuntu', 'Edge', '110.0.1587.56'],
+browser: getRandomBrowser(),
 auth: {
 creds: state.creds,
 keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
 },
-markOnlineOnConnect: true,
+markOnlineOnConnect: false,
 generateHighQualityLinkPreview: true,
 getMessage: async (clave) => {
 let jid = jidNormalizedUser(clave.remoteJid)
@@ -427,41 +436,51 @@ const s = global.support = {ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, fi
 Object.freeze(global.support);
 }
 
-function clearTmp() {
-const tmpDir = join(__dirname, 'tmp')
-const filenames = readdirSync(tmpDir)
-filenames.forEach(file => {
-const filePath = join(tmpDir, file)
-unlinkSync(filePath)})
-}
-
-function purgeEllenSession() {
-let prekey = []
-let directorio = readdirSync(`./${Ellensessions}`)
-let filesFolderPreKeys = directorio.filter(file => {
-return file.startsWith('pre-key-')
-})
-prekey = [...prekey, ...filesFolderPreKeys]
-filesFolderPreKeys.forEach(files => {
-unlinkSync(`./${Ellensessions}/${files}`)
-})
-}
-
-function purgeEllenSessionSB() {
+async function safeReadDir(dir) {
 try {
-const listaDirectorios = readdirSync(`./${jadi}/`);
-let SBprekey = [];
-listaDirectorios.forEach(directorio => {
-if (statSync(`./${jadi}/${directorio}`).isDirectory()) {
-const DSBPreKeys = readdirSync(`./${jadi}/${directorio}`).filter(fileInDir => {
-return fileInDir.startsWith('pre-key-')
-})
-SBprekey = [...SBprekey, ...DSBPreKeys];
-DSBPreKeys.forEach(fileInDir => {
-if (fileInDir !== 'creds.json') {
-unlinkSync(`./${jadi}/${directorio}/${fileInDir}`)
-}})
-}})
+return await fs.promises.readdir(dir)
+} catch (error) {
+if (error?.code !== 'ENOENT') console.error(`No se pudo leer el directorio ${dir}:`, error)
+return []
+}
+}
+
+async function safeUnlink(filePath) {
+try {
+await fs.promises.unlink(filePath)
+return true
+} catch (error) {
+if (error?.code !== 'ENOENT') console.error(`No se pudo eliminar ${filePath}:`, error)
+return false
+}
+}
+
+async function clearTmp() {
+const tmpDir = join(__dirname, 'tmp')
+const filenames = await safeReadDir(tmpDir)
+await Promise.all(filenames.map(file => safeUnlink(join(tmpDir, file))))
+}
+
+async function purgeEllenSession() {
+const directorio = await safeReadDir(`./${Ellensessions}`)
+const filesFolderPreKeys = directorio.filter(file => file.startsWith('pre-key-'))
+await Promise.all(filesFolderPreKeys.map(file => safeUnlink(`./${Ellensessions}/${file}`)))
+}
+
+async function purgeEllenSessionSB() {
+try {
+const listaDirectorios = await safeReadDir(`./${jadi}/`)
+let SBprekey = []
+for (const directorio of listaDirectorios) {
+const botPath = `./${jadi}/${directorio}`
+const stats = await fs.promises.stat(botPath).catch(() => null)
+if (!stats?.isDirectory()) continue
+const DSBPreKeys = (await safeReadDir(botPath)).filter(fileInDir => fileInDir.startsWith('pre-key-'))
+SBprekey = [...SBprekey, ...DSBPreKeys]
+await Promise.all(DSBPreKeys
+.filter(fileInDir => fileInDir !== 'creds.json')
+.map(fileInDir => safeUnlink(`${botPath}/${fileInDir}`)))
+}
 if (SBprekey.length === 0) {
 console.log(chalk.bold.green(`\n╭» ❍ ${jadi} ❍\n│→ NADA POR ELIMINAR \n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻︎`))
 } else {
@@ -470,21 +489,21 @@ console.log(chalk.bold.cyanBright(`\n╭» ❍ ${jadi} ❍\n│→ ARCHIVOS NO E
 console.log(chalk.bold.red(`\n╭» ❍ ${jadi} ❍\n│→ OCURRIÓ UN ERROR\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻\n` + err))
 }}
 
-function purgeOldFiles() {
+async function purgeOldFiles() {
 const directories = [`./${Ellensessions}/`, `./${jadi}/`]
-directories.forEach(dir => {
-readdirSync(dir, (err, files) => {
-if (err) throw err
-files.forEach(file => {
-if (file !== 'creds.json') {
-const filePath = path.join(dir, file);
-unlinkSync(filePath, err => {
-if (err) {
-console.log(chalk.bold.red(`\n╭» ❍ ARCHIVO ❍\n│→ ${file} NO SE LOGRÓ BORRAR\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ✘\n` + err))
-} else {
+await Promise.all(directories.map(async (dir) => {
+const files = await safeReadDir(dir)
+await Promise.all(files
+.filter(file => file !== 'creds.json')
+.map(async (file) => {
+const filePath = path.join(dir, file)
+const deleted = await safeUnlink(filePath)
+if (deleted) {
 console.log(chalk.bold.green(`\n╭» ❍ ARCHIVO ❍\n│→ ${file} BORRADO CON ÉXITO\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))
-} }) }
-}) }) }) }
+}
+}))
+}))
+}
 
 function redefineConsoleMethod(methodName, filterStrings) {
 const originalConsoleMethod = console[methodName]
@@ -512,7 +531,7 @@ await purgeEllenSessionSB()}, 1000 * 60 * 10)
 
 setInterval(async () => {
 if (stopped === 'close' || !conn || !conn.user) return
-console.log(await purgeOldFiles());
+await purgeOldFiles()
 console.log(chalk.bold.cyanBright(`\n╭» ❍ ARCHIVOS ❍\n│→ ARCHIVOS RESIDUALES ELIMINADOS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 10)
 
 _quickTest().then(() => conn.logger.info(chalk.bold(`✦  H E C H O\n`.trim()))).catch(console.error)
