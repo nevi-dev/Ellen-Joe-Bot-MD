@@ -15,38 +15,28 @@ handler.all = async function (m) {
     if (chat?.primaryBot && chat.primaryBot !== selfJid) return !0;
   }
 
-  // 2. Detectar cualquier tipo de mensaje de botón (Compatibilidad total)
-  const btnMsg =
-    m.message?.buttonsResponseMessage ||              // Botones clásicos
-    m.message?.templateButtonReplyMessage ||           // Botones de plantilla
-    m.message?.listResponseMessage ||                 // Listas (Select menus)
-    m.message?.interactiveResponseMessage;            // Botones interactivos nuevos (Baileys)
+ // 👇 AÑADIR INTERCEPTOR DE BOTONES AQUÍ 👇
+        const btnMsg = m.message?.buttonsResponseMessage || 
+                     m.message?.templateButtonReplyMessage || 
+                     m.message?.listResponseMessage || 
+                     m.message?.interactiveResponseMessage;
 
-  if (!btnMsg) return !0; 
+        if (btnMsg) {
+            let command = btnMsg.selectedButtonId || btnMsg.singleSelectReply?.selectedRowId;
+            
+            if (!command && btnMsg.nativeFlowResponseMessage) {
+                try {
+                    const params = JSON.parse(btnMsg.nativeFlowResponseMessage.paramsJson || '{}');
+                    command = params.id || m.text;
+                } catch (e) {}
+            }
 
-  try {
-    // 3. Extraer el ID (comando) del botón
-    let command = '';
-
-    if (btnMsg.selectedButtonId) {
-        command = btnMsg.selectedButtonId;
-    } else if (btnMsg.singleSelectReply?.selectedRowId) {
-        command = btnMsg.singleSelectReply.selectedRowId;
-    } else if (btnMsg.nativeFlowResponseMessage) {
-        // Para botones nuevos tipo "copy", "url" o "reply"
-        const params = JSON.parse(btnMsg.nativeFlowResponseMessage.paramsJson || '{}');
-        command = params.id || m.text; 
-    }
-
-    if (!command) return !0;
-
-    // 4. Transformar el mensaje para que el Handler lo reconozca como comando
-    m.message = {
-      conversation: command
-    };
-    
-    m.text = command; 
-    m.isButton = true; // Etiqueta opcional por si quieres saber si vino de un botón
+            if (command) {
+                m.text = command;
+                m.message = { conversation: command };
+                m.isButton = true;
+            }
+        }
 
     // 5. Ajuste de seguridad del Sender (Evita errores de validación de usuario)
     const senderId = m.participant || m.key.participant || m.key.remoteJid;
