@@ -183,6 +183,30 @@ async function processChatUpdate(chatUpdate) {
         const dbAdapter = global.db?.adapter
         dbAdapter?.cacheMessage?.(m)
 
+        // 👇 INTERCEPTOR DE BOTONES EN EL NÚCLEO 👇
+        const btnMsg = m.message?.buttonsResponseMessage || 
+                     m.message?.templateButtonReplyMessage || 
+                     m.message?.listResponseMessage || 
+                     m.message?.interactiveResponseMessage;
+
+        if (btnMsg) {
+            let command = btnMsg.selectedButtonId || btnMsg.singleSelectReply?.selectedRowId;
+            
+            if (!command && btnMsg.nativeFlowResponseMessage) {
+                try {
+                    const params = JSON.parse(btnMsg.nativeFlowResponseMessage.paramsJson || '{}');
+                    command = params.id || m.text;
+                } catch (e) {}
+            }
+
+            if (command) {
+                m.text = command;
+                m.message = { conversation: command };
+                m.isButton = true;
+            }
+        }
+        // 👆 FIN DEL INTERCEPTOR 👆
+
         let sender = m.isGroup ? (m.key.participant ? m.key.participant : m.sender) : m.key.remoteJid
 
         let groupMetadata = {}
