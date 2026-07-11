@@ -15,28 +15,34 @@ handler.all = async function (m) {
     if (chat?.primaryBot && chat.primaryBot !== selfJid) return !0;
   }
 
- // 👇 AÑADIR INTERCEPTOR DE BOTONES AQUÍ 👇
-        const btnMsg = m.message?.buttonsResponseMessage || 
-                     m.message?.templateButtonReplyMessage || 
-                     m.message?.listResponseMessage || 
-                     m.message?.interactiveResponseMessage;
+  try {
+    let command = ''; // Declaramos command arriba para poder usarlo en el log final
 
-        if (btnMsg) {
-            let command = btnMsg.selectedButtonId || btnMsg.singleSelectReply?.selectedRowId;
-            
-            if (!command && btnMsg.nativeFlowResponseMessage) {
-                try {
-                    const params = JSON.parse(btnMsg.nativeFlowResponseMessage.paramsJson || '{}');
-                    command = params.id || m.text;
-                } catch (e) {}
-            }
+    // 👇 INTERCEPTOR DE BOTONES 👇
+    const btnMsg = m.message?.buttonsResponseMessage || 
+                 m.message?.templateButtonReplyMessage || 
+                 m.message?.listResponseMessage || 
+                 m.message?.interactiveResponseMessage;
 
-            if (command) {
-                m.text = command;
-                m.message = { conversation: command };
-                m.isButton = true;
-            }
+    if (btnMsg) {
+        command = btnMsg.selectedButtonId || btnMsg.singleSelectReply?.selectedRowId;
+        
+        if (!command && btnMsg.nativeFlowResponseMessage) {
+            try {
+                const params = JSON.parse(btnMsg.nativeFlowResponseMessage.paramsJson || '{}');
+                command = params.id || m.text;
+            } catch (e) {} // Este catch es solo para el JSON, no interfiere con el principal
         }
+
+        if (command) {
+            m.text = command;
+            m.message = { conversation: command };
+            m.isButton = true;
+        }
+    }
+
+    // Si no es un botón o no hay comando, detenemos el proceso aquí
+    if (!command) return !0;
 
     // 5. Ajuste de seguridad del Sender (Evita errores de validación de usuario)
     const senderId = m.participant || m.key.participant || m.key.remoteJid;
