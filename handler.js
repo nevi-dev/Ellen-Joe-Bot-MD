@@ -13,7 +13,9 @@ const { proto, WAMessageStubType } = (await import('@whiskeysockets/baileys')).d
 
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, ms))
-const cleanJid = jid => jid?.split(':')[0] || ''
+
+// 1. CORRECCIÓN: Normaliza el JID sin borrar el dominio para poder identificar Admins.
+const cleanJid = jid => jid ? jid.replace(/:\d+@/, '@') : ''
 
 const GROUP_METADATA_TTL = 12 * 60 * 60 * 1000
 const groupCache = new Map()
@@ -122,11 +124,9 @@ const resolveRuntimeJid = (jid, indexes = {}) => {
 
 function resolveMessageMentions(m, participants_lid) {
     try {
-        // Obtener las menciones crudas que vienen en el mensaje de Baileys
         const rawMentions = m.message?.extendedTextMessage?.contextInfo?.mentionedJid || 
                             m.message?.contactsArrayMessage?.contacts || [];
         
-        // Normalizar mapeando de LID a JID real usando la lista de participantes
         const normalized = rawMentions.map(mention => {
             if (mention.endsWith('@lid')) {
                 const found = participants_lid.find(p => p.lid === mention);
@@ -135,17 +135,14 @@ function resolveMessageMentions(m, participants_lid) {
             return mention;
         });
 
-        // SOLUCIÓN: En lugar de modificar m.mentionedJid que tiene getter,
-        // creamos una propiedad nueva y totalmente mutable en la raíz del mensaje
         m.mentions = normalized;
 
     } catch (error) {
         console.error("Error al normalizar menciones:", error);
-        m.mentions = []; // Fallback seguro para que nunca sea undefined
+        m.mentions = [];
     }
 }
 
-// 1. ESQUEMAS POR DEFECTO FUERA DEL HANDLER (Optimización de CPU y RAM)
 const defaultUser = { exp: 0, coin: 10, joincount: 1, diamond: 3, lastadventure: 0, lastclaim: 0, health: 100, crime: 0, lastcofre: 0, lastdiamantes: 0, lastpago: 0, lastcode: 0, lastcodereg: 0, lastduel: 0, lastmining: 0, muto: false, premium: false, premiumTime: 0, registered: false, genre: '', birth: '', marry: '', description: '', packstickers: null, age: -1, regTime: -1, afk: -1, afkReason: '', role: 'Nuv', banned: false, useDocument: false, level: 0, bank: 0, warn: 0, spam: 0 }
 const defaultChat = { isBanned: false, sAutoresponder: '', welcome: true, autolevelup: false, autoAceptar: false, autosticker: false, autoRechazar: false, autoresponder: false, detect: true, antiBot: false, antiBot2: false, modoadmin: false, antiLink: true, antiImg: false, reaction: false, nsfw: false, antifake: false, delete: false, expired: 0, antiLag: false, per: [], users: {} }
 const defaultSettings = { self: false, restrict: true, jadibotmd: true, antiPrivate: false, autoread: false, status: 0 }
@@ -193,7 +190,6 @@ async function processChatUpdate(chatUpdate) {
         let participants_lid = []
 
         if (m.isGroup) {
-            // 3. CACHÉ DE GRUPOS SIN FUGAS DE MEMORIA (Sin setTimeouts acumulativos)
             const now = Date.now()
             const cachedGroup = groupCache.get(m.chat)
 
@@ -204,7 +200,7 @@ async function processChatUpdate(chatUpdate) {
                     const meta = await (this.getSmartGroupMetadata ? this.getSmartGroupMetadata(m.chat, { maxAge: GROUP_METADATA_TTL }) : this.groupMetadata(m.chat))
                     groupMetadata = { ...meta }
                     if (meta?.participants) {
-                        groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid }))
+                        groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid || p.id, jid: p.jid || p.id, lid: p.lid }))
                     }
                     groupCache.set(m.chat, { data: groupMetadata, indexes: buildParticipantIndexes(groupMetadata.participants || []), timestamp: now })
                     if (!groupMetadata.fromCache) dbAdapter?.upsertGroup?.(groupMetadata)
@@ -234,7 +230,6 @@ async function processChatUpdate(chatUpdate) {
                 })
             }
             
-            // Aquí se ejecuta de forma segura y te crea m.mentions
             resolveMessageMentions(m, participants_lid)
             
             dbAdapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
@@ -256,7 +251,6 @@ async function processChatUpdate(chatUpdate) {
         m.exp = 0
         m.coin = false
 
-        // 4. HIDRATACIÓN SÚPER RÁPIDA DE BASE DE DATOS
         let user = global.db.data.users[sender]
         if (!user) {
             global.db.data.users[sender] = { ...defaultUser, name: m.name || '' }
@@ -348,6 +342,16 @@ async function processChatUpdate(chatUpdate) {
                 }
             }
 
+            // 2. CORRECCIÓN: Separar plugin.before del condicional de comandos.
+            // Ahora se ejecutará siempre para cada mensaje, logrando que los plugins "activos" funcionen.
+            if (typeof plugin.before === 'function') {
+                try {
+                    if (await plugin.before.call(this, m, { match: null, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename })) continue
+                } catch (e) {
+                    console.error(`Error en plugin.before (${name}):`, e)
+                }
+            }
+
             if (!commandCandidates || !commandCandidates.has(name)) continue
 
             if (!opts['restrict'] && plugin.tags && plugin.tags.includes('admin')) continue
@@ -357,11 +361,7 @@ async function processChatUpdate(chatUpdate) {
             let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] : Array.isArray(_prefix) ? _prefix.map(p => { let re = p instanceof RegExp ? p : new RegExp(str2Regex(p)); return [re.exec(m.text), re] }) : typeof _prefix === 'string' ? [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]] : [[[], new RegExp]]).find(p => p[0])
 
             if (!match) continue
-
-            if (typeof plugin.before === 'function') {
-                if (await plugin.before.call(this, m, { match, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename })) continue
-            }
-
+            
             if (typeof plugin !== 'function') continue
             
             if ((usedPrefix = (match[0] || '')[0])) {
@@ -517,9 +517,8 @@ async function processChatUpdate(chatUpdate) {
         
         if (opts['autoread']) await this.readMessages([m.key])
 
-        // 5. REGEX DE REACCIONES OPTIMIZADO
         if (global.db.data.chats[m.chat]?.reaction && m.text.length > 0) {
-            const reactionRegex = /(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/i // Quitada la flag 'g' global para evitar escaneos pesados
+            const reactionRegex = /(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/i 
             if (reactionRegex.test(m.text)) {
                 const emotList = ["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"]
                 const emot = emotList[Math.floor(Math.random() * emotList.length)]
