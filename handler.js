@@ -14,7 +14,7 @@ const { proto, WAMessageStubType } = (await import('@whiskeysockets/baileys')).d
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, ms))
 
-// 1. CORRECCIÓN: Normaliza el JID sin borrar el dominio para poder identificar Admins.
+// Normaliza el JID eliminando el número de sesión de la conexión (los :xx)
 const cleanJid = jid => jid ? jid.replace(/:\d+@/, '@') : ''
 
 const GROUP_METADATA_TTL = 12 * 60 * 60 * 1000
@@ -235,15 +235,20 @@ async function processChatUpdate(chatUpdate) {
             dbAdapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
 
             const chatDb = global.db.data.chats[m.chat] || {}
-            if (chatDb.primaryBot && this.user.jid !== chatDb.primaryBot) {
+            
+            // CORRECCIÓN: Baileys usa this.user.id, no this.user.jid
+            const currentBotJid = cleanJid(this.user?.id || this.user?.jid)
+            
+            if (chatDb.primaryBot && currentBotJid !== chatDb.primaryBot) {
                 const universalWords = ['resetbot', 'resetprimario', 'botreset']
                 const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : ''
                 const primaryPresent = (groupCache.get(m.chat)?.indexes?.byJid?.has(cleanJid(chatDb.primaryBot))) || false
                 if (!primaryPresent && Array.isArray(chatDb.per) && chatDb.per.length) {
                     const activeBots = [global.conn, ...(global.conns || [])]
-                        .filter(bot => bot?.user?.jid && bot?.ws?.socket?.readyState !== ws.CLOSED && chatDb.per.includes(bot.user.jid))
-                    const selected = activeBots.length ? activeBots[Math.floor(Math.random() * activeBots.length)]?.user?.jid : null
-                    if (selected && cleanJid(this.user.jid) !== cleanJid(selected) && !universalWords.includes(firstWord)) return
+                        .filter(bot => bot?.user && bot?.ws?.socket?.readyState !== ws.CLOSED && chatDb.per.includes(bot.user.id || bot.user.jid))
+                    const selected = activeBots.length ? activeBots[Math.floor(Math.random() * activeBots.length)]?.user : null
+                    const selectedJid = cleanJid(selected?.id || selected?.jid)
+                    if (selectedJid && currentBotJid !== selectedJid && !universalWords.includes(firstWord)) return
                 } else if (!universalWords.includes(firstWord)) return
             }
         }
@@ -274,22 +279,23 @@ async function processChatUpdate(chatUpdate) {
             }
         }
 
-        let settings = global.db.data.settings[this.user.jid]
+        let currentBotId = cleanJid(this.user?.id || this.user?.jid)
+        let settings = global.db.data.settings[currentBotId]
         if (!settings) {
-            global.db.data.settings[this.user.jid] = { ...defaultSettings }
-            dbAdapter?.markDirty?.('settings', this.user.jid)
-            settings = global.db.data.settings[this.user.jid]
+            global.db.data.settings[currentBotId] = { ...defaultSettings }
+            dbAdapter?.markDirty?.('settings', currentBotId)
+            settings = global.db.data.settings[currentBotId]
         } else {
             for (let key in defaultSettings) {
-                if (settings[key] === undefined) { settings[key] = defaultSettings[key]; dbAdapter?.markDirty?.('settings', this.user.jid) }
+                if (settings[key] === undefined) { settings[key] = defaultSettings[key]; dbAdapter?.markDirty?.('settings', currentBotId) }
             }
         }
 
-        const mainBot = global.conn.user.jid
+        const mainBot = cleanJid(global.conn.user?.id || global.conn.user?.jid)
         const isSubbs = chat?.antiLag === true
         const allowedBots = chat?.per || []
         if (!allowedBots.includes(mainBot)) allowedBots.push(mainBot)
-        const isAllowed = allowedBots.includes(this.user.jid)
+        const isAllowed = allowedBots.includes(currentBotId)
         if (isSubbs && !isAllowed) return
 
         if (opts['nyimak']) return
@@ -297,16 +303,24 @@ async function processChatUpdate(chatUpdate) {
         if (opts['swonly'] && m.chat !== 'status@broadcast') return
         if (typeof m.text !== 'string') m.text = ''
 
-        const cachedIndexes = m.isGroup ? groupCache.get(m.chat)?.indexes : null
-        const userObj = (m.isGroup ? cachedIndexes?.byJid?.get(cleanJid(sender)) : {}) || {}
-        const botObj = (m.isGroup ? cachedIndexes?.byJid?.get(cleanJid(this.user.jid)) : {}) || {}
+        // 3. CORRECCIÓN PRINCIPAL: Búsqueda explícita del usuario y del bot en la lista de participantes.
+        const senderJid = cleanJid(sender);
+        const botJid = cleanJid(this.user?.id || this.user?.jid || '');
 
-        const isRAdmin = userObj?.admin === "superadmin" || false
-        const isAdmin = isRAdmin || userObj?.admin === "admin" || false
-        const isBotAdmin = botObj?.admin || false
+        let userObj = {};
+        let botObj = {};
+
+        if (m.isGroup && participants.length > 0) {
+            userObj = participants.find(p => cleanJid(p.id || p.jid) === senderJid) || {};
+            botObj = participants.find(p => cleanJid(p.id || p.jid) === botJid) || {};
+        }
+
+        const isRAdmin = userObj?.admin === 'superadmin' || false;
+        const isAdmin = isRAdmin || userObj?.admin === 'admin' || false;
+        const isBotAdmin = botObj?.admin === 'admin' || botObj?.admin === 'superadmin' || false;
 
         const senderNum = sender.split('@')[0]
-        const isROwner = [cleanJid(global.conn.user.id), ...global.owner.map(([n]) => n)].map(v => v.replace(/[^0-9]/g, '')).includes(senderNum)
+        const isROwner = [mainBot, ...global.owner.map(([n]) => n)].map(v => v.replace(/[^0-9]/g, '')).includes(senderNum)
         const isOwner = isROwner || m.fromMe
         const isMods = isOwner || global.mods.map(v => v.replace(/[^0-9]/g, '')).includes(senderNum)
         const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '')).includes(senderNum) || user.premium === true
@@ -342,8 +356,6 @@ async function processChatUpdate(chatUpdate) {
                 }
             }
 
-            // 2. CORRECCIÓN: Separar plugin.before del condicional de comandos.
-            // Ahora se ejecutará siempre para cada mensaje, logrando que los plugins "activos" funcionen.
             if (typeof plugin.before === 'function') {
                 try {
                     if (await plugin.before.call(this, m, { match: null, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename })) continue
@@ -471,8 +483,13 @@ async function processChatUpdate(chatUpdate) {
             const chatObj = global.db.data.chats[m.chat] ?? {};
             
             if (chatObj.users?.[sender]?.mute2) {
-                const botObjFinal = (m.isGroup ? groupCache.get(m.chat)?.indexes?.byJid?.get(cleanJid(this.user.jid)) : {}) || {}
-                if (botObjFinal?.admin) {
+                let botObjFinal = {}
+                if (m.isGroup) {
+                    const finalBotJid = cleanJid(this.user?.id || this.user?.jid || '');
+                    botObjFinal = participants.find(p => cleanJid(p.id || p.jid) === finalBotJid) || {};
+                }
+                
+                if (botObjFinal?.admin === 'admin' || botObjFinal?.admin === 'superadmin') {
                     await this.sendMessage(m.chat, { delete: m.key }).catch(() => {})
                 }
                 return 
@@ -485,7 +502,8 @@ async function processChatUpdate(chatUpdate) {
                 dbAdapter?.markDirty?.('users', sender)
             }
             if (m?.chat && global.db.data.chats[m.chat]) dbAdapter?.markDirty?.('chats', m.chat)
-            if (this?.user?.jid && global.db.data.settings[this.user.jid]) dbAdapter?.markDirty?.('settings', this.user.jid)
+            let finalId = cleanJid(this.user?.id || this.user?.jid)
+            if (finalId && global.db.data.settings[finalId]) dbAdapter?.markDirty?.('settings', finalId)
 
             let stat
             if (m.plugin) {
