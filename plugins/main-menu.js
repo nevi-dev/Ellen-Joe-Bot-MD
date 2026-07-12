@@ -3,11 +3,24 @@ import fs from 'fs';
 import path from 'path';
 import moment from 'moment-timezone';
 import phoneNumber from 'awesome-phonenumber';
+import { prepareWAMessageMedia, generateWAMessageFromContent } from '@whiskeysockets/baileys';
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = "⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄's 𝐒ervice";
 const packname = '˚🄴🄻🄻🄴🄽-🄹🄾🄴-🄱🄾🅃';
 const redes = 'https://github.com/nevi-dev';
+
+// Imágenes para el menú
+const images = [
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/086ec8e8-c373-45b6-ad51-3cdaef9cd3e6.jpg?raw=true",
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/c99835de-0c28-4e27-93a0-422df6cca849.jpg?raw=true",
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/6eee1198-1b0f-4cfe-b6c0-2fb82dc0bdc5.jpg?raw=true",
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/18b2ad5d-a091-4267-8903-bb895dbefe6c.jpg?raw=true",
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/23912e87-2b42-468c-bfd4-a4df62951c10.jpg?raw=true",
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/7d874ab7-8a4c-4d76-b7dc-dfbcb589bd9b.jpg?raw=true",
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/42f1cc96-bcd5-4c43-ac58-96883dba3047.jpg?raw=true",
+  "https://github.com/nevi-dev/nevi-dev/blob/main/src/407e16b8-89d4-4d09-bd2f-a606ccc0e53c.jpg?raw=true"
+];
 
 const CATEGORY_GROUPS = {
   '🦈 VICTORIA HOUSEKEEPING | OWNER': ['owner'],
@@ -36,7 +49,7 @@ for (const [groupName, tags] of Object.entries(CATEGORY_GROUPS)) {
 
 let handler = async (m, { conn, usedPrefix, text }) => {
   let nombre = await conn.getName(m.sender);
-  
+
   // Lógica de hora
   let userTime;
   try {
@@ -47,7 +60,7 @@ let handler = async (m, { conn, usedPrefix, text }) => {
     userTime = moment().format('h:mm A');
   }
 
-  // Sistema de comandos
+  // Sistema de comandos interactivo y completo
   let comandosPorGrupo = {};
   Object.values(global.plugins).forEach(plugin => {
     if (!plugin.help || !plugin.tags) return;
@@ -61,19 +74,8 @@ let handler = async (m, { conn, usedPrefix, text }) => {
   });
 
   const allGroupNames = Object.keys(comandosPorGrupo).sort();
-  const CATEGORIES_PER_PAGE = 3;
-  const totalPaginas = Math.ceil(allGroupNames.length / CATEGORIES_PER_PAGE);
-  let paginaActual = 1;
-  const match = text.match(/pagina (\d+)/i);
-  if (match) paginaActual = Math.max(1, Math.min(parseInt(match[1]), totalPaginas));
 
-  const startIndex = (paginaActual - 1) * CATEGORIES_PER_PAGE;
-  const gruposPagina = allGroupNames.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
-  const secciones = gruposPagina.map(groupName => {
-    const commandList = Array.from(comandosPorGrupo[groupName]).sort().map(cmd => ` ○ ${cmd}`).join('\n');
-    return `\n🔷 *${groupName}*\n${commandList}`;
-  }).join('\n');
-
+  // Obtener versión local
   let localVersion = '1.0.0';
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
@@ -93,26 +95,27 @@ ${sep}
 | 🛠️ **Build:** v${localVersion}
 | ⏳ **Uptime:** ${clockString(process.uptime() * 1000)}
 | 📑 **Comandos:** ${Object.keys(global.plugins).length}
-${sep}
-📑 **𝐒𝐄𝐂𝐓𝐎𝐑:** ${paginaActual} / ${totalPaginas}
 ${sep}`.trim();
 
-  const textoFinal = `${encabezado}\n${secciones}\n\n*— No me pidas nada más fuera de mi horario.*`;
+  // ---------------------------------------------------------
+  // LÓGICA 1: SI EL USUARIO PIDE EL "ALL MENU" (TEXTO COMPLETO)
+  // ---------------------------------------------------------
+  if (text.trim().toLowerCase() === 'all') {
+    const seccionesCompletas = allGroupNames.map(groupName => {
+      const commandList = Array.from(comandosPorGrupo[groupName]).sort().map(cmd => ` ○ ${cmd}`).join('\n');
+      return `\n🔷 *${groupName}*\n${commandList}`;
+    }).join('\n');
 
-  const name = nombre;
-  const matchedUrl = redes;
-  const thumbnailBuffer = Buffer.isBuffer(global.icons)
-    ? global.icons
-    : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
+    const textoFinal = `${encabezado}\n${seccionesCompletas}\n\n*— No me pidas nada más fuera de mi horario.*`;
+    const thumbnailBuffer = Buffer.isBuffer(global.icons) ? global.icons : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
 
-  const sendExternalMessage = async (msgText) => {
     await conn.relayMessage(m.chat, {
       extendedTextMessage: {
-        text: `${matchedUrl}\n\n${msgText}`,
-        matchedText: matchedUrl,
-        canonicalUrl: matchedUrl,
+        text: `${redes}\n\n${textoFinal}`,
+        matchedText: redes,
+        canonicalUrl: redes,
         title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-        description: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
+        description: `✦ Aquí tienes todo, ${nombre}...`,
         previewType: 'shadow',
         jpegThumbnail: thumbnailBuffer,
         contextInfo: {
@@ -122,36 +125,79 @@ ${sep}`.trim();
           remoteJid: m.chat,
           isForwarded: true,
           forwardingScore: 999,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid,
-            newsletterName,
-            serverMessageId: -1
-          }
+          forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 }
         }
       }
     }, { quoted: m });
-  };
+    
+    return; // Detiene la ejecución aquí para no enviar el menú de botones
+  }
 
-  await sendExternalMessage(textoFinal);
+  // ---------------------------------------------------------
+  // LÓGICA 2: MENÚ INTERACTIVO CON BOTONES Y LISTAS (POR DEFECTO)
+  // ---------------------------------------------------------
 
-  // 2. Enviar botones (Mensaje aparte)
-  let buttons = [
-    { buttonId: `${usedPrefix}menu`, buttonText: { displayText: '🔄 REFRESCAR' }, type: 1 }
+  // Generar las filas de la lista divididas en 2 secciones para evitar límites de WhatsApp
+  let listRows1 = [];
+  let listRows2 = [];
+  
+  Object.keys(CATEGORY_GROUPS).forEach((group, index) => {
+    let row = { 
+      title: group, 
+      description: `Explorar comandos de este sector`, 
+      id: `${usedPrefix}help ${CATEGORY_GROUPS[group][0]}` // Usa tu comando base de ayuda
+    };
+    if (index < 9) listRows1.push(row);
+    else listRows2.push(row);
+  });
+
+  let sections = [
+    {
+      title: "⚡ 𝐒𝐄𝐂𝐓𝐎𝐑𝐄𝐒 𝐏𝐑𝐈𝐍𝐂𝐈𝐏𝐀𝐋𝐄𝐒",
+      rows: [
+        { title: "🦈 MENÚ COMPLETO (ALL)", description: "Ver lista completa de todos los comandos", id: `${usedPrefix}menu all` },
+        ...listRows1
+      ]
+    },
+    {
+      title: "⚡ 𝐎𝐓𝐑𝐎𝐒 𝐒𝐄𝐂𝐓𝐎𝐑𝐄𝐒",
+      rows: listRows2
+    }
   ];
 
-  if (paginaActual > 1) {
-    buttons.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual - 1}`, buttonText: { displayText: '⬅️ ANTERIOR' }, type: 1 });
-  }
-  if (paginaActual < totalPaginas) {
-    buttons.push({ buttonId: `${usedPrefix}menu pagina ${paginaActual + 1}`, buttonText: { displayText: 'SIGUIENTE ➡️' }, type: 1 });
-  }
+  // Elegir imagen aleatoria
+  let imgUrl = images[Math.floor(Math.random() * images.length)];
+  let media = await prepareWAMessageMedia({ image: { url: imgUrl } }, { upload: conn.waUploadToServer });
 
-  await conn.sendMessage(m.chat, {
-    text: `*Navegación de Sectores:*`,
-    footer: packname,
-    buttons: buttons,
-    headerType: 1
-  }, { quoted: m });
+  const interactiveMessage = {
+    header: {
+      title: "🦈 𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄 | 𝐒𝐄𝐑𝐕𝐈𝐂𝐄",
+      hasMediaAttachment: true,
+      imageMessage: media.imageMessage
+    },
+    body: {
+      text: `${encabezado}\n\n*— Selecciona una opción en el menú inferior.*`
+    },
+    footer: { text: packname },
+    nativeFlowMessage: {
+      buttons: [
+        {
+          name: "quick_reply",
+          buttonParamsJson: JSON.stringify({ display_text: "🧧 Menú Completo", id: `${usedPrefix}menu all` })
+        },
+        {
+          name: "single_select",
+          buttonParamsJson: JSON.stringify({ title: "❀ 𝐒𝐄𝐂𝐓𝐎𝐑𝐄𝐒 𝐃𝐄 𝐍𝐄𝐖 𝐄𝐑𝐈𝐃𝐔", sections: sections })
+        }
+      ]
+    }
+  };
+
+  let msg = generateWAMessageFromContent(m.chat, { 
+    viewOnceMessage: { message: { interactiveMessage } } 
+  }, { userJid: conn.user.jid });
+
+  await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id });
 };
 
 handler.help = ['menu'];
