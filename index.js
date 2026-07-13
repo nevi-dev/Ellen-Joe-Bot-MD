@@ -29,6 +29,7 @@ import BetterSQLiteAdapter from './lib/sqliteDB.js'
 import cloudDBAdapter from './lib/cloudDBAdapter.js'
 import {mongoDB, mongoDBV2} from './lib/mongoDB.js'
 import store from './lib/store.js'
+import { isRecoverableSessionError, noteSessionRecoverySignal, softResetAuthSession } from './lib/sessionRecovery.js'
 const {proto} = (await import('@whiskeysockets/baileys')).default
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
@@ -122,6 +123,7 @@ global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.
 global.timestamp = {start: new Date}
 
 const __dirname = global.__dirname(import.meta.url)
+const mainSessionPath = join(__dirname, global.Ellensessions)
 const tmpDir = join(__dirname, 'tmp')
 if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true })
 
@@ -154,7 +156,7 @@ return global.db.READ
 }
 await loadDatabase()
 
-const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
+let {state, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
 
 const createDebouncedSaveCreds = (saveCreds, delayMs = 1000) => {
 let timer = null
@@ -200,7 +202,7 @@ if (Array.isArray(messages)) messages.length = 0
 if (Array.isArray(chats)) chats.length = 0
 if (Array.isArray(contacts)) contacts.length = 0
 }
-const saveCredsDebounced = createDebouncedSaveCreds(saveCreds)
+let saveCredsDebounced = createDebouncedSaveCreds(saveCreds)
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
@@ -235,6 +237,16 @@ const BROWSER_FINGERPRINT = ['Mac OS', 'Safari', '17.2.1']
 const getSecureBrowser = () => [...BROWSER_FINGERPRINT]
 global.BROWSER_FINGERPRINT = BROWSER_FINGERPRINT
 global.getSecureBrowser = getSecureBrowser
+
+const refreshMainAuthState = async () => {
+const nextAuth = await useMultiFileAuthState(global.Ellensessions)
+state = nextAuth.state
+saveCredsDebounced = createDebouncedSaveCreds(nextAuth.saveCreds)
+connectionOptions.auth = {
+creds: state.creds,
+keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
+}
+}
 
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
@@ -334,6 +346,21 @@ console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 
 const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
+const sessionRecoveryNeeded = statusCode !== 401 && statusCode !== 403 && (isRecoverableSessionError(lastDisconnect?.error) || this.__sessionRecoverySuspected)
+if (sessionRecoveryNeeded) {
+console.log(chalk.bold.yellowBright(`
+⚠️ Soft reset de sesión principal por llaves corruptas/desincronizadas. Motivo: ${this.__sessionRecoveryReason || lastDisconnect?.error?.message || statusCode || 'desconocido'}`))
+const recovery = await softResetAuthSession({ sessionPath: mainSessionPath, socket: this, label: global.Ellensessions, logger: console })
+this.__sessionRecoverySuspected = false
+this.__sessionRecoveryReason = ''
+if (recovery.ok) {
+mainReconnectAttempts = 0
+await refreshMainAuthState()
+await global.reloadHandler(true).catch(console.error)
+return
+}
+console.log(chalk.bold.redBright(`⚠️ Soft reset no aplicado (${recovery.reason}); se usará la reconexión normal.`))
+}
 if (statusCode === 401 || statusCode === 403) {
 console.log(chalk.bold.redBright(`
 ⚠️ SESIÓN DEL BOT PRINCIPAL CERRADA O BANEADA (${statusCode}). BORRANDO ${global.Ellensessions} Y DETENIENDO RECONEXIÓN ⚠️`))
@@ -382,8 +409,16 @@ isInit = true
 if (!isInit) detachSocketEvents(global.conn)
 
 const activeSocket = global.conn
+const boundMessagesUpsert = handler.handler.bind(activeSocket)
 const listeners = {
-messagesUpsert: handler.handler.bind(activeSocket),
+messagesUpsert: async (chatUpdate) => {
+try {
+return await boundMessagesUpsert(chatUpdate)
+} catch (error) {
+noteSessionRecoverySignal(activeSocket, error)
+console.error('Error procesando messages.upsert:', error)
+}
+},
 connectionUpdate: connectionUpdate.bind(activeSocket),
 credsUpdate: saveCredsDebounced,
 messagingHistorySet: dropHistoryBatch,

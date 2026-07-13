@@ -23,6 +23,7 @@ import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
+import { isRecoverableSessionError, noteSessionRecoverySignal, softResetAuthSession } from '../lib/sessionRecovery.js'
 import { Boom } from '@hapi/boom'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
@@ -174,7 +175,58 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 let { version, isLatest } = await getLatestBaileysVersionCached()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
+let { state, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
+
+const createDebouncedSaveCreds = (saveCreds, delayMs = 1000) => {
+let timer = null
+let inFlight = Promise.resolve()
+let pending = false
+const flush = () => {
+if (timer) {
+clearTimeout(timer)
+timer = null
+}
+if (!pending) return inFlight
+pending = false
+inFlight = inFlight
+.catch(() => {})
+.then(() => saveCreds())
+.catch(error => console.error(`Error guardando credenciales del sub-bot +${path.basename(pathEllenJadiBot)}:`, error))
+return inFlight
+}
+const schedule = (force = false) => {
+pending = true
+if (force === true) return flush()
+if (timer) clearTimeout(timer)
+timer = setTimeout(flush, delayMs)
+timer.unref?.()
+return inFlight
+}
+schedule.flush = flush
+return schedule
+}
+let saveCredsDebounced = createDebouncedSaveCreds(saveCreds)
+const detachSocketEvents = (socket) => {
+const listeners = socket?.__ellenListeners
+if (!socket?.ev || !listeners) return
+socket.ev.off('messages.upsert', listeners.messagesUpsert)
+socket.ev.off('connection.update', listeners.connectionUpdate)
+socket.ev.off('creds.update', listeners.credsUpdate)
+socket.ev.off('messaging-history.set', listeners.messagingHistorySet)
+socket.__ellenListeners = null
+}
+const dropHistoryBatch = ({ chats, contacts, messages } = {}) => {
+if (Array.isArray(messages)) messages.length = 0
+if (Array.isArray(chats)) chats.length = 0
+if (Array.isArray(contacts)) contacts.length = 0
+}
+
+const refreshSubBotAuthState = async () => {
+const nextAuth = await useMultiFileAuthState(pathEllenJadiBot)
+state = nextAuth.state
+saveCredsDebounced = createDebouncedSaveCreds(nextAuth.saveCreds)
+connectionOptions.auth = { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) }
+}
 
 const createDebouncedSaveCreds = (saveCreds, delayMs = 1000) => {
 let timer = null
@@ -304,6 +356,21 @@ global.conns.splice(i, 1)
 
 const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
+const sessionRecoveryNeeded = statusCode !== 401 && statusCode !== 403 && (isRecoverableSessionError(lastDisconnect?.error) || sock.__sessionRecoverySuspected)
+if (sessionRecoveryNeeded) {
+console.log(chalk.bold.yellowBright(`
+⚠️ Soft reset de sesión del sub-bot +${path.basename(pathEllenJadiBot)} por llaves corruptas/desincronizadas. Motivo: ${sock.__sessionRecoveryReason || lastDisconnect?.error?.message || statusCode || 'desconocido'}`))
+const recovery = await softResetAuthSession({ sessionPath: pathEllenJadiBot, socket: sock, label: `+${path.basename(pathEllenJadiBot)}`, logger: console })
+sock.__sessionRecoverySuspected = false
+sock.__sessionRecoveryReason = ''
+if (recovery.ok) {
+reconnectAttempts = 0
+await refreshSubBotAuthState()
+await creloadHandler(true).catch(console.error)
+return
+}
+console.log(chalk.bold.redBright(`⚠️ Soft reset no aplicado para +${path.basename(pathEllenJadiBot)} (${recovery.reason}); se usará la reconexión normal.`))
+}
 if (statusCode === 401 || statusCode === 403) {
 console.log(chalk.bold.magentaBright(`
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡
@@ -375,12 +442,17 @@ if (!isInit) detachSocketEvents(sock)
 const boundHandler = handler.handler.bind(sock)
 const listeners = {
 messagesUpsert: async (chatUpdate) => {
+try {
 const message = chatUpdate?.messages?.[chatUpdate.messages.length - 1]
 const text = message?.message?.conversation || message?.message?.extendedTextMessage?.text || message?.message?.imageMessage?.caption || message?.message?.videoMessage?.caption || ''
 if (text && global.prefix?.test?.(text)) {
 await sock.sendPresenceUpdate?.('composing', message.key.remoteJid).catch(() => {})
 }
-return boundHandler(chatUpdate)
+return await boundHandler(chatUpdate)
+} catch (error) {
+noteSessionRecoverySignal(sock, error)
+console.error(`Error procesando messages.upsert del sub-bot +${path.basename(pathEllenJadiBot)}:`, error)
+}
 },
 connectionUpdate: connectionUpdate.bind(sock),
 credsUpdate: saveCredsDebounced,
