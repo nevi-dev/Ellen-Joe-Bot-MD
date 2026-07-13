@@ -228,6 +228,50 @@ saveCredsDebounced = createDebouncedSaveCreds(nextAuth.saveCreds)
 connectionOptions.auth = { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) }
 }
 
+const createDebouncedSaveCreds = (saveCreds, delayMs = 1000) => {
+let timer = null
+let inFlight = Promise.resolve()
+let pending = false
+const flush = () => {
+if (timer) {
+clearTimeout(timer)
+timer = null
+}
+if (!pending) return inFlight
+pending = false
+inFlight = inFlight
+.catch(() => {})
+.then(() => saveCreds())
+.catch(error => console.error(`Error guardando credenciales del sub-bot +${path.basename(pathEllenJadiBot)}:`, error))
+return inFlight
+}
+const schedule = (force = false) => {
+pending = true
+if (force === true) return flush()
+if (timer) clearTimeout(timer)
+timer = setTimeout(flush, delayMs)
+timer.unref?.()
+return inFlight
+}
+schedule.flush = flush
+return schedule
+}
+const saveCredsDebounced = createDebouncedSaveCreds(saveCreds)
+const detachSocketEvents = (socket) => {
+const listeners = socket?.__ellenListeners
+if (!socket?.ev || !listeners) return
+socket.ev.off('messages.upsert', listeners.messagesUpsert)
+socket.ev.off('connection.update', listeners.connectionUpdate)
+socket.ev.off('creds.update', listeners.credsUpdate)
+socket.ev.off('messaging-history.set', listeners.messagingHistorySet)
+socket.__ellenListeners = null
+}
+const dropHistoryBatch = ({ chats, contacts, messages } = {}) => {
+if (Array.isArray(messages)) messages.length = 0
+if (Array.isArray(chats)) chats.length = 0
+if (Array.isArray(contacts)) contacts.length = 0
+}
+
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
 printQRInTerminal: false,
