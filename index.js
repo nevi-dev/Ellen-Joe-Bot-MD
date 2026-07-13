@@ -122,6 +122,8 @@ global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.
 global.timestamp = {start: new Date}
 
 const __dirname = global.__dirname(import.meta.url)
+const tmpDir = join(__dirname, 'tmp')
+if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true })
 
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 global.prefix = new RegExp('^[#/!.]')
@@ -150,9 +152,55 @@ return global.db.data
 })()
 return global.db.READ
 }
-loadDatabase()
+await loadDatabase()
 
 const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
+
+const createDebouncedSaveCreds = (saveCreds, delayMs = 1000) => {
+let timer = null
+let inFlight = Promise.resolve()
+let pending = false
+const flush = () => {
+if (timer) {
+clearTimeout(timer)
+timer = null
+}
+if (!pending) return inFlight
+pending = false
+inFlight = inFlight
+.catch(() => {})
+.then(() => saveCreds())
+.catch(error => console.error('Error guardando credenciales de Baileys:', error))
+return inFlight
+}
+const schedule = (force = false) => {
+pending = true
+if (force === true) return flush()
+if (timer) clearTimeout(timer)
+timer = setTimeout(flush, delayMs)
+timer.unref?.()
+return inFlight
+}
+schedule.flush = flush
+return schedule
+}
+
+const detachSocketEvents = (socket) => {
+const listeners = socket?.__ellenListeners
+if (!socket?.ev || !listeners) return
+socket.ev.off('messages.upsert', listeners.messagesUpsert)
+socket.ev.off('connection.update', listeners.connectionUpdate)
+socket.ev.off('creds.update', listeners.credsUpdate)
+socket.ev.off('messaging-history.set', listeners.messagingHistorySet)
+socket.__ellenListeners = null
+}
+
+const dropHistoryBatch = ({ chats, contacts, messages } = {}) => {
+if (Array.isArray(messages)) messages.length = 0
+if (Array.isArray(chats)) chats.length = 0
+if (Array.isArray(contacts)) contacts.length = 0
+}
+const saveCredsDebounced = createDebouncedSaveCreds(saveCreds)
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
@@ -183,28 +231,25 @@ console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se
 console.info = () => {}
 console.debug = () => {}
 
-const BROWSER_FINGERPRINTS = [
-['Windows', 'Chrome', '120.0.0.0'],
-['Windows', 'Edge', '119.0.0.0'],
-['Mac OS', 'Safari', '17.0'],
-['Mac OS', 'Chrome', '120.0.0.0'],
-['Ubuntu', 'Firefox', '121.0'],
-]
-const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)]
-global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
-global.getRandomBrowser = getRandomBrowser
+const BROWSER_FINGERPRINT = ['Mac OS', 'Safari', '17.2.1']
+const getSecureBrowser = () => [...BROWSER_FINGERPRINT]
+global.BROWSER_FINGERPRINT = BROWSER_FINGERPRINT
+global.getSecureBrowser = getSecureBrowser
 
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: getRandomBrowser(),
+browser: getSecureBrowser(),
 auth: {
 creds: state.creds,
 keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
 },
 markOnlineOnConnect: false,
 generateHighQualityLinkPreview: true,
+syncFullHistory: false,
+shouldSyncHistoryMessage: () => false,
+fireInitQueries: false,
 getMessage: async (clave) => {
 let jid = jidNormalizedUser(clave.remoteJid)
 let msg = await store.loadMessage(jid, clave.id)
@@ -326,35 +371,41 @@ if (Object.keys(Handler || {}).length) handler = Handler
 console.error(e);
 }
 if (restatConn) {
-const oldChats = global.conn.chats
-try {
-global.conn.ws.close()
-} catch { }
-conn.ev.removeAllListeners()
+const oldSocket = global.conn
+const oldChats = oldSocket?.chats
+try { detachSocketEvents(oldSocket) } catch { }
+try { oldSocket?.ev?.removeAllListeners?.() } catch { }
+try { oldSocket?.ws?.close() } catch { }
 global.conn = makeWASocket(connectionOptions, {chats: oldChats})
 isInit = true
 }
-if (!isInit) {
-conn.ev.off('messages.upsert', conn.handler)
-conn.ev.off('connection.update', conn.connectionUpdate)
-conn.ev.off('creds.update', conn.credsUpdate)
-}
+if (!isInit) detachSocketEvents(global.conn)
 
-conn.handler = handler.handler.bind(global.conn)
+const activeSocket = global.conn
+const listeners = {
+messagesUpsert: handler.handler.bind(activeSocket),
+connectionUpdate: connectionUpdate.bind(activeSocket),
+credsUpdate: saveCredsDebounced,
+messagingHistorySet: dropHistoryBatch,
+}
+activeSocket.__ellenListeners = listeners
+activeSocket.handler = listeners.messagesUpsert
+activeSocket.connectionUpdate = listeners.connectionUpdate
+activeSocket.credsUpdate = listeners.credsUpdate
+activeSocket.historySyncIgnored = listeners.messagingHistorySet
 
 global.dispatchCommandFromButton = async (fakeMessage) => {
   try {
-    await handler.handler.call(conn, { messages: [fakeMessage] })
+    await handler.handler.call(global.conn, { messages: [fakeMessage] })
   } catch (err) {
     console.error("❌ Error al ejecutar comando desde botón:", err)
   }
 }
-conn.connectionUpdate = connectionUpdate.bind(global.conn)
-conn.credsUpdate = saveCreds.bind(global.conn, true)
 
-conn.ev.on('messages.upsert', conn.handler)
-conn.ev.on('connection.update', conn.connectionUpdate)
-conn.ev.on('creds.update', conn.credsUpdate)
+activeSocket.ev.on('messages.upsert', listeners.messagesUpsert)
+activeSocket.ev.on('connection.update', listeners.connectionUpdate)
+activeSocket.ev.on('creds.update', listeners.credsUpdate)
+activeSocket.ev.on('messaging-history.set', listeners.messagingHistorySet)
 isInit = false
 return true
 };
@@ -485,7 +536,6 @@ return false
 }
 
 async function clearTmp() {
-const tmpDir = join(__dirname, 'tmp')
 const filenames = await safeReadDir(tmpDir)
 await Promise.all(filenames.map(file => safeUnlink(join(tmpDir, file))))
 }

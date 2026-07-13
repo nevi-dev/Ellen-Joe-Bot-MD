@@ -79,14 +79,7 @@ let rtx2 = `
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const BROWSER_FINGERPRINTS = global.BROWSER_FINGERPRINTS || [
-['Windows', 'Chrome', '120.0.0.0'],
-['Windows', 'Edge', '119.0.0.0'],
-['Mac OS', 'Safari', '17.0'],
-['Mac OS', 'Chrome', '120.0.0.0'],
-['Ubuntu', 'Firefox', '121.0'],
-]
-const getRandomBrowser = global.getRandomBrowser || (() => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)])
+const getSecureBrowser = global.getSecureBrowser || (() => ['Mac OS', 'Safari', '17.2.1'])
 const getLatestBaileysVersionCached = async () => {
 const now = Date.now()
 if (global.baileysVersionCache?.version && global.baileysVersionCache.expiresAt > now) return global.baileysVersionCache
@@ -183,16 +176,63 @@ const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
 const { state, saveState, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
 
+const createDebouncedSaveCreds = (saveCreds, delayMs = 1000) => {
+let timer = null
+let inFlight = Promise.resolve()
+let pending = false
+const flush = () => {
+if (timer) {
+clearTimeout(timer)
+timer = null
+}
+if (!pending) return inFlight
+pending = false
+inFlight = inFlight
+.catch(() => {})
+.then(() => saveCreds())
+.catch(error => console.error(`Error guardando credenciales del sub-bot +${path.basename(pathEllenJadiBot)}:`, error))
+return inFlight
+}
+const schedule = (force = false) => {
+pending = true
+if (force === true) return flush()
+if (timer) clearTimeout(timer)
+timer = setTimeout(flush, delayMs)
+timer.unref?.()
+return inFlight
+}
+schedule.flush = flush
+return schedule
+}
+const saveCredsDebounced = createDebouncedSaveCreds(saveCreds)
+const detachSocketEvents = (socket) => {
+const listeners = socket?.__ellenListeners
+if (!socket?.ev || !listeners) return
+socket.ev.off('messages.upsert', listeners.messagesUpsert)
+socket.ev.off('connection.update', listeners.connectionUpdate)
+socket.ev.off('creds.update', listeners.credsUpdate)
+socket.ev.off('messaging-history.set', listeners.messagingHistorySet)
+socket.__ellenListeners = null
+}
+const dropHistoryBatch = ({ chats, contacts, messages } = {}) => {
+if (Array.isArray(messages)) messages.length = 0
+if (Array.isArray(chats)) chats.length = 0
+if (Array.isArray(contacts)) contacts.length = 0
+}
+
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
 printQRInTerminal: false,
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
 msgRetry,
 msgRetryCache,
-browser: getRandomBrowser(),
+browser: getSecureBrowser(),
 markOnlineOnConnect: false,
 version: version,
-generateHighQualityLinkPreview: true
+generateHighQualityLinkPreview: true,
+syncFullHistory: false,
+shouldSyncHistoryMessage: () => false,
+fireInitQueries: false
 };
 
 /*const connectionOptions = {
@@ -322,32 +362,39 @@ if (Object.keys(Handler || {}).length) handler = Handler
 console.error('⚠️ Nuevo error: ', e)
 }
 if (restatConn) {
-const oldChats = sock.chats
-try { sock.ws.close() } catch { }
-sock.ev.removeAllListeners()
+const oldSocket = sock
+const oldChats = oldSocket?.chats
+try { detachSocketEvents(oldSocket) } catch { }
+try { oldSocket?.ev?.removeAllListeners?.() } catch { }
+try { oldSocket?.ws?.close() } catch { }
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 isInit = true
 }
-if (!isInit) {
-sock.ev.off("messages.upsert", sock.handler)
-sock.ev.off("connection.update", sock.connectionUpdate)
-sock.ev.off('creds.update', sock.credsUpdate)
-}
+if (!isInit) detachSocketEvents(sock)
 
 const boundHandler = handler.handler.bind(sock)
-sock.handler = async (chatUpdate) => {
+const listeners = {
+messagesUpsert: async (chatUpdate) => {
 const message = chatUpdate?.messages?.[chatUpdate.messages.length - 1]
 const text = message?.message?.conversation || message?.message?.extendedTextMessage?.text || message?.message?.imageMessage?.caption || message?.message?.videoMessage?.caption || ''
 if (text && global.prefix?.test?.(text)) {
 await sock.sendPresenceUpdate?.('composing', message.key.remoteJid).catch(() => {})
 }
 return boundHandler(chatUpdate)
+},
+connectionUpdate: connectionUpdate.bind(sock),
+credsUpdate: saveCredsDebounced,
+messagingHistorySet: dropHistoryBatch,
 }
-sock.connectionUpdate = connectionUpdate.bind(sock)
-sock.credsUpdate = saveCreds.bind(sock, true)
-sock.ev.on("messages.upsert", sock.handler)
-sock.ev.on("connection.update", sock.connectionUpdate)
-sock.ev.on("creds.update", sock.credsUpdate)
+sock.__ellenListeners = listeners
+sock.handler = listeners.messagesUpsert
+sock.connectionUpdate = listeners.connectionUpdate
+sock.credsUpdate = listeners.credsUpdate
+sock.historySyncIgnored = listeners.messagingHistorySet
+sock.ev.on("messages.upsert", listeners.messagesUpsert)
+sock.ev.on("connection.update", listeners.connectionUpdate)
+sock.ev.on("creds.update", listeners.credsUpdate)
+sock.ev.on("messaging-history.set", listeners.messagingHistorySet)
 isInit = false
 return true
 }
