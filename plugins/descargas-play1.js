@@ -39,18 +39,42 @@ const getFileSize = async (url) => {
     return 'Desconocido';
 };
 
-// Función auxiliar para descargar el archivo temporalmente y evitar el 403 de Baileys
-const downloadMedia = async (url, filepath) => {
+// Función modificada para soportar cancelación inmediata (AbortSignal) con Pipe continuo
+const downloadMedia = async (url, filepath, signal) => {
     const writer = fs.createWriteStream(filepath);
-    const response = await axios.get(url, {
-        responseType: 'stream',
-        headers: requestHeaders
-    });
-    response.data.pipe(writer);
-    return new Promise((resolve, reject) => {
-        writer.on('finish', () => resolve(filepath));
-        writer.on('error', reject);
-    });
+    try {
+        const response = await axios.get(url, {
+            responseType: 'stream',
+            headers: requestHeaders,
+            signal: signal
+        });
+        response.data.pipe(writer);
+        return new Promise((resolve, reject) => {
+            const cleanupAndReject = (err) => {
+                writer.close();
+                if (fs.existsSync(filepath)) {
+                    try { fs.unlinkSync(filepath); } catch {}
+                }
+                reject(err);
+            };
+
+            writer.on('finish', () => resolve(filepath));
+            writer.on('error', cleanupAndReject);
+            
+            if (signal) {
+                if (signal.aborted) return cleanupAndReject(new Error('Descarga abortada por el sistema en paralelo'));
+                signal.addEventListener('abort', () => {
+                    cleanupAndReject(new Error('Descarga abortada por el sistema en paralelo'));
+                });
+            }
+        });
+    } catch (error) {
+        writer.close();
+        if (fs.existsSync(filepath)) {
+            try { fs.unlinkSync(filepath); } catch {}
+        }
+        throw error;
+    }
 };
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -134,69 +158,124 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     if (isMode) {
         await m.react(type === 'audio' ? "🎧" : "🎬");
-        let finalUrl = null;
-        let fileTitle = "Archivo";
-        let fileQuality = "";
-        let fileSize = "Desconocido";
-        const targetQuality = type === 'video' ? '360' : '320';
 
-        try {
-            const { data } = await axios.get(API_SAVENOW, {
-                params: { url: query, type: type, quality: targetQuality, apikey: API_KEY }
+        const ext = type === 'audio' ? 'mp3' : 'mp4';
+        const mediaPathV3 = path.join(tmpDir, `${Date.now()}_v3.${ext}`);
+        const mediaPathV2 = path.join(tmpDir, `${Date.now()}_v2.${ext}`);
+
+        // Controladores para poder cancelar la API perdedora de golpe
+        const controllerV3 = new AbortController();
+        const controllerV2 = new AbortController();
+
+        // Configuración de parámetros para API V3
+        const configV3 = {
+            url: API_SAVENOW,
+            params: { url: query, type: type, quality: type === 'video' ? '360' : '320', apikey: API_KEY },
+            targetQuality: type === 'video' ? '360' : '320'
+        };
+
+        // Configuración de parámetros para API V2
+        const configV2 = {
+            url: 'https://rest.apicausas.xyz/api/v2/descargas/youtube',
+            params: { apikey: API_KEY, url: query, type: type },
+            targetQuality: type === 'video' ? '360' : '320'
+        };
+        if (type === 'video') configV2.params.quality = '360'; // Solo añade quality si es video
+
+        let won = false;
+
+        // Pipeline individual para procesar, descargar y competir en paralelo
+        const runPipeline = async (version, config, mediaPath, myController, otherController) => {
+            const response = await axios.get(config.url, {
+                params: config.params,
+                headers: requestHeaders,
+                signal: myController.signal
             });
-            
-            if (data.status && data.data?.download?.url) {
-                finalUrl = data.data.download.url;
-                fileTitle = data.data.title || fileTitle;
-                fileQuality = data.data.quality || targetQuality;
-                
-                // Intentamos buscar el peso si la API lo envía de fábrica, si no, lo consultamos con headers
-                fileSize = data.data.size || await getFileSize(finalUrl);
+
+            if (!response.data || !response.data.status || !response.data.data?.download?.url) {
+                throw new Error(`API ${version} no entregó enlaces válidos.`);
             }
-        } catch (e) { 
-            console.error("Error al obtener descarga de Savenow v3:", e.message); 
+
+            const finalUrl = response.data.data.download.url;
+            const fileTitle = response.data.data.title || "Archivo";
+            const fileQuality = response.data.data.quality || config.targetQuality;
+
+            // Empieza la descarga física por streams vía Pipe
+            await downloadMedia(finalUrl, mediaPath, myController.signal);
+
+            // Doble verificación por si la otra API terminó exactamente al mismo milisegundo
+            if (won) {
+                if (fs.existsSync(mediaPath)) try { fs.unlinkSync(mediaPath); } catch {}
+                throw new Error(`La API ${version} llegó tarde.`);
+            }
+
+            won = true;
+            otherController.abort(); // ¡Bum! Cancela la otra API y destruye su descarga en proceso
+
+            // Consultar peso tras ganar si la API no lo mandó listo
+            const fileSize = response.data.data.size || await getFileSize(finalUrl);
+
+            return { version, mediaPath, fileTitle, fileQuality, fileSize };
+        };
+
+        const tasks = [
+            runPipeline('v3', configV3, mediaPathV3, controllerV3, controllerV2),
+            runPipeline('v2', configV2, mediaPathV2, controllerV2, controllerV3)
+        ];
+
+        let winner = null;
+        try {
+            // Estructura de carrera controlada: si una falla rápido, la otra sigue viva hasta terminar
+            winner = await new Promise((resolve, reject) => {
+                let errors = 0;
+                tasks.forEach(p => {
+                    p.then(resolve).catch(err => {
+                        errors++;
+                        if (errors === tasks.length) {
+                            reject(new Error('Ambos servidores fallaron en procesar el archivo.'));
+                        }
+                    });
+                });
+            });
+        } catch (e) {
+            console.error("Error en carrera paralela:", e.message);
         }
 
-        if (finalUrl) {
-            let mediaPath = '';
+        if (winner) {
             try {
-                // 1. Descargamos el archivo localmente para usar nuestros propios headers y evadir el 403
-                const ext = type === 'audio' ? 'mp3' : 'mp4';
-                mediaPath = path.join(tmpDir, `${Date.now()}.${ext}`);
-                await downloadMedia(finalUrl, mediaPath);
-
-                // 2. Enviamos el archivo local
                 if (type === 'audio') {
-                    await conn.sendMessage(m.chat, { audio: { url: mediaPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
+                    await conn.sendMessage(m.chat, { audio: { url: winner.mediaPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
                 } else {
-                    const videoCaption = `🎬 *Aquí tienes.*\n\n> *Título:* ${fileTitle}\n> *Calidad:* ${fileQuality}\n> *Peso:* ${fileSize}`;
-                    await conn.sendMessage(m.chat, { video: { url: mediaPath }, caption: videoCaption, mimetype: "video/mp4" }, { quoted: m });
+                    const videoCaption = `🎬 *Aquí tienes.*\n\n> *Título:* ${winner.fileTitle}\n> *Calidad:* ${winner.fileQuality}\n> *Peso:* ${winner.fileSize}\n> *Servidor:* ${winner.version.toUpperCase()}`;
+                    await conn.sendMessage(m.chat, { video: { url: winner.mediaPath }, caption: videoCaption, mimetype: "video/mp4" }, { quoted: m });
                 }
                 await m.react("✅");
             } catch (e) {
-                console.error("Error enviando el archivo multimedia:", e.message);
+                console.error("Error al enviar el archivo definitivo:", e.message);
                 await m.react("❌");
-            } finally {
-                // 3. Borramos el archivo una vez enviado para ahorrar memoria en el bot
-                if (mediaPath && fs.existsSync(mediaPath)) {
-                    fs.unlinkSync(mediaPath);
-                }
             }
         } else {
             await m.react("❌");
-            return await sendExternalMessage(`*— Tsk...* El servidor no pudo procesar el enlace. Prueba con otro.`);
+            return await sendExternalMessage(`*— Tsk...* Ninguno de los servidores pudo procesar el enlace en este momento. Intenta de nuevo.`);
         }
+
+        // Limpieza absoluta de seguridad para que no queden residuos en ./tmp
+        [mediaPathV3, mediaPathV2].forEach(p => {
+            if (fs.existsSync(p)) {
+                try { fs.unlinkSync(p); } catch {}
+            }
+        });
         return;
     }
 
     await m.react("🔍");
     const searchResult = await yts(query);
     const video = searchResult.videos?.[0];
-    
+
     if (!video) return await sendExternalMessage(`*— No encontré nada con ese nombre.*`);
 
-    const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀𝙉 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
-    
+    const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀 N 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
+
     const botonesNativos = [
         { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "🎧 𝘼𝙐𝘿𝙄𝙊", id: `${usedPrefix}${command} audio ${video.url}` }) },
         { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "🎬 𝙑𝙄𝘿𝙀𝙊", id: `${usedPrefix}${command} video ${video.url}` }) }
