@@ -122,6 +122,8 @@ global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.
 global.timestamp = {start: new Date}
 
 const __dirname = global.__dirname(import.meta.url)
+const tmpDir = join(__dirname, 'tmp')
+if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true })
 
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 global.prefix = new RegExp('^[#/!.]')
@@ -150,7 +152,7 @@ return global.db.data
 })()
 return global.db.READ
 }
-loadDatabase()
+await loadDatabase()
 
 const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
 const msgRetryCounterMap = (MessageRetryMap) => { };
@@ -183,22 +185,16 @@ console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se
 console.info = () => {}
 console.debug = () => {}
 
-const BROWSER_FINGERPRINTS = [
-['Windows', 'Chrome', '120.0.0.0'],
-['Windows', 'Edge', '119.0.0.0'],
-['Mac OS', 'Safari', '17.0'],
-['Mac OS', 'Chrome', '120.0.0.0'],
-['Ubuntu', 'Firefox', '121.0'],
-]
-const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)]
-global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
-global.getRandomBrowser = getRandomBrowser
+const BROWSER_FINGERPRINT = ['Mac OS', 'Safari', '17.2.1']
+const getSecureBrowser = () => [...BROWSER_FINGERPRINT]
+global.BROWSER_FINGERPRINT = BROWSER_FINGERPRINT
+global.getSecureBrowser = getSecureBrowser
 
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile,
-browser: getRandomBrowser(),
+browser: getSecureBrowser(),
 auth: {
 creds: state.creds,
 keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
@@ -485,7 +481,6 @@ return false
 }
 
 async function clearTmp() {
-const tmpDir = join(__dirname, 'tmp')
 const filenames = await safeReadDir(tmpDir)
 await Promise.all(filenames.map(file => safeUnlink(join(tmpDir, file))))
 }
