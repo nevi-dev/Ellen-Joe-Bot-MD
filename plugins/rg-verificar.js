@@ -25,7 +25,7 @@ let handler = async function (m, { conn, text, args, usedPrefix, command }) {
         if (profileImgUrl) {
             // Si tiene foto, la descargamos y la convertimos en Buffer
             const response = await fetch(profileImgUrl);
-            thumbnailBuffer = await response.buffer();
+            thumbnailBuffer = Buffer.from(await response.arrayBuffer());
         } else {
             // Si no tiene foto de perfil, forzamos el lanzamiento al bloque catch para usar global.icons
             throw new Error('No profile picture');

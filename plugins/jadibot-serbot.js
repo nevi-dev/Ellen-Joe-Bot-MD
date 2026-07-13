@@ -23,6 +23,7 @@ import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
+import { createDebouncedSaveCreds, isRecoverableSessionError, noteSessionRecoverySignal, softResetAuthSession } from '../lib/sessionRecovery.js'
 import { Boom } from '@hapi/boom'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
@@ -79,14 +80,7 @@ let rtx2 = `
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const BROWSER_FINGERPRINTS = global.BROWSER_FINGERPRINTS || [
-['Windows', 'Chrome', '120.0.0.0'],
-['Windows', 'Edge', '119.0.0.0'],
-['Mac OS', 'Safari', '17.0'],
-['Mac OS', 'Chrome', '120.0.0.0'],
-['Ubuntu', 'Firefox', '121.0'],
-]
-const getRandomBrowser = global.getRandomBrowser || (() => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)])
+const getSecureBrowser = global.getSecureBrowser || (() => ['Mac OS', 'Safari', '17.2.1'])
 const getLatestBaileysVersionCached = async () => {
 const now = Date.now()
 if (global.baileysVersionCache?.version && global.baileysVersionCache.expiresAt > now) return global.baileysVersionCache
@@ -181,7 +175,30 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 let { version, isLatest } = await getLatestBaileysVersionCached()
 const msgRetry = (MessageRetryMap) => { }
 const msgRetryCache = new NodeCache()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
+let { state, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
+
+let saveCredsDebounced = createDebouncedSaveCreds(saveCreds)
+const detachSocketEvents = (socket) => {
+const listeners = socket?.__ellenListeners
+if (!socket?.ev || !listeners) return
+socket.ev.off('messages.upsert', listeners.messagesUpsert)
+socket.ev.off('connection.update', listeners.connectionUpdate)
+socket.ev.off('creds.update', listeners.credsUpdate)
+socket.ev.off('messaging-history.set', listeners.messagingHistorySet)
+socket.__ellenListeners = null
+}
+const dropHistoryBatch = ({ chats, contacts, messages } = {}) => {
+if (Array.isArray(messages)) messages.length = 0
+if (Array.isArray(chats)) chats.length = 0
+if (Array.isArray(contacts)) contacts.length = 0
+}
+
+const refreshSubBotAuthState = async () => {
+const nextAuth = await useMultiFileAuthState(pathEllenJadiBot)
+state = nextAuth.state
+saveCredsDebounced = createDebouncedSaveCreds(nextAuth.saveCreds)
+connectionOptions.auth = { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) }
+}
 
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
@@ -189,10 +206,13 @@ printQRInTerminal: false,
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
 msgRetry,
 msgRetryCache,
-browser: getRandomBrowser(),
+browser: getSecureBrowser(),
 markOnlineOnConnect: false,
 version: version,
-generateHighQualityLinkPreview: true
+generateHighQualityLinkPreview: true,
+syncFullHistory: false,
+shouldSyncHistoryMessage: () => false,
+fireInitQueries: false
 };
 
 /*const connectionOptions = {
@@ -264,6 +284,21 @@ global.conns.splice(i, 1)
 
 const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
+const sessionRecoveryNeeded = statusCode !== 401 && statusCode !== 403 && (isRecoverableSessionError(lastDisconnect?.error) || sock.__sessionRecoverySuspected)
+if (sessionRecoveryNeeded) {
+console.log(chalk.bold.yellowBright(`
+⚠️ Soft reset de sesión del sub-bot +${path.basename(pathEllenJadiBot)} por llaves corruptas/desincronizadas. Motivo: ${sock.__sessionRecoveryReason || lastDisconnect?.error?.message || statusCode || 'desconocido'}`))
+const recovery = await softResetAuthSession({ sessionPath: pathEllenJadiBot, socket: sock, label: `+${path.basename(pathEllenJadiBot)}`, logger: console })
+sock.__sessionRecoverySuspected = false
+sock.__sessionRecoveryReason = ''
+if (recovery.ok) {
+reconnectAttempts = 0
+await refreshSubBotAuthState()
+await creloadHandler(true).catch(console.error)
+return
+}
+console.log(chalk.bold.redBright(`⚠️ Soft reset no aplicado para +${path.basename(pathEllenJadiBot)} (${recovery.reason}); se usará la reconexión normal.`))
+}
 if (statusCode === 401 || statusCode === 403) {
 console.log(chalk.bold.magentaBright(`
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡
@@ -322,32 +357,44 @@ if (Object.keys(Handler || {}).length) handler = Handler
 console.error('⚠️ Nuevo error: ', e)
 }
 if (restatConn) {
-const oldChats = sock.chats
-try { sock.ws.close() } catch { }
-sock.ev.removeAllListeners()
+const oldSocket = sock
+const oldChats = oldSocket?.chats
+try { detachSocketEvents(oldSocket) } catch { }
+try { oldSocket?.ev?.removeAllListeners?.() } catch { }
+try { oldSocket?.ws?.close() } catch { }
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 isInit = true
 }
-if (!isInit) {
-sock.ev.off("messages.upsert", sock.handler)
-sock.ev.off("connection.update", sock.connectionUpdate)
-sock.ev.off('creds.update', sock.credsUpdate)
-}
+if (!isInit) detachSocketEvents(sock)
 
 const boundHandler = handler.handler.bind(sock)
-sock.handler = async (chatUpdate) => {
+const listeners = {
+messagesUpsert: async (chatUpdate) => {
+try {
 const message = chatUpdate?.messages?.[chatUpdate.messages.length - 1]
 const text = message?.message?.conversation || message?.message?.extendedTextMessage?.text || message?.message?.imageMessage?.caption || message?.message?.videoMessage?.caption || ''
 if (text && global.prefix?.test?.(text)) {
 await sock.sendPresenceUpdate?.('composing', message.key.remoteJid).catch(() => {})
 }
-return boundHandler(chatUpdate)
+return await boundHandler(chatUpdate)
+} catch (error) {
+noteSessionRecoverySignal(sock, error)
+console.error(`Error procesando messages.upsert del sub-bot +${path.basename(pathEllenJadiBot)}:`, error)
 }
-sock.connectionUpdate = connectionUpdate.bind(sock)
-sock.credsUpdate = saveCreds.bind(sock, true)
-sock.ev.on("messages.upsert", sock.handler)
-sock.ev.on("connection.update", sock.connectionUpdate)
-sock.ev.on("creds.update", sock.credsUpdate)
+},
+connectionUpdate: connectionUpdate.bind(sock),
+credsUpdate: saveCredsDebounced,
+messagingHistorySet: dropHistoryBatch,
+}
+sock.__ellenListeners = listeners
+sock.handler = listeners.messagesUpsert
+sock.connectionUpdate = listeners.connectionUpdate
+sock.credsUpdate = listeners.credsUpdate
+sock.historySyncIgnored = listeners.messagingHistorySet
+sock.ev.on("messages.upsert", listeners.messagesUpsert)
+sock.ev.on("connection.update", listeners.connectionUpdate)
+sock.ev.on("creds.update", listeners.credsUpdate)
+sock.ev.on("messaging-history.set", listeners.messagingHistorySet)
 isInit = false
 return true
 }

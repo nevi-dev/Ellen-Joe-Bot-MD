@@ -101,7 +101,7 @@ handler.all = async function (m) {
   // Imagen aleatoria para global.icons
   const randomlink = pickRandom(db_.links.imagen)
   const response = await fetch(randomlink)
-  global.icons = await response.buffer()
+  global.icons = Buffer.from(await response.arrayBuffer())
 
   // Saludo por hora
   var ase = new Date(); var hour = ase.getHours();

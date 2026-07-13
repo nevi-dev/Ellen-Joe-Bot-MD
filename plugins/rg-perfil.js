@@ -46,7 +46,7 @@ let handler = async (m, { conn, args }) => {
             const profileImgUrl = await conn.profilePictureUrl(userId, 'image').catch(() => null);
             if (profileImgUrl) {
                 const response = await fetch(profileImgUrl);
-                thumbnailBuffer = await response.buffer();
+                thumbnailBuffer = Buffer.from(await response.arrayBuffer());
             } else {
                 throw new Error();
             }
