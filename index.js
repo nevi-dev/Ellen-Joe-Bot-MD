@@ -131,26 +131,30 @@ global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(op
 
 global.DATABASE = global.db
 global.loadDatabase = async function loadDatabase() {
-if (global.db.data !== null) return global.db.data
-if (global.db.READ) return global.db.READ
-global.db.READ = (async () => {
-await global.db.read().catch(console.error)
-global.db.data = {
-users: {},
-chats: {},
-stats: {},
-msgs: {},
-sticker: {},
-settings: {},
-...(global.db.data || {}),
+  // 1. Mejoramos la validación inicial para evitar que pase de largo si data es undefined
+  if (global.db.data && Object.keys(global.db.data).length > 0) return global.db.data
+  if (global.db.READ) return global.db.READ
+  
+  global.db.READ = (async () => {
+    await global.db.read().catch(console.error)
+    global.db.data = {
+      users: {},
+      chats: {},
+      stats: {},
+      msgs: {},
+      sticker: {},
+      settings: {},
+      ...(global.db.data || {}),
+    }
+    global.db.chain = chain(global.db.data)
+    global.db.READ = null
+    return global.db.data
+  })()
+  return global.db.READ
 }
-global.db.chain = chain(global.db.data)
-global.db.READ = null
-return global.db.data
-})()
-return global.db.READ
-}
-loadDatabase()
+
+// 2. Agregamos el await fundamental aquí:
+await loadDatabase()
 
 const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
 const msgRetryCounterMap = (MessageRetryMap) => { };
