@@ -10,7 +10,6 @@
     "plugins": "plugins"
   },
   "scripts": {
-    "postinstall": "cd node_modules/baileys && npm install --include=dev && npm run build",
     "start": "node index.js",
     "qr": "node index.js qr",
     "code": "node index.js code",
