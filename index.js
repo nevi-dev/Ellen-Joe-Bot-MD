@@ -184,12 +184,16 @@ console.info = () => {}
 console.debug = () => {}
 
 const BROWSER_FINGERPRINTS = [
-['Windows', 'Chrome', '120.0.0.0'],
-['Windows', 'Edge', '119.0.0.0'],
-['Mac OS', 'Safari', '17.0'],
-['Mac OS', 'Chrome', '120.0.0.0'],
-['Ubuntu', 'Firefox', '121.0'],
-]
+    ['Windows', 'Chrome', '150.0.7827.80'],
+    ['Windows', 'Edge', '150.0.4078.65'],
+    ['Mac OS', 'Safari', '26.5'],
+    ['Mac OS', 'Chrome', '150.0.7827.80'],
+    ['Ubuntu', 'Firefox', '152.0.5'],
+    ['Android', 'Chrome', '150.0.7827.75'],
+    ['Android', 'Firefox', '152.0'],
+    ['iOS', 'Safari', '26.5']
+];
+
 const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)]
 global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
 global.getRandomBrowser = getRandomBrowser
