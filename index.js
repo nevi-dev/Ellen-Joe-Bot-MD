@@ -194,6 +194,8 @@ const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * B
 global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
 global.getRandomBrowser = getRandomBrowser
 
+const {state, saveCreds} = await useSqliteAuthState({ dbPath: sessionDbPath })
+
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
 printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
@@ -228,7 +230,7 @@ console.log(chalk.bold.redBright(`
 console.error(`No se pudo eliminar la sesión ${folderPath}:`, error)
 }
 }
-const {state, saveCreds} = await useSqliteAuthState({ dbPath: sessionDbPath })
+
 global.conn = makeWASocket(connectionOptions);
 
 if (!fs.existsSync(sessionDbPath)) {
