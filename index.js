@@ -158,7 +158,6 @@ await loadDatabase()
 const sessionDir = './' + global.Ellensessions
 if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true })
 const sessionDbPath = sessionDir + '/sesion.db'
-const {state, saveCreds} = await useSqliteAuthState({ dbPath: sessionDbPath })
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
 
@@ -229,7 +228,7 @@ console.log(chalk.bold.redBright(`
 console.error(`No se pudo eliminar la sesión ${folderPath}:`, error)
 }
 }
-
+const {state, saveCreds} = await useSqliteAuthState({ dbPath: sessionDbPath })
 global.conn = makeWASocket(connectionOptions);
 
 if (!fs.existsSync(sessionDbPath)) {
