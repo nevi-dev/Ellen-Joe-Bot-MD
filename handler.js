@@ -254,7 +254,6 @@ async function processChatUpdate(chatUpdate) {
 
             const chatDb = global.db.data.chats[m.chat] || {}
 
-            // CORRECCIÓN: Baileys usa this.user.id, no this.user.jid
             const currentBotJid = cleanJid(this.user?.id || this.user?.jid)
 
             if (chatDb.primaryBot && currentBotJid !== chatDb.primaryBot) {
@@ -277,23 +276,21 @@ async function processChatUpdate(chatUpdate) {
         let user = global.db.data.users[sender]
         if (!user) {
             global.db.data.users[sender] = { ...defaultUser, name: m.name || '' }
-            dbAdapter?.markDirty?.('users', sender)
             user = global.db.data.users[sender]
         } else {
             for (let key in defaultUser) {
-                if (user[key] === undefined) { user[key] = defaultUser[key]; dbAdapter?.markDirty?.('users', sender) }
+                if (user[key] === undefined) { user[key] = defaultUser[key] }
             }
-            if (!user.name && m.name) { user.name = m.name; dbAdapter?.markDirty?.('users', sender) }
+            if (!user.name && m.name) { user.name = m.name }
         }
 
         let chat = global.db.data.chats[m.chat]
         if (!chat) {
             global.db.data.chats[m.chat] = { ...defaultChat }
-            dbAdapter?.markDirty?.('chats', m.chat)
             chat = global.db.data.chats[m.chat]
         } else {
             for (let key in defaultChat) {
-                if (chat[key] === undefined) { chat[key] = defaultChat[key]; dbAdapter?.markDirty?.('chats', m.chat) }
+                if (chat[key] === undefined) { chat[key] = defaultChat[key] }
             }
         }
 
@@ -301,11 +298,10 @@ async function processChatUpdate(chatUpdate) {
         let settings = global.db.data.settings[currentBotId]
         if (!settings) {
             global.db.data.settings[currentBotId] = { ...defaultSettings }
-            dbAdapter?.markDirty?.('settings', currentBotId)
             settings = global.db.data.settings[currentBotId]
         } else {
             for (let key in defaultSettings) {
-                if (settings[key] === undefined) { settings[key] = defaultSettings[key]; dbAdapter?.markDirty?.('settings', currentBotId) }
+                if (settings[key] === undefined) { settings[key] = defaultSettings[key] }
             }
         }
 
@@ -321,7 +317,6 @@ async function processChatUpdate(chatUpdate) {
         if (opts['swonly'] && m.chat !== 'status@broadcast') return
         if (typeof m.text !== 'string') m.text = ''
 
-        // 3. CORRECCIÓN PRINCIPAL: Búsqueda explícita del usuario y del bot en la lista de participantes.
         const senderJid = cleanJid(sender);
         const botJid = cleanJid(this.user?.id || this.user?.jid || '');
 
@@ -456,8 +451,6 @@ async function processChatUpdate(chatUpdate) {
                     continue
                 }
 
-                if (name.includes('game') || name.includes('pvp')) dbAdapter?.ensureGamePvpUser?.(sender, user.name || m.name || '')
-
                 let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename }
 
                 try {
@@ -513,15 +506,10 @@ async function processChatUpdate(chatUpdate) {
                 return
             }
 
-            const dbAdapter = global.db?.adapter
             if (sender && (userStats = global.db.data.users[sender])) {
                 userStats.exp += m.exp
                 userStats.coin -= (m.coin ? m.coin * 1 : 0)
-                dbAdapter?.markDirty?.('users', sender)
             }
-            if (m?.chat && global.db.data.chats[m.chat]) dbAdapter?.markDirty?.('chats', m.chat)
-            let finalId = cleanJid(this.user?.id || this.user?.jid)
-            if (finalId && global.db.data.settings[finalId]) dbAdapter?.markDirty?.('settings', finalId)
 
             let stat
             if (m.plugin) {
@@ -541,7 +529,6 @@ async function processChatUpdate(chatUpdate) {
                     stat.success += 1
                     stat.lastSuccess = now
                 }
-                dbAdapter?.markDirty?.('stats', m.plugin)
             }
         }
 
