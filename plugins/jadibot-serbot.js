@@ -11,14 +11,13 @@ Contenido adaptado por:
 - elrebelde21 >> https://github.com/elrebelde21
 */
 
-const { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import("@whiskeysockets/baileys"));
+const { useSqliteAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion} = (await import("baileys"));
 import qrcode from "qrcode"
-import NodeCache from "node-cache"
 import fs from "fs"
 import path from "path"
 import pino from 'pino'
 import chalk from 'chalk'
-import util from 'util' 
+import util from 'util'
 import * as ws from 'ws'
 const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
@@ -36,19 +35,19 @@ let rtx = `
 *| 🦈 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 | ACCESO DE AGENTE 🎄*
 *|  ━━━━━━━━━━━━━━━━━━━━*
 *|   🎄 *CONEXIÓN EXCLUSIVA QR (SUB-BOT)* 🦈
-*|   
-*|   🎁 *Instrucción de Regalo:* Escanea este QR 
+*|
+*|   🎁 *Instrucción de Regalo:* Escanea este QR
 *|   con otro dispositivo o PC para activar tu
 *|   *Sub-Bot* temporal. ¡Solo los más veloces
 *|   merecen el regalo de la eficiencia!
-*|   
+*|
 *|   *» PASOS DEL PROTOCOLO:*
-*|   
+*|
 *|   \`1\` » Toca los tres puntos (Esquina Superior Derecha).
 *|   \`2\` » Selecciona *Dispositivos Vinculados*.
 *|   \`3\` » Escanea el Código QR que verás a continuación.
-*|   
-*|   ⏱️ ¡ADVERTENCIA DE AGENTE! Este acceso es temporal. 
+*|
+*|   ⏱️ ¡ADVERTENCIA DE AGENTE! Este acceso es temporal.
 *|   *El código expira en 45 segundos.*
 *|
 *╰─────────────────────*`
@@ -59,23 +58,23 @@ let rtx2 = `
 *| 🎄 𝗘𝗟𝗟𝗘𝗡 𝗝𝗢𝗘 | 𝗖Ó𝗗𝗜𝗚𝗢 𝗣𝗥𝗢𝗩𝗜𝗦𝗜𝗢𝗡𝗔𝗟 🎁*
 *|  ━━━━━━━━━━━━━━━━━━━━*
 *|   ❄️ *ENLACE DE EMERGENCIA (SUB-BOT CODE)* 🦈
-*|   
-*|   Este es tu código de Agente temporal. 
+*|
+*|   Este es tu código de Agente temporal.
 *|   ¡Úsalo sabiamente, no compartas tu botín!
-*|   
+*|
 *|   *» PROCESO DE VINCULACIÓN:*
-*|   
+*|
 *|   \`1\` » Toca los tres puntos (Esquina Superior Derecha).
 *|   \`2\` » Selecciona *Dispositivos Vinculados*.
 *|   \`3\` » Elige *Vincular con el número de teléfono*.
 *|   \`4\` » Ingresa el Código que recibirás a continuación.
-*|   
-*|   ⚠️ *Recomendación de Agente:* No uses tu cuenta 
+*|
+*|   ⚠️ *Recomendación de Agente:* No uses tu cuenta
 *|   principal. Mantén tus activos seguros.
 *|
 *|   [ Ellen Joe Service - By Nevi-Dev ]
 *╰─────────────────────*`
-                
+
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -147,16 +146,16 @@ EllenJBOptions.command = command
 EllenJBOptions.fromCommand = true
 EllenJadiBot(EllenJBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
-} 
+}
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']
 handler.command = ['qr', 'code']
-export default handler 
+export default handler
 
 export async function EllenJadiBot(options) {
 let { pathEllenJadiBot, m, conn, args, usedPrefix, command } = options
 if (command === 'code') {
-command = 'qr'; 
+command = 'qr';
 args.unshift('code')}
 const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
 let txtCode, codeBot, txtQR
@@ -179,16 +178,14 @@ exec(comb.toString("utf-8"), async (err, stdout, stderr) => {
 const drmer = Buffer.from(drm1 + drm2, `base64`)
 
 let { version, isLatest } = await getLatestBaileysVersionCached()
-const msgRetry = (MessageRetryMap) => { }
-const msgRetryCache = new NodeCache()
-const { state, saveState, saveCreds } = await useMultiFileAuthState(pathEllenJadiBot)
+// Cada sub-bot usa su propia base SQLite de sesión de Bails.
+const subBotSessionDb = path.join(pathEllenJadiBot, "sesion.db")
+const { state, saveCreds } = await useSqliteAuthState({ dbPath: subBotSessionDb })
 
 const connectionOptions = {
 logger: pino({ level: "fatal" }),
 printQRInTerminal: false,
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
-msgRetry,
-msgRetryCache,
 browser: getRandomBrowser(),
 markOnlineOnConnect: false,
 version: version,
@@ -199,8 +196,6 @@ generateHighQualityLinkPreview: true
 printQRInTerminal: false,
 logger: pino({ level: 'silent' }),
 auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
-msgRetry,
-msgRetryCache,
 version: [2, 3000, 1015901307],
 syncFullHistory: true,
 browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['Ellen Joe Bot (Sub Bot)', 'Chrome','2.0.0'],
@@ -225,13 +220,13 @@ if (qr && !mcode) {
 if (m?.chat) {
 txtQR = await conn.sendMessage(m.chat, { image: await qrcode.toBuffer(qr, { scale: 8 }), caption: rtx.trim()}, { quoted: m})
 } else {
-return 
+return
 }
 if (txtQR && txtQR.key) {
 setTimeout(() => { conn.sendMessage(m.sender, { delete: txtQR.key })}, 30000)
 }
 return
-} 
+}
 if (qr && mcode) {
 let secret = await sock.requestPairingCode((m.sender.split`@`[0]))
 secret = secret.match(/.{1,4}/g)?.join("-")
@@ -239,7 +234,7 @@ secret = secret.match(/.{1,4}/g)?.join("-")
 txtCode = await conn.sendMessage(m.chat, {text : rtx2}, { quoted: m })
 codeBot = await m.reply(secret)
 //} else {
-//txtCode = await conn.sendButton(m.chat, rtx2.trim(), wm, null, [], secret, null, m) 
+//txtCode = await conn.sendButton(m.chat, rtx2.trim(), wm, null, [], secret, null, m)
 //}
 console.log(secret)
 }
@@ -256,8 +251,8 @@ sock.ws.close()
 } catch {
 }
 sock.ev.removeAllListeners()
-let i = global.conns.indexOf(sock)                
-if (i < 0) return 
+let i = global.conns.indexOf(sock)
+if (i < 0) return
 delete global.conns[i]
 global.conns.splice(i, 1)
 }}
@@ -300,7 +295,7 @@ if (global.db.data == null) loadDatabase()
 if (connection == `open`) {
 reconnectAttempts = 0
 if (!global.db.data?.users) loadDatabase()
-let userName, userJid 
+let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathEllenJadiBot)}@s.whatsapp.net`
 console.log(chalk.bold.cyanBright(`\n❒⸺⸺⸺⸺【• SUB-BOT •】⸺⸺⸺⸺❒\n│\n│ 🟢 ${userName} (+${path.basename(pathEllenJadiBot)}) conectado exitosamente.\n│\n❒⸺⸺⸺【• CONECTADO •】⸺⸺⸺❒`))

@@ -1,9 +1,9 @@
-import pkg from '@whiskeysockets/baileys'
+import * as pkg from 'baileys'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import axios from 'axios'
 import moment from 'moment-timezone'
-const { generateWAMessageFromContent, prepareWAMessageMedia, proto } = pkg
+const { generateWAMessageFromContent, prepareWAMessageMedia, WAProto: proto } = pkg
 
 var handler = m => m
 
@@ -39,7 +39,7 @@ handler.all = async function (m) {
   }
 
   // Ahora toma los iconos directamente de la base de datos (Categoría imagen)
-  const iconUrls = db_.links.imagen 
+  const iconUrls = db_.links.imagen
   const iconUrl = pickRandom(iconUrls)
   global.icono = await getBuffer(iconUrl)
 
@@ -57,7 +57,7 @@ handler.all = async function (m) {
   // Ids channel
   global.canalIdM = ["120363418071540900@newsletter", "120363418071540900@newsletter"]
   global.canalNombreM = ["⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏᴇ\'s 𝐒ervice", "⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏᴇ\'s 𝐒ervice"]
-  
+
   // Función para canal random (corregida para usar la variable global)
   async function getRandomChannel() {
     let randomIndex = Math.floor(Math.random() * global.canalIdM.length)
@@ -94,7 +94,7 @@ handler.all = async function (m) {
   var canal = 'https://whatsapp.com/channel/0029VbAuMiNCBtxOKcBfw71x'
   let canal2 = 'https://whatsapp.com/channel/0029VbAuMiNCBtxOKcBfw71x'
   var git = 'https://github.com/nevi-dev'
-  var github = 'https://github.com/nevi-dev/Ellen-Joe-Bot-MD' 
+  var github = 'https://github.com/nevi-dev/Ellen-Joe-Bot-MD'
   let correo = 'ellen@nose.com'
   global.redes = [canal, canal2, git, github, correo].getRandom()
 

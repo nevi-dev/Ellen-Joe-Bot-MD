@@ -1,20 +1,20 @@
 import axios from 'axios';
-const { generateWAMessageContent, generateWAMessageFromContent, proto } = (await import("@whiskeysockets/baileys"))["default"];
+const { generateWAMessageContent, generateWAMessageFromContent, WAProto: proto } = (await import("baileys"));
 
 // --- CONFIGURACIÓN ---
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
-const CAUSA_API_KEY = 'causa-ee5ee31dcfc79da4'; 
+const CAUSA_API_KEY = 'causa-ee5ee31dcfc79da4';
 
 // --- FUNCIONES AUXILIARES ---
-async function getImageMessage(imageUrl, conn) { 
+async function getImageMessage(imageUrl, conn) {
     const { imageMessage } = await generateWAMessageContent({
         'image': { 'url': imageUrl }
     }, { 'upload': conn.waUploadToServer });
     return imageMessage;
 }
 
-function shuffleArray(array) { 
+function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];

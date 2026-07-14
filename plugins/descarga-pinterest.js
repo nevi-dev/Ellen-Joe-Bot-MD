@@ -1,5 +1,5 @@
 import axios from 'axios';
-const { generateWAMessageContent, generateWAMessageFromContent, proto } = (await import('@whiskeysockets/baileys')).default;
+const { generateWAMessageContent, generateWAMessageFromContent, WAProto: proto } = (await import('baileys'));
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   const emoji = '📌';

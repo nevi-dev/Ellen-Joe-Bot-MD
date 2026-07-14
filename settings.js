@@ -35,7 +35,7 @@ global.prems = []
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.libreria = 'Baileys'
-global.baileys = 'V 6.7.16'
+global.baileys = 'Bails (github:this-xys/bails)'
 global.languaje = 'Español'
 global.vs = '2.2.0'
 global.nameqr = 'ellen-joe-bot'

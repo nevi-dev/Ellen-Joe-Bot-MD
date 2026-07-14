@@ -4,8 +4,8 @@ import axios from 'axios';
 import yts from "yt-search";
 import { promisify } from 'util';
 import path from 'path';
-import pkg from '@whiskeysockets/baileys';
-const { prepareWAMessageMedia, proto } = pkg;
+import * as pkg from 'baileys';
+const { prepareWAMessageMedia, WAProto: proto } = pkg;
 
 const execPromise = promisify(exec);
 const API_KEY = 'causa-ee5ee31dcfc79da4';
@@ -23,9 +23,9 @@ const requestHeaders = {
 // Función auxiliar para obtener el peso del archivo
 const getFileSize = async (url) => {
     try {
-        const response = await axios.get(url, { 
-            responseType: 'stream', 
-            headers: requestHeaders 
+        const response = await axios.get(url, {
+            responseType: 'stream',
+            headers: requestHeaders
         });
         const bytes = response.headers['content-length'];
         response.data.destroy(); // Cancelar la descarga
@@ -60,7 +60,7 @@ const downloadMedia = async (url, filepath, signal) => {
 
             writer.on('finish', () => resolve(filepath));
             writer.on('error', cleanupAndReject);
-            
+
             if (signal) {
                 if (signal.aborted) return cleanupAndReject(new Error('Descarga abortada por el sistema en paralelo'));
                 signal.addEventListener('abort', () => {
@@ -104,7 +104,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
                 text: `${matchedUrl}\n\n${msgText}`,
                 matchedText: matchedUrl,
                 canonicalUrl: matchedUrl,
-                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', 
+                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
                 description: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
                 previewType: 'shadow',
                 jpegThumbnail: thumbnailBuffer,

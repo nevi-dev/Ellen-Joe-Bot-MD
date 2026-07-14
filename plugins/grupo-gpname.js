@@ -1,4 +1,4 @@
-import Presence from '@whiskeysockets/baileys';
+import Presence from 'baileys';
 const handler = async (m, {conn, args, text}) => {
   if (!text) throw `${emoji} Por favor, ingresé el nuevo nombre qué desea ponerle al grupo.`;
   try {
