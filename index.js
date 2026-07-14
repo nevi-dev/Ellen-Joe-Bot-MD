@@ -233,7 +233,6 @@ console.error(`No se pudo eliminar la sesión ${folderPath}:`, error)
 
 global.conn = makeWASocket(connectionOptions);
 
-if (!fs.existsSync(sessionDbPath)) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
@@ -256,7 +255,6 @@ codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot
 console.log(chalk.bold.white(chalk.bgMagenta(`✧ CÓDIGO DE VINCULACIÓN ✧`)), chalk.bold.white(chalk.white(codeBot)))
 }, 3000)
 }}}
-}
 
 conn.isInit = false;
 conn.well = false;
