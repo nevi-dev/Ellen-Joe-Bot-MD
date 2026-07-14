@@ -487,50 +487,6 @@ const filenames = await safeReadDir(tmpDir)
 await Promise.all(filenames.map(file => safeUnlink(join(tmpDir, file))))
 }
 
-async function purgeEllenSession() {
-const directorio = await safeReadDir(`./${Ellensessions}`)
-const filesFolderPreKeys = directorio.filter(file => file.startsWith('pre-key-'))
-await Promise.all(filesFolderPreKeys.map(file => safeUnlink(`./${Ellensessions}/${file}`)))
-}
-
-async function purgeEllenSessionSB() {
-try {
-const listaDirectorios = await safeReadDir(`./${jadi}/`)
-let SBprekey = []
-for (const directorio of listaDirectorios) {
-const botPath = `./${jadi}/${directorio}`
-const stats = await fs.promises.stat(botPath).catch(() => null)
-if (!stats?.isDirectory()) continue
-const DSBPreKeys = (await safeReadDir(botPath)).filter(fileInDir => fileInDir.startsWith('pre-key-'))
-SBprekey = [...SBprekey, ...DSBPreKeys]
-await Promise.all(DSBPreKeys
-.filter(fileInDir => fileInDir !== 'creds.json')
-.map(fileInDir => safeUnlink(`${botPath}/${fileInDir}`)))
-}
-if (SBprekey.length === 0) {
-console.log(chalk.bold.green(`\n╭» ❍ ${jadi} ❍\n│→ NADA POR ELIMINAR \n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻︎`))
-} else {
-console.log(chalk.bold.cyanBright(`\n╭» ❍ ${jadi} ❍\n│→ ARCHIVOS NO ESENCIALES ELIMINADOS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻︎︎`))
-}} catch (err) {
-console.log(chalk.bold.red(`\n╭» ❍ ${jadi} ❍\n│→ OCURRIÓ UN ERROR\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻\n` + err))
-}}
-
-async function purgeOldFiles() {
-const directories = [`./${Ellensessions}/`, `./${jadi}/`]
-await Promise.all(directories.map(async (dir) => {
-const files = await safeReadDir(dir)
-await Promise.all(files
-.filter(file => file !== 'creds.json')
-.map(async (file) => {
-const filePath = path.join(dir, file)
-const deleted = await safeUnlink(filePath)
-if (deleted) {
-console.log(chalk.bold.green(`\n╭» ❍ ARCHIVO ❍\n│→ ${file} BORRADO CON ÉXITO\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))
-}
-}))
-}))
-}
-
 function redefineConsoleMethod(methodName, filterStrings) {
 const originalConsoleMethod = console[methodName]
 console[methodName] = function() {
@@ -545,20 +501,6 @@ setInterval(async () => {
 if (stopped === 'close' || !conn || !conn.user) return
 await clearTmp()
 console.log(chalk.bold.cyanBright(`\n╭» ❍ MULTIMEDIA ❍\n│→ ARCHIVOS DE LA CARPETA TMP ELIMINADOS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 4) // 4 min
-
-setInterval(async () => {
-if (stopped === 'close' || !conn || !conn.user) return
-await purgeEllenSession()
-console.log(chalk.bold.cyanBright(`\n╭» ❍ ${global.Ellensessions} ❍\n│→ SESIONES NO ESENCIALES ELIMINADAS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 10) // 10 min
-
-setInterval(async () => {
-if (stopped === 'close' || !conn || !conn.user) return
-await purgeEllenSessionSB()}, 1000 * 60 * 10)
-
-setInterval(async () => {
-if (stopped === 'close' || !conn || !conn.user) return
-await purgeOldFiles()
-console.log(chalk.bold.cyanBright(`\n╭» ❍ ARCHIVOS ❍\n│→ ARCHIVOS RESIDUALES ELIMINADOS\n╰― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ― ⌫ ♻`))}, 1000 * 60 * 10)
 
 _quickTest().then(() => conn.logger.info(chalk.bold(`✦  H E C H O\n`.trim()))).catch(console.error)
 
