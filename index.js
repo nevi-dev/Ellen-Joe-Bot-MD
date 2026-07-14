@@ -154,10 +154,12 @@ global.loadDatabase = async function loadDatabase() {
 // 2. Agregamos el await fundamental aquí:
 await loadDatabase()
 
-// Bails centraliza la sesión en SQLite dentro de EllenSessions para no ensuciar la raíz del proyecto.
-const sessionDir = './' + global.Ellensessions
+const DATABASE_DIR = './src/database'
+if (!fs.existsSync(DATABASE_DIR)) fs.mkdirSync(DATABASE_DIR, { recursive: true })
+// Bails: la sesión principal usa SQLite y vive exclusivamente dentro de ./src/database/.
+const sessionDir = path.join(DATABASE_DIR, global.Ellensessions || 'EllenSessions')
 if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true })
-const sessionDbPath = sessionDir + '/sesion.db'
+const sessionDbPath = path.join(sessionDir, 'sesion.db')
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
 
@@ -194,6 +196,7 @@ const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * B
 global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
 global.getRandomBrowser = getRandomBrowser
 
+// IMPORTANTE: esperar a que useSqliteAuthState termine de abrir/cargar SQLite antes de crear el socket.
 const {state, saveCreds} = await useSqliteAuthState({ dbPath: sessionDbPath })
 
 const connectionOptions = {
@@ -358,7 +361,8 @@ return true
 
 //Arranque nativo para sub-bots por - ReyEndymion >> https://github.com/ReyEndymion
 
-global.rutaJadiBot = join(__dirname, './EllenJadiBots')
+// Sub-bots/Jadibots: sus bases SQLite también quedan bajo ./src/database/.
+global.rutaJadiBot = join(__dirname, './src/database', global.jadi || 'EllenJadiBots')
 
 if (global.EllenJadibts) {
 if (!existsSync(global.rutaJadiBot)) {

@@ -135,7 +135,9 @@ return m.reply(`${emoji2} No se han encontrado espacios para *Sub-Bots* disponib
 }*/
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let id = `${who.split`@`[0]}`  //conn.getName(who)
-let pathEllenJadiBot = path.join(`./${jadi}/`, id)
+const databaseRoot = path.join('./src/database', global.jadi || 'EllenJadiBots')
+await fs.promises.mkdir(databaseRoot, { recursive: true })
+let pathEllenJadiBot = path.join(databaseRoot, id)
 await fs.promises.mkdir(pathEllenJadiBot, { recursive: true })
 EllenJBOptions.pathEllenJadiBot = pathEllenJadiBot
 EllenJBOptions.m = m
@@ -164,7 +166,12 @@ args[0] = args[0].replace(/^--code$|^code$/, "").trim()
 if (args[1]) args[1] = args[1].replace(/^--code$|^code$/, "").trim()
 if (args[0] == "") args[0] = undefined
 }
-// Cada sub-bot guarda exclusivamente su auth SQLite dentro de su subcarpeta.
+// Cada sub-bot guarda exclusivamente su auth SQLite dentro de ./src/database/<jadi>/<id>/.
+pathEllenJadiBot = path.resolve(pathEllenJadiBot)
+const allowedSubBotRoot = path.resolve('./src/database', global.jadi || 'EllenJadiBots')
+if (!pathEllenJadiBot.startsWith(allowedSubBotRoot + path.sep) && pathEllenJadiBot !== allowedSubBotRoot) {
+  pathEllenJadiBot = path.join(allowedSubBotRoot, path.basename(pathEllenJadiBot))
+}
 await fs.promises.mkdir(pathEllenJadiBot, { recursive: true })
 
 const comb = Buffer.from(crm1 + crm2 + crm3 + crm4, "base64")
@@ -174,6 +181,7 @@ const drmer = Buffer.from(drm1 + drm2, `base64`)
 let { version, isLatest } = await getLatestBaileysVersionCached()
 // Cada sub-bot usa su propia base SQLite de sesión de Bails.
 const subBotSessionDb = path.join(pathEllenJadiBot, "sesion.db")
+// IMPORTANTE: esperar SQLite antes de makeWASocket evita arrancar con auth vacío.
 const { state, saveCreds } = await useSqliteAuthState({ dbPath: subBotSessionDb })
 
 const connectionOptions = {

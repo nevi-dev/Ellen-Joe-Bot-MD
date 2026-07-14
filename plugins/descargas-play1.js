@@ -4,8 +4,6 @@ import axios from 'axios';
 import yts from "yt-search";
 import { promisify } from 'util';
 import path from 'path';
-import * as pkg from 'baileys';
-const { prepareWAMessageMedia, WAProto: proto } = pkg;
 
 const execPromise = promisify(exec);
 const API_KEY = 'causa-ee5ee31dcfc79da4';
@@ -99,57 +97,47 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     }
 
     const sendExternalMessage = async (msgText) => {
-        await conn.relayMessage(m.chat, {
-            extendedTextMessage: {
-                text: `${matchedUrl}\n\n${msgText}`,
-                matchedText: matchedUrl,
-                canonicalUrl: matchedUrl,
-                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
-                previewType: 'shadow',
-                jpegThumbnail: thumbnailBuffer,
-                contextInfo: {
-                    quotedMessage: m.message,
-                    participant: m.sender,
-                    stanzaId: m.id,
-                    remoteJid: m.chat,
-                    isForwarded: true,
-                    forwardingScore: 999,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid,
-                        newsletterName,
-                        serverMessageId: -1
-                    }
+        await conn.sendMessage(m.chat, {
+            text: `${matchedUrl}
+
+${msgText}`,
+            linkPreview: null,
+            contextInfo: {
+                mentionedJid: [m.sender],
+                isForwarded: true,
+                forwardingScore: 999,
+                forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
+                externalAdReply: {
+                    title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+                    body: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
+                    thumbnail: thumbnailBuffer,
+                    sourceUrl: matchedUrl,
+                    mediaType: 1,
+                    renderLargerThumbnail: false
                 }
             }
         }, { quoted: m });
     };
 
     const sendInteractiveCard = async (text, imageUrl, buttons = []) => {
-        const mediaConfig = imageUrl ? { image: { url: imageUrl } } : { image: global.icons };
-        const media = await prepareWAMessageMedia(mediaConfig, { upload: conn.waUploadToServer });
+        const nativeFlow = buttons.map((button, index) => {
+            const params = button?.buttonParamsJson ? JSON.parse(button.buttonParamsJson) : {}
+            if (button?.name === 'cta_url') return { text: params.display_text || `Abrir ${index + 1}`, url: params.url || params.merchant_url }
+            return { text: params.display_text || `Opción ${index + 1}`, id: params.id || params.rowId || `${usedPrefix}${command}` }
+        }).filter((button) => button.text && (button.url || button.id))
 
-        const interactiveObj = {
-            body: proto.Message.InteractiveMessage.Body.create({ text: text }),
-            footer: proto.Message.InteractiveMessage.Footer.create({ text: "Victoria Housekeeping Service" }),
-            header: proto.Message.InteractiveMessage.Header.create({
-                title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
-                hasMediaAttachment: true,
-                ...media
-            }),
+        await conn.sendMessage(m.chat, {
+            image: imageUrl ? { url: imageUrl } : global.icons,
+            caption: text,
+            title: "𝐄llen 𝐉ᴏ𝐄's 𝐒ervice 🦈",
+            footer: 'Victoria Housekeeping Service',
+            nativeFlow,
             contextInfo: {
                 isForwarded: true,
                 forwardingScore: 999,
                 forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 }
             }
-        };
-
-        if (buttons.length > 0) {
-            interactiveObj.nativeFlowMessage = proto.Message.InteractiveMessage.NativeFlowMessage.create({ buttons: buttons });
-        }
-
-        const message = { viewOnceMessage: { message: { messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 }, interactiveMessage: proto.Message.InteractiveMessage.create(interactiveObj) } } };
-        await conn.relayMessage(m.chat, message, { quoted: m });
+        }, { quoted: m });
     };
 
     if (!args[0]) {

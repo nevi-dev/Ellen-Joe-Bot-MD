@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import moment from 'moment-timezone';
 import phoneNumber from 'awesome-phonenumber';
-import { prepareWAMessageMedia, generateWAMessageFromContent } from 'baileys';
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = "⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄's 𝐒ervice";
@@ -109,23 +108,23 @@ ${sep}`.trim();
     const textoFinal = `${encabezado}\n${seccionesCompletas}\n\n*— No me pidas nada más fuera de mi horario.*`;
     const thumbnailBuffer = Buffer.isBuffer(global.icons) ? global.icons : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
 
-    await conn.relayMessage(m.chat, {
-      extendedTextMessage: {
-        text: `${redes}\n\n${textoFinal}`,
-        matchedText: redes,
-        canonicalUrl: redes,
-        title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-        description: `✦ Aquí tienes todo, ${nombre}...`,
-        previewType: 'shadow',
-        jpegThumbnail: thumbnailBuffer,
-        contextInfo: {
-          quotedMessage: m.message,
-          participant: m.sender,
-          stanzaId: m.id,
-          remoteJid: m.chat,
-          isForwarded: true,
-          forwardingScore: 999,
-          forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 }
+    await conn.sendMessage(m.chat, {
+      text: `${redes}
+
+${textoFinal}`,
+      linkPreview: null,
+      contextInfo: {
+        mentionedJid: [m.sender],
+        isForwarded: true,
+        forwardingScore: 999,
+        forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
+        externalAdReply: {
+          title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
+          body: `✦ Aquí tienes todo, ${nombre}...`,
+          thumbnail: thumbnailBuffer,
+          sourceUrl: redes,
+          mediaType: 1,
+          renderLargerThumbnail: false
         }
       }
     }, { quoted: m });
@@ -165,39 +164,26 @@ ${sep}`.trim();
     }
   ];
 
-  // Elegir imagen aleatoria
+  // Bails arma el native_flow y el nodo biz internamente; no construimos protobufs manuales.
   let imgUrl = images[Math.floor(Math.random() * images.length)];
-  let media = await prepareWAMessageMedia({ image: { url: imgUrl } }, { upload: conn.waUploadToServer });
+  await conn.sendMessage(m.chat, {
+    image: { url: imgUrl },
+    caption: `${encabezado}
 
-  const interactiveMessage = {
-    header: {
-      title: "🦈 𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄 | 𝐒𝐄𝐑𝐕𝐈𝐂𝐄",
-      hasMediaAttachment: true,
-      imageMessage: media.imageMessage
-    },
-    body: {
-      text: `${encabezado}\n\n*— Selecciona una opción en el menú inferior.*`
-    },
-    footer: { text: packname },
-    nativeFlowMessage: {
-      buttons: [
-        {
-          name: "quick_reply",
-          buttonParamsJson: JSON.stringify({ display_text: "🧧 Menú Completo", id: `${usedPrefix}menu all` })
-        },
-        {
-          name: "single_select",
-          buttonParamsJson: JSON.stringify({ title: "❀ 𝐒𝐄𝐂𝐓𝐎𝐑𝐄𝐒 𝐃𝐄 𝐍𝐄𝐖 𝐄𝐑𝐈𝐃𝐔", sections: sections })
-        }
-      ]
+*— Selecciona una opción en el menú inferior.*`,
+    title: "🦈 𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄 | 𝐒𝐄𝐑𝐕𝐈𝐂𝐄",
+    footer: packname,
+    nativeFlow: [
+      { text: "🧧 Menú Completo", id: `${usedPrefix}menu all` },
+      { text: "❀ 𝐒𝐄𝐂𝐓𝐎𝐑𝐄𝐒 𝐃𝐄 𝐍𝐄𝐖 𝐄𝐑𝐈𝐃𝐔", sections }
+    ],
+    contextInfo: {
+      mentionedJid: [m.sender],
+      isForwarded: true,
+      forwardingScore: 999,
+      forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 }
     }
-  };
-
-  let msg = generateWAMessageFromContent(m.chat, {
-    viewOnceMessage: { message: { interactiveMessage } }
-  }, { userJid: conn.user.jid });
-
-  await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id });
+  }, { quoted: m });
 };
 
 handler.help = ['menu'];
