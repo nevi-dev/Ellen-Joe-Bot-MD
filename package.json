@@ -15,7 +15,7 @@
     "code": "node index.js code",
     "test": "node test.js",
     "test2": "nodemon index.js",
-    "postinstall": "cd node_modules/baileys && yarn install --production=false && yarn build",
+    "prepare": "npm install && cd node_modules/baileys && npm install --include=dev && npm run build",
     "eslint": "eslint .",
     "eslintfix": "eslint --fix ."
   },
