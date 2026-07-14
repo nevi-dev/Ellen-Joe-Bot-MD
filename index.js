@@ -154,8 +154,10 @@ global.loadDatabase = async function loadDatabase() {
 // 2. Agregamos el await fundamental aquí:
 await loadDatabase()
 
-// Bails centraliza la sesión en SQLite para evitar miles de archivos de auth.
-const sessionDbPath = './sesion.db'
+// Bails centraliza la sesión en SQLite dentro de EllenSessions para no ensuciar la raíz del proyecto.
+const sessionDir = './' + global.Ellensessions
+if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true })
+const sessionDbPath = sessionDir + '/sesion.db'
 const {state, saveCreds} = await useSqliteAuthState({ dbPath: sessionDbPath })
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
@@ -262,7 +264,6 @@ conn.well = false;
 if (!opts['test']) {
 if (global.db) setInterval(async () => {
 if (global.db.data) await global.db.write()
-global.db?.adapter?.deleteOldMessages?.()
 if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', `${jadi}`], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
 }, 30 * 1000);
 }

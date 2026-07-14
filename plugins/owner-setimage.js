@@ -1,4 +1,4 @@
-import Jimp from 'jimp';
+import { Jimp, JimpMime } from 'jimp';
 
 let handler = async (m, { conn }) => {
   if (!m.quoted) return conn.reply(m.chat, `${emoji} Por favor, responde a una imagen para cambiar la foto de perfil.`, m);
@@ -8,7 +8,7 @@ let handler = async (m, { conn }) => {
     if (!media) return conn.reply(m.chat, `${emoji2} No se pudo obtener la imagen.`, m);
 
     const image = await Jimp.read(media);
-    const buffer = await image.getBufferAsync(Jimp.MIME_JPEG);
+    const buffer = await image.getBuffer(JimpMime.jpeg);
 
     await conn.updateProfilePicture(conn.user.jid, buffer);
     return conn.reply(m.chat, `${emoji} Foto de perfil cambiada con éxito.`, m);

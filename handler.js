@@ -118,8 +118,8 @@ const buildParticipantIndexes = (participants = []) => {
 const resolveRuntimeJid = (jid, indexes = {}) => {
     const normalized = cleanJid(jid)
     if (!normalized) return normalized
-    if (!normalized.endsWith('@lid')) return global.db?.adapter?.resolveJid?.(normalized) || normalized
-    return indexes.byLid?.get(normalized)?.jid || global.db?.adapter?.resolveJid?.(normalized) || normalized
+    if (!normalized.endsWith('@lid')) return normalized
+    return indexes.byLid?.get(normalized)?.jid || normalized
 }
 
 function resolveMessageMentions(m, participants_lid) {
@@ -180,9 +180,6 @@ async function processChatUpdate(chatUpdate) {
     try {
         m = smsg(this, m) || m
         if (!m) return
-        const dbAdapter = global.db?.adapter
-        dbAdapter?.cacheMessage?.(m)
-
         // 👇 INTERCEPTOR DE BOTONES EN EL NÚCLEO 👇
         const btnMsg = m.message?.buttonsResponseMessage ||
                      m.message?.templateButtonReplyMessage ||
@@ -227,7 +224,6 @@ async function processChatUpdate(chatUpdate) {
                         groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid || p.id, jid: p.jid || p.id, lid: p.lid }))
                     }
                     groupCache.set(m.chat, { data: groupMetadata, indexes: buildParticipantIndexes(groupMetadata.participants || []), timestamp: now })
-                    if (!groupMetadata.fromCache) dbAdapter?.upsertGroup?.(groupMetadata)
                 } catch (e) {
                     groupMetadata = {}
                 }
@@ -255,8 +251,6 @@ async function processChatUpdate(chatUpdate) {
             }
 
             resolveMessageMentions(m, participants_lid)
-
-            dbAdapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
 
             const chatDb = global.db.data.chats[m.chat] || {}
 
