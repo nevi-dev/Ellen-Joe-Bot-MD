@@ -1,19 +1,10 @@
 import axios from 'axios';
-const { generateWAMessageContent, generateWAMessageFromContent, WAProto: proto } = (await import("baileys"));
-
 // --- CONFIGURACIÓN ---
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 const CAUSA_API_KEY = 'causa-ee5ee31dcfc79da4';
 
 // --- FUNCIONES AUXILIARES ---
-async function getImageMessage(imageUrl, conn) {
-    const { imageMessage } = await generateWAMessageContent({
-        'image': { 'url': imageUrl }
-    }, { 'upload': conn.waUploadToServer });
-    return imageMessage;
-}
-
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -22,7 +13,7 @@ function shuffleArray(array) {
 }
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-    const name = conn.getName(m.sender);
+    const name = await conn.getName(m.sender);
 
     const contextInfo = {
         mentionedJid: [m.sender],
@@ -61,53 +52,24 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             shuffleArray(results);
             let selected = results.slice(0, 5); // Tomamos 5 resultados
 
-            // 3. CONSTRUCCIÓN DE TARJETAS PARA EL CARRUSEL
-            let carouselCards = [];
-            for (let item of selected) {
-                carouselCards.push({
-                    'body': proto.Message.InteractiveMessage.Body.fromObject({
-                        'text': `📌 *Descripción:* ${item.title || 'Sin descripción'}`
-                    }),
-                    'footer': proto.Message.InteractiveMessage.Footer.fromObject({
-                        'text': `Fuente: Pinterest`
-                    }),
-                    'header': proto.Message.InteractiveMessage.Header.fromObject({
-                        'hasMediaAttachment': true,
-                        'imageMessage': await getImageMessage(item.image, conn)
-                    }),
-                    'nativeFlowMessage': proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
-                        'buttons': [{
-                            'name': "cta_url",
-                            'buttonParamsJson': JSON.stringify({
-                                "display_text": "Ver Original 🔗",
-                                "url": item.link,
-                                "merchant_url": item.link
-                            })
-                        }]
-                    })
-                });
-            }
-
-            const carouselMessage = generateWAMessageFromContent(m.chat, {
-                'viewOnceMessage': {
-                    'message': {
-                        'interactiveMessage': proto.Message.InteractiveMessage.fromObject({
-                            'body': proto.Message.InteractiveMessage.Body.create({
-                                'text': `╭━━━━[ 𝙿𝚒𝚗𝚝𝚎𝚛𝚎𝚜𝚝 𝙳𝚎𝚌𝚘𝚍𝚎𝚍 ]━━━━⬣\n🖼️ *Proxy:* ${name}\n🔎 *Búsqueda:* ${text}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`
-                            }),
-                            'footer': proto.Message.InteractiveMessage.Footer.create({
-                                'text': "Ellen Joe's Service"
-                            }),
-                            'carouselMessage': proto.Message.InteractiveMessage.CarouselMessage.fromObject({
-                                'cards': carouselCards
-                            })
-                        })
-                    }
-                }
-            }, { 'quoted': m });
+            // 3. Bails construye el carousel nativo directamente desde sendMessage.
+            const cards = selected.map((item) => ({
+                image: { url: item.image },
+                caption: `📌 *Descripción:* ${item.title || 'Sin descripción'}`,
+                footer: 'Fuente: Pinterest',
+                nativeFlow: item.link ? [{ text: 'Ver Original 🔗', url: item.link }] : []
+            }));
 
             await m.react('✅');
-            await conn.relayMessage(m.chat, carouselMessage.message, { 'messageId': carouselMessage.key.id });
+            await conn.sendMessage(m.chat, {
+                text: `╭━━━━[ 𝙿𝚒𝚗𝚝𝚎𝚛𝚎𝚜𝚝 𝙳𝚎𝚌𝚘𝚍𝚎𝚍 ]━━━━⬣
+🖼️ *Proxy:* ${name}
+🔎 *Búsqueda:* ${text}
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`,
+                footer: "Ellen Joe's Service",
+                cards,
+                contextInfo
+            }, { quoted: m });
 
         } else {
             throw new Error("No se encontraron resultados.");
