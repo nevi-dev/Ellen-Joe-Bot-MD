@@ -8,11 +8,11 @@ let handler = async (m, { conn }) => {
 
   const messages = Object.values(conn.chats[m.chat]?.messages || {})
     .filter(v => {
-      const text = v.message?.conversation || 
-                   v.message?.extendedTextMessage?.text || 
-                   v.message?.documentMessage?.fileName || 
+      const text = v.message?.conversation ||
+                   v.message?.extendedTextMessage?.text ||
+                   v.message?.documentMessage?.fileName ||
                    '';
-      
+
       const hasDangerousExt = v.message?.documentMessage &&
         dangerousExtensions.some(ext => v.message.documentMessage.fileName?.toLowerCase().endsWith(ext));
 

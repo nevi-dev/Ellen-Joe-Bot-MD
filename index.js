@@ -29,13 +29,11 @@ import BetterSQLiteAdapter from './lib/sqliteDB.js'
 import cloudDBAdapter from './lib/cloudDBAdapter.js'
 import {mongoDB, mongoDBV2} from './lib/mongoDB.js'
 import store from './lib/store.js'
-const {proto} = (await import('@whiskeysockets/baileys')).default
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
 const phoneUtil = PhoneNumberUtil.getInstance()
-const {DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('@whiskeysockets/baileys')
+const {DisconnectReason, useSqliteAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('baileys')
 import readline, { createInterface } from 'readline'
-import NodeCache from 'node-cache'
 const {CONNECTING} = ws
 const {chain} = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
@@ -58,32 +56,32 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'
 
 // ASCII Art representando a Ellen-Joe
 console.log(chalk.cyan(`
-                                                                    
-                                     @@.                            
-                                     @@,                            
-                                     @@,                            
-                                   @@@%                             
-                                 @@@@@,                             
-                             @@@@@@@.                               
-                         #@@@@@@@@,                                 
-                       @@@@@@@@@                                    
-                    ,@@@@@@@@@@                                     
-                  &@@@@@@@@@@@                                      
-                @@@@@@@@@@@@@                                       
-          %@@@@@@@@@@@@@@@@                                         
-        @@@@@@@@@@@@@@@@@@                                          
-       @@@@@@@@@@@@@@@@@@@                                          
-      @@@@@@@@@@@@@@@@@@@@@                                         
-     @@@@@@@@@@@@@@@@@@@@@@@                                        
-    @@@@@@@@@@@@@@@@@@@@@@@@#                                       
-   @@@@@@@@@@@@@@@@@@@@@@@@@@* #@@@@@@@@@@@@@@@@@@@@@@@@@@@                                      
-  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                     
-  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                    
-  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                   
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,                                  
-    .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                 
-       /@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@* &@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,                         
-              %@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                      
+
+                                     @@.
+                                     @@,
+                                     @@,
+                                   @@@%
+                                 @@@@@,
+                             @@@@@@@.
+                         #@@@@@@@@,
+                       @@@@@@@@@
+                    ,@@@@@@@@@@
+                  &@@@@@@@@@@@
+                @@@@@@@@@@@@@
+          %@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@
+       @@@@@@@@@@@@@@@@@@@
+      @@@@@@@@@@@@@@@@@@@@@
+     @@@@@@@@@@@@@@@@@@@@@@@
+    @@@@@@@@@@@@@@@@@@@@@@@@#
+   @@@@@@@@@@@@@@@@@@@@@@@@@@* #@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,
+    .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+       /@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@* &@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,
+              %@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 `))
 
 cfonts.say('Ellen-Joe Bot', {
@@ -134,7 +132,7 @@ global.loadDatabase = async function loadDatabase() {
   // 1. Mejoramos la validación inicial para evitar que pase de largo si data es undefined
   if (global.db.data && Object.keys(global.db.data).length > 0) return global.db.data
   if (global.db.READ) return global.db.READ
-  
+
   global.db.READ = (async () => {
     await global.db.read().catch(console.error)
     global.db.data = {
@@ -156,9 +154,11 @@ global.loadDatabase = async function loadDatabase() {
 // 2. Agregamos el await fundamental aquí:
 await loadDatabase()
 
-const {state, saveState, saveCreds} = await useMultiFileAuthState(global.Ellensessions)
-const msgRetryCounterMap = (MessageRetryMap) => { };
-const msgRetryCounterCache = new NodeCache()
+// Bails centraliza la sesión en SQLite dentro de EllenSessions para no ensuciar la raíz del proyecto.
+const sessionDir = './' + global.Ellensessions
+if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true })
+const sessionDbPath = sessionDir + '/sesion.db'
+const {state, saveCreds} = await useSqliteAuthState({ dbPath: sessionDbPath })
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botNumber
 
@@ -175,13 +175,13 @@ let opcion
 if (methodCodeQR) {
 opcion = '1'
 }
-if (!methodCodeQR && !methodCode && !fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !fs.existsSync(sessionDbPath)) {
 do {
 opcion = await question(colores('⌨ Seleccione una opción:\n') + opcionQR('1. Con código QR\n') + opcionTexto('2. Con código de texto de 8 dígitos\n--> '))
 
 if (!/^[1-2]$/.test(opcion)) {
 console.log(chalk.bold.redBright(`✦ Solo se permiten los números 1 o 2. No se admiten letras ni símbolos especiales.`))
-}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${Ellensessions}/creds.json`))
+}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(sessionDbPath))
 }
 
 console.info = () => {}
@@ -209,10 +209,8 @@ generateHighQualityLinkPreview: true,
 getMessage: async (clave) => {
 let jid = jidNormalizedUser(clave.remoteJid)
 let msg = await store.loadMessage(jid, clave.id)
-return msg?.message || ""
+return msg?.message || ''
 },
-msgRetryCounterCache,
-msgRetryCounterMap,
 defaultQueryTimeoutMs: undefined,
 version,
 }
@@ -234,7 +232,7 @@ console.error(`No se pudo eliminar la sesión ${folderPath}:`, error)
 
 global.conn = makeWASocket(connectionOptions);
 
-if (!fs.existsSync(`./${Ellensessions}/creds.json`)) {
+if (!fs.existsSync(sessionDbPath)) {
 if (opcion === '2' || methodCode) {
 opcion = '2'
 if (!conn.authState.creds.registered) {
@@ -266,7 +264,6 @@ conn.well = false;
 if (!opts['test']) {
 if (global.db) setInterval(async () => {
 if (global.db.data) await global.db.write()
-global.db?.adapter?.deleteOldMessages?.()
 if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', `${jadi}`], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
 }, 30 * 1000);
 }
@@ -293,7 +290,7 @@ if (connection === 'close') {
 if (statusCode === 401 || statusCode === 403) {
 console.log(chalk.bold.redBright(`
 ⚠️ SESIÓN DEL BOT PRINCIPAL CERRADA O BANEADA (${statusCode}). BORRANDO ${global.Ellensessions} Y DETENIENDO RECONEXIÓN ⚠️`))
-await deleteSessionFolder(`./${global.Ellensessions}`)
+await fs.promises.rm(sessionDbPath, { force: true })
 return
 }
 
@@ -374,11 +371,11 @@ console.log(chalk.bold.cyan(`La carpeta: ${jadi} ya está creada.`))
 
 const readRutaJadiBot = readdirSync(rutaJadiBot)
 if (readRutaJadiBot.length > 0) {
-const creds = 'creds.json'
+const sessionDb = 'sesion.db'
 for (const gjbts of readRutaJadiBot) {
 const botPath = join(rutaJadiBot, gjbts)
 const readBotPath = readdirSync(botPath)
-if (readBotPath.includes(creds)) {
+if (readBotPath.includes(sessionDb)) {
 EllenJadiBot({pathEllenJadiBot: botPath, m: null, conn, args: '', usedPrefix: '/', command: 'serbot'})
 }
 }

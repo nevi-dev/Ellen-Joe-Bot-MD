@@ -1,4 +1,4 @@
-let { downloadContentFromMessage } = (await import('@whiskeysockets/baileys'));
+let { downloadContentFromMessage } = (await import('baileys'));
 
 let handler = async (m, { conn }) => {
 if (!m.quoted) return conn.reply(m.chat, `🍬 Responde a una imagen ViewOnce.`, m)
@@ -11,7 +11,7 @@ return conn.sendFile(m.chat, buffer, 'media.jpg', m.quoted?.caption || '', m)
 }}
 handler.help = ['ver']
 handler.tags = ['tools']
-handler.command = ['readviewonce', 'read', 'readvo'] 
-handler.register = true 
+handler.command = ['readviewonce', 'read', 'readvo']
+handler.register = true
 
 export default handler

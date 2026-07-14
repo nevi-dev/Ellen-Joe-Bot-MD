@@ -9,7 +9,7 @@ import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js'
 
-const { proto, WAMessageStubType } = (await import('@whiskeysockets/baileys')).default
+const { WAProto: proto, WAMessageStubType } = (await import('baileys'))
 
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, ms))
@@ -118,15 +118,15 @@ const buildParticipantIndexes = (participants = []) => {
 const resolveRuntimeJid = (jid, indexes = {}) => {
     const normalized = cleanJid(jid)
     if (!normalized) return normalized
-    if (!normalized.endsWith('@lid')) return global.db?.adapter?.resolveJid?.(normalized) || normalized
-    return indexes.byLid?.get(normalized)?.jid || global.db?.adapter?.resolveJid?.(normalized) || normalized
+    if (!normalized.endsWith('@lid')) return normalized
+    return indexes.byLid?.get(normalized)?.jid || normalized
 }
 
 function resolveMessageMentions(m, participants_lid) {
     try {
-        const rawMentions = m.message?.extendedTextMessage?.contextInfo?.mentionedJid || 
+        const rawMentions = m.message?.extendedTextMessage?.contextInfo?.mentionedJid ||
                             m.message?.contactsArrayMessage?.contacts || [];
-        
+
         const normalized = rawMentions.map(mention => {
             if (mention.endsWith('@lid')) {
                 const found = participants_lid.find(p => p.lid === mention);
@@ -161,10 +161,10 @@ async function processChatUpdate(chatUpdate) {
     this.msgqueque = this.msgqueque || []
     this.uptime = this.uptime || Date.now()
     this.connectionStartedAt = this.connectionStartedAt || this.uptime
-    
+
     if (!chatUpdate) return
     this.pushMessage(chatUpdate.messages).catch(console.error)
-    
+
     let m = chatUpdate.messages[chatUpdate.messages.length - 1]
     if (!m) return
 
@@ -180,18 +180,15 @@ async function processChatUpdate(chatUpdate) {
     try {
         m = smsg(this, m) || m
         if (!m) return
-        const dbAdapter = global.db?.adapter
-        dbAdapter?.cacheMessage?.(m)
-
         // 👇 INTERCEPTOR DE BOTONES EN EL NÚCLEO 👇
-        const btnMsg = m.message?.buttonsResponseMessage || 
-                     m.message?.templateButtonReplyMessage || 
-                     m.message?.listResponseMessage || 
+        const btnMsg = m.message?.buttonsResponseMessage ||
+                     m.message?.templateButtonReplyMessage ||
+                     m.message?.listResponseMessage ||
                      m.message?.interactiveResponseMessage;
 
         if (btnMsg) {
             let command = btnMsg.selectedButtonId || btnMsg.singleSelectReply?.selectedRowId;
-            
+
             if (!command && btnMsg.nativeFlowResponseMessage) {
                 try {
                     const params = JSON.parse(btnMsg.nativeFlowResponseMessage.paramsJson || '{}');
@@ -227,7 +224,6 @@ async function processChatUpdate(chatUpdate) {
                         groupMetadata.participants = meta.participants.map(p => ({ ...p, id: p.jid || p.id, jid: p.jid || p.id, lid: p.lid }))
                     }
                     groupCache.set(m.chat, { data: groupMetadata, indexes: buildParticipantIndexes(groupMetadata.participants || []), timestamp: now })
-                    if (!groupMetadata.fromCache) dbAdapter?.upsertGroup?.(groupMetadata)
                 } catch (e) {
                     groupMetadata = {}
                 }
@@ -237,7 +233,7 @@ async function processChatUpdate(chatUpdate) {
             const participantIndexes = cachedGroup?.indexes || groupCache.get(m.chat)?.indexes || buildParticipantIndexes(participants)
             participants_lid = participants.map(p => ({ id: p.jid, jid: p.jid, lid: p.lid, admin: p.admin }))
             sender = resolveRuntimeJid(sender, participantIndexes)
-            
+
             Object.defineProperty(m, 'sender', {
                 value: sender,
                 writable: true,
@@ -253,16 +249,14 @@ async function processChatUpdate(chatUpdate) {
                     enumerable: true
                 })
             }
-            
+
             resolveMessageMentions(m, participants_lid)
-            
-            dbAdapter?.upsertContact?.({ jid: sender, name: m.name || m.pushName })
 
             const chatDb = global.db.data.chats[m.chat] || {}
-            
+
             // CORRECCIÓN: Baileys usa this.user.id, no this.user.jid
             const currentBotJid = cleanJid(this.user?.id || this.user?.jid)
-            
+
             if (chatDb.primaryBot && currentBotJid !== chatDb.primaryBot) {
                 const universalWords = ['resetbot', 'resetprimario', 'botreset']
                 const firstWord = m.text ? m.text.trim().split(' ')[0].toLowerCase().replace(/^[./#]/, '') : ''
@@ -366,7 +360,7 @@ async function processChatUpdate(chatUpdate) {
         const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
         const pluginRegistry = getPluginRegistry()
         const commandCandidates = getCommandCandidates(m.text, conn.prefix || global.prefix, pluginRegistry)
-        
+
         for (let name in global.plugins) {
             let plugin = global.plugins[name]
             if (!plugin || plugin.disabled) continue
@@ -397,9 +391,9 @@ async function processChatUpdate(chatUpdate) {
             let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] : Array.isArray(_prefix) ? _prefix.map(p => { let re = p instanceof RegExp ? p : new RegExp(str2Regex(p)); return [re.exec(m.text), re] }) : typeof _prefix === 'string' ? [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]] : [[[], new RegExp]]).find(p => p[0])
 
             if (!match) continue
-            
+
             if (typeof plugin !== 'function') continue
-            
+
             if ((usedPrefix = (match[0] || '')[0])) {
                 let noPrefix = m.text.replace(usedPrefix, '')
                 let [command, ...args] = noPrefix.trim().split` `.filter(v => v)
@@ -420,7 +414,7 @@ async function processChatUpdate(chatUpdate) {
                     let userData = global.db.data.users[sender]
 
                     if (!['grupo-unbanchat.js', 'owner-exec.js', 'owner-exec2.js', 'grupo-delete.js'].includes(name) && chatData?.isBanned && !isROwner) return
-                    
+
                     if (userData.banned && name !== 'owner-unbanuser.js' && !isROwner) {
                         if (userData.antispam > 2) return
                         m.reply(`《✦》Estas baneado/a, no puedes usar comandos en este bot!\n\n${userData.bannedReason ? `✰ *Motivo:* ${userData.bannedReason}` : '✰ *Motivo:* Sin Especificar'}`)
@@ -434,7 +428,7 @@ async function processChatUpdate(chatUpdate) {
 
                 let adminMode = global.db.data.chats[m.chat]?.modoadmin
                 let mini = `${plugin.botAdmin || plugin.admin || plugin.group || plugin.command}`
-                if (adminMode && !isOwner && !isROwner && m.isGroup && !isAdmin && mini) return   
+                if (adminMode && !isOwner && !isROwner && m.isGroup && !isAdmin && mini) return
 
                 if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) { fail('owner', m, this); continue }
                 if (plugin.rowner && !isROwner) { fail('rowner', m, this); continue }
@@ -448,7 +442,7 @@ async function processChatUpdate(chatUpdate) {
                 if (plugin.register == true && user.registered == false) { fail('unreg', m, this); continue }
 
                 m.isCommand = true
-                let xp = 'exp' in plugin ? parseInt(plugin.exp) : 17 
+                let xp = 'exp' in plugin ? parseInt(plugin.exp) : 17
                 if (xp > 200) m.reply('chirrido -_-')
                 else m.exp += xp
 
@@ -458,14 +452,14 @@ async function processChatUpdate(chatUpdate) {
                 }
 
                 if (plugin.level > user.level) {
-                    conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user.level}*\n\n• Usa este comando para subir de nivel:\n*${usedPrefix}levelup*`, m)       
+                    conn.reply(m.chat, `❮✦❯ Se requiere el nivel: *${plugin.level}*\n\n• Tu nivel actual es: *${user.level}*\n\n• Usa este comando para subir de nivel:\n*${usedPrefix}levelup*`, m)
                     continue
                 }
 
                 if (name.includes('game') || name.includes('pvp')) dbAdapter?.ensureGamePvpUser?.(sender, user.name || m.name || '')
 
                 let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user: userObj, bot: botObj, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, chatUpdate, __dirname: ___dirname, __filename }
-                
+
                 try {
                     await plugin.call(this, m, extra)
                     if (!isPrems) m.coin = m.coin || plugin.coin || false
@@ -503,20 +497,20 @@ async function processChatUpdate(chatUpdate) {
         }
 
         let userStats, stats = global.db.data.stats
-        if (m) { 
+        if (m) {
             const chatObj = global.db.data.chats[m.chat] ?? {};
-            
+
             if (chatObj.users?.[sender]?.mute2) {
                 let botObjFinal = {}
                 if (m.isGroup) {
                     const finalBotJid = cleanJid(this.user?.id || this.user?.jid || '');
                     botObjFinal = participants.find(p => cleanJid(p.id || p.jid) === finalBotJid) || {};
                 }
-                
+
                 if (botObjFinal?.admin === 'admin' || botObjFinal?.admin === 'superadmin') {
                     await this.sendMessage(m.chat, { delete: m.key }).catch(() => {})
                 }
-                return 
+                return
             }
 
             const dbAdapter = global.db?.adapter
@@ -553,14 +547,14 @@ async function processChatUpdate(chatUpdate) {
 
         try {
             if (!opts['noprint']) await (await import(`./lib/print.js`)).default(m, this)
-        } catch (e) { 
+        } catch (e) {
             console.log(m, m.quoted, e)
         }
-        
+
         if (opts['autoread']) await this.readMessages([m.key])
 
         if (global.db.data.chats[m.chat]?.reaction && m.text.length > 0) {
-            const reactionRegex = /(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/i 
+            const reactionRegex = /(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/i
             if (reactionRegex.test(m.text)) {
                 const emotList = ["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"]
                 const emot = emotList[Math.floor(Math.random() * emotList.length)]

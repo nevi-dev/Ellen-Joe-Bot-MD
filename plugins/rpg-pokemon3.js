@@ -16,32 +16,32 @@ async function fetchAPI(endpoint) {
 async function buildPokemonObj(idOrName, level = 1) {
   const d = await fetchAPI(`pokemon/${idOrName.toString().toLowerCase()}`)
   if (!d) return null
-  
+
   let movesDisponibles = d.moves.filter(m => m.version_group_details[0].move_learn_method.name === 'level-up')
   let moves = []
   let shuffled = movesDisponibles.sort(() => 0.5 - Math.random())
-  
+
   for (let i = 0; i < Math.min(4, shuffled.length); i++) {
     let moveData = await fetchAPI(`move/${shuffled[i].move.name}`)
-    if (moveData) moves.push({ 
-        nombre: moveData.name.toUpperCase(), 
-        poder: moveData.power || 50, 
-        tipo: moveData.type.name.toUpperCase() 
+    if (moveData) moves.push({
+        nombre: moveData.name.toUpperCase(),
+        poder: moveData.power || 50,
+        tipo: moveData.type.name.toUpperCase()
     })
   }
 
   // CÁLCULO DE STATS (Evita undefined en pkinfo)
   let baseHp = Math.floor(d.stats[0].base_stat * 3 + (level * 5))
-  
+
   return {
-    id: d.id, 
-    nombre: d.name.toUpperCase(), 
-    nivel: level, 
+    id: d.id,
+    nombre: d.name.toUpperCase(),
+    nivel: level,
     tipos: d.types.map(t => t.type.name.toUpperCase()),
     imagen: d.sprites.other['official-artwork'].front_default || d.sprites.front_default,
     hp: baseHp,
     maxHp: baseHp, // IMPORTANTE: Para que pkheal y pkinfo no den undefined
-    atk: d.stats[1].base_stat + level, 
+    atk: d.stats[1].base_stat + level,
     def: d.stats[2].base_stat + level,
     speed: d.stats[5].base_stat + level, // Añadido para pkinfo
     moves: moves
@@ -58,7 +58,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   if (isNaN(idx) || !user.pokemones[idx]) {
     return m.reply(`❌ Uso correcto:\n• *${usedPrefix}pkevolucionar [ID]*\n• *${usedPrefix}pkupgrade [ID] [Nivel Objetivo]*`)
   }
-  
+
   let p = user.pokemones[idx]
 
   // --- COMANDO: PKUPGRADE ---
@@ -85,9 +85,9 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   if (command === 'pkevolucionar') {
     const species = await fetchAPI(`pokemon-species/${p.id}`)
     if (!species || !species.evolution_chain) return m.reply("❌ Este Pokémon no tiene linaje evolutivo.")
-    
+
     const evoData = await fetchAPI(`evolution-chain/${species.evolution_chain.url.split('/').filter(Boolean).pop()}`)
-    
+
     let findNextEvo = (node) => {
       if (node.species.name.toUpperCase() === p.nombre) return node.evolves_to
       for (let child of node.evolves_to) {

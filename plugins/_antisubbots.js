@@ -1,4 +1,4 @@
-import { areJidsSameUser } from '@whiskeysockets/baileys'
+import { areJidsSameUser } from 'baileys'
 export async function before(m, { participants, conn }) {
     if (m.isGroup) {
         let chat = global.db.data.chats[m.chat];
