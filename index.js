@@ -154,10 +154,9 @@ global.loadDatabase = async function loadDatabase() {
 // 2. Agregamos el await fundamental aquí:
 await loadDatabase()
 
-const DATABASE_DIR = './src/database'
-if (!fs.existsSync(DATABASE_DIR)) fs.mkdirSync(DATABASE_DIR, { recursive: true })
+if (!fs.existsSync(global.Ellensessions)) fs.mkdirSync(global.Ellensessions, { recursive: true })
 // Bails: la sesión principal usa SQLite y vive exclusivamente dentro de ./src/database/.
-const sessionDir = path.join(DATABASE_DIR, global.Ellensessions || 'EllenSessions')
+const sessionDir = path.join(global.Ellensessions || 'EllenSessions')
 if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true })
 const sessionDbPath = path.join(sessionDir, 'sesion.db')
 const {version} = await fetchLatestBaileysVersion();
