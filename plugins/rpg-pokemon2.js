@@ -87,16 +87,16 @@ async function buildPokemonObj(idOrName, level = 1) {
   const cleanId = idOrName.toString().toLowerCase().trim().replace(/\s+/g, '-')
   const d = await fetchAPI(`pokemon/${cleanId}`)
   if (!d) return null
-  
+
   let movesDisponibles = d.moves.filter(m => m.version_group_details[0].move_learn_method.name === 'level-up')
   let shuffled = movesDisponibles.sort(() => 0.5 - Math.random()).slice(0, 4)
-  
+
   let moves = await Promise.all(shuffled.map(async (m) => {
     let moveData = await fetchAPI(`move/${m.move.name}`)
-    return { 
-      nombre: moveData?.name?.toUpperCase()?.replace('-', ' ') || 'GOLPE', 
-      poder: moveData?.power || 50, 
-      tipo: moveData?.type?.name?.toUpperCase() || 'NORMAL' 
+    return {
+      nombre: moveData?.name?.toUpperCase()?.replace('-', ' ') || 'GOLPE',
+      poder: moveData?.power || 50,
+      tipo: moveData?.type?.name?.toUpperCase() || 'NORMAL'
     }
   }))
 
@@ -129,12 +129,12 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   const subCommand = args[0]?.toLowerCase()
 
   if (command === 'pkliga') {
-    
+
     // COMANDO: ATACAR
     if (subCommand === 'atacar') {
       let b = ligaCombates[m.sender]
       if (!b) return m.reply(`❌ No hay combate activo.`)
-      
+
       let moveIdx = parseInt(args[1]) - 1
       if (isNaN(moveIdx) || !b.p1.moves[moveIdx]) return m.reply('❌ Elige ataque 1-4.')
 
@@ -175,7 +175,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     if (isNaN(miIdx)) {
       let pokeLider = await buildPokemonObj(gym.pId, gym.lvl)
       if (!pokeLider) return m.reply("❌ Error al conectar con PokéAPI. Intenta de nuevo.")
-      
+
       let txt = `🏟️ **GIMNASIO OFICIAL #${nMedallas + 1}**\n`
       txt += `👤 **Líder:** ${gym.n}\n`
       txt += `🏅 **Medalla:** ${gym.med}\n`
@@ -206,7 +206,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
       p2: { ...p2, currentHp: p2.hp, maxHp: p2.hp, nombre: `LÍDER ${gym.n.toUpperCase()}` },
       dataGym: gym
     }
-    
+
     return renderBattle(m, conn, ligaCombates[m.sender])
   }
 }
@@ -217,11 +217,11 @@ function renderBattle(m, conn, b, log = '') {
   txt += `━━━━━━━━━━━━━━\n`
   txt += `✨ **TU ${b.p1.nombre}**\n💖 HP: ${Math.max(0, b.p1.currentHp)}/${b.p1.maxHp}\n\n`
   if (log) txt += `💬 ${log}\n\n`
-  
-  b.p1.moves.forEach((v, i) => { 
-    txt += `[${i + 1}] ${v.nombre} (${v.tipo})\n` 
+
+  b.p1.moves.forEach((v, i) => {
+    txt += `[${i + 1}] ${v.nombre} (${v.tipo})\n`
   })
-  
+
   txt += `\n➡️ *Ataca con:* \`.pkliga atacar [1-4]\``
   return conn.sendFile(m.chat, b.p2.imagen, 'b.png', txt, m)
 }

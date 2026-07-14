@@ -1,4 +1,4 @@
-import MessageType from '@whiskeysockets/baileys';
+import MessageType from 'baileys';
 
 let handler = async (m, { conn, text }) => {
     let who;

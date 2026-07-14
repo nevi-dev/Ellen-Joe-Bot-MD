@@ -1,4 +1,4 @@
-import { WAMessageStubType } from '@whiskeysockets/baileys';
+import { WAMessageStubType } from 'baileys';
 import fetch from 'node-fetch';
 
 let handler = async (m, { conn, usedPrefix, command, text }) => {
@@ -6,7 +6,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
     return m.reply(`${emoji} Para usar este comando debe activar las Bienvenidas con *#welcome*`);
     }
     let chat = global.db.data.chats[m.chat];
-    
+
     let mentions = text.trim();
     let who = mentions ? conn.parseMention(mentions) : [];
     if (!text) return conn.reply(m.chat, `${emoji} Menciona al usuario con @ para simular la bienvenida.`, m);

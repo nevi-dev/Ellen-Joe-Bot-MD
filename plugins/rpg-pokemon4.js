@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 
-let matchmaking = [] 
-let duelosActivos = {} 
+let matchmaking = []
+let duelosActivos = {}
 let apiCache = {}
 
 async function fetchAPI(endpoint) {
@@ -16,7 +16,7 @@ async function fetchAPI(endpoint) {
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
   let user = global.db.data.users[m.sender]
-  
+
   if (!user.pkDuelo) user.pkDuelo = { copas: 500, ganadas: 0, derrotas: 0, usoFrecuente: {} }
 
   const sub = args[0]?.toLowerCase()
@@ -68,7 +68,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
     let log = `⚔️ **${yo.nombre}** usó **${move.nombre}**...\n`
     let randomHit = Math.floor(Math.random() * 100)
-    
+
     if (randomHit > move.precision) {
         log += `❌ ¡El ataque ha fallado!`
     } else if (Math.random() * 100 < (elRival.speed / 15)) {
@@ -80,13 +80,13 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     }
 
     d.turno = elRival.id
-    
+
     if (elRival.currentHp <= 0) {
       let c = d.tipo === 'amistoso' ? 0 : calcularCopas(global.db.data.users[yo.id]?.pkDuelo?.copas || 500, global.db.data.users[elRival.id]?.pkDuelo?.copas || 500)
       if (d.tipo !== 'amistoso') actualizarGanador(yo.id, elRival.id, c, yo.nombre)
-      
+
       let winMsg = `${log}\n\n🏆 **¡@${String(yo.id).split('@')[0]} GANA EL DUELO!**\n${d.tipo !== 'amistoso' ? `📈 Copas: +${c}` : 'Fin del duelo amistoso.'}`
-      
+
       conn.reply(m.chat, winMsg, null, { mentions: [yo.id, elRival.id] })
       delete duelosActivos[d.p1.id]; delete duelosActivos[d.p2.id]
       return

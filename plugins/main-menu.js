@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import moment from 'moment-timezone';
 import phoneNumber from 'awesome-phonenumber';
-import { prepareWAMessageMedia, generateWAMessageFromContent } from '@whiskeysockets/baileys';
+import { prepareWAMessageMedia, generateWAMessageFromContent } from 'baileys';
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = "⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄's 𝐒ervice";
@@ -29,17 +29,17 @@ const CATEGORY_GROUPS = {
   '💖 INTERACCIÓN EMOX': ['emox'],
   '⚔️ INCURSIÓN EN CAVIDAD | RPG': ['rpg'],
   '📝 REGISTRO DE CIUDADANO': ['rg'],
-  '🎲 SINTONIZACIÓN | GACHA': ['gacha', 'waifus'], 
+  '🎲 SINTONIZACIÓN | GACHA': ['gacha', 'waifus'],
   '🏙️ NEW ERIDU | PRINCIPAL': ['main'],
   '⚙️ PROTOCOLO DE ADMIN': ['admin', 'mods'],
   '🛠️ SOPORTE TÉCNICO | TOOLS': ['tools', 'herramientas', 'transformador', 'info', 'economy', 'economia', 'premium', 'bot'],
   '🧠 INTELIGENCIA ARTIFICIAL': ['ai', 'search'],
-  '🕹️ ENTRETENIMIENTO | FUN': ['fun', 'game', 'games'], 
+  '🕹️ ENTRETENIMIENTO | FUN': ['fun', 'game', 'games'],
   '🖼️ CONTENIDO VISUAL | PIC': ['image', 'sticker'],
   '⬇️ DESCARGAS | DOWNLOADS': ['downloads', 'dl', 'buscador', 'internet'],
   '👥 GESTIÓN DE FACCIÓN | GRUPOS': ['group'],
   '✨ ARCHIVOS MULTIMEDIA': ['anime', 'audio'],
-  '⚙️ configuracion': ['nable'], 
+  '⚙️ configuracion': ['nable'],
 };
 
 const TAG_TO_GROUP = {};
@@ -129,7 +129,7 @@ ${sep}`.trim();
         }
       }
     }, { quoted: m });
-    
+
     return; // Detiene la ejecución aquí para no enviar el menú de botones
   }
 
@@ -140,11 +140,11 @@ ${sep}`.trim();
   // Generar las filas de la lista divididas en 2 secciones para evitar límites de WhatsApp
   let listRows1 = [];
   let listRows2 = [];
-  
+
   Object.keys(CATEGORY_GROUPS).forEach((group, index) => {
-    let row = { 
-      title: group, 
-      description: `Explorar comandos de este sector`, 
+    let row = {
+      title: group,
+      description: `Explorar comandos de este sector`,
       id: `${usedPrefix}help ${CATEGORY_GROUPS[group][0]}` // Usa tu comando base de ayuda
     };
     if (index < 9) listRows1.push(row);
@@ -193,8 +193,8 @@ ${sep}`.trim();
     }
   };
 
-  let msg = generateWAMessageFromContent(m.chat, { 
-    viewOnceMessage: { message: { interactiveMessage } } 
+  let msg = generateWAMessageFromContent(m.chat, {
+    viewOnceMessage: { message: { interactiveMessage } }
   }, { userJid: conn.user.jid });
 
   await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id });

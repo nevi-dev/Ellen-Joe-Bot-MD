@@ -1,5 +1,5 @@
-import { WAMessageStubType } from '@whiskeysockets/baileys'
-import pkg from '@whiskeysockets/baileys'
+import { WAMessageStubType } from 'baileys'
+import * as pkg from 'baileys'
 const { generateWAMessageContent } = pkg
 
 export async function before(m, { conn, participants, groupMetadata }) {
@@ -7,7 +7,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
     if (!m.isGroup || !m.messageStubType) return true
 
     let chat = global.db.data.chats[m.chat]
-    if (!chat?.welcome) return true 
+    if (!chat?.welcome) return true
 
     const groupName = groupMetadata?.subject || 'Esta Cavidad'
     const groupDesc = groupMetadata?.desc?.toString() || 'Sin descripción'
@@ -19,7 +19,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
       const users = m.messageStubParameters || []
       for (const user of users) {
         const jid = user.includes('@') ? user : `${user}@s.whatsapp.net`
-        
+
         let txt = chat.sWelcome || global.welcom1 || `
 > ꒰🦈꒱ ¡𝓞𝐡! 𝓤𝐧 𝐧𝐮𝐞𝐯𝐨 𝐣𝐮𝐠𝐮𝐞𝐭𝐞 𝐬𝐞́ 𝐮𝐧𝐢𝐨́... 𝐪𝐮𝐞́ 𝐦𝐨𝐥𝐞𝐬𝐭𝐢𝐚.
 ➥ 𝓑𝒊𝒆𝒏𝒗𝒆𝒏𝒊𝒅𝒂/𝒐 𝒂 *#group*
@@ -44,7 +44,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
       const users = m.messageStubParameters || []
       for (const user of users) {
         const jid = user.includes('@') ? user : `${user}@s.whatsapp.net`
-        
+
         let userData = global.db.data.users[jid]
         let stayTime = userData?.joindate ? clockString(new Date() - userData.joindate) : 'un tiempo desconocido'
 
@@ -53,7 +53,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
 
 𝓠𝒖𝒆 𝒃𝒖𝒆𝒏𝒐 𝒒𝒖𝒆 𝒕𝒆 𝒇𝒖𝒊𝒔𝒕𝒆, 𝒂𝒔𝒊́ 𝒕𝒖 𝒍𝒖𝒈𝒂𝒓 𝒍𝒐 𝒖𝒔𝒂 𝒂𝒍𝒈𝒖𝒊𝒆𝒏 𝒒𝒖𝒆 𝒔𝒊́ 𝒗𝒂𝒍𝒈𝒂 𝒍𝒂 𝒑𝒆𝒏𝒂. 𝑷𝒐𝒓 𝒄𝒊𝒆𝒓𝒕𝒐, 𝒑𝒆𝒓𝒅𝒊𝒔𝒕𝒆 𝒕𝒐𝒅𝒐 𝒕𝒖 𝒊𝒏𝒗𝒆𝒏𝒕𝒂𝒓𝒊𝒐.
 > ⌛ *𝐃𝐮𝐫𝐚𝐜𝐢𝐨́𝐧:* #stay`.trim()
-        
+
         txt = txt.replace(/@user/g, `@${jid.split('@')[0]}`)
                  .replace(/#group/g, groupName)
                  .replace(/#desc/g, groupDesc)
@@ -130,9 +130,9 @@ async function sendEllenMsg(m, conn, text, user, title) {
   } catch (e) {
     console.error('Error en Relay Bienvenida:', e)
     // Fallback por si falla el proceso de metadatos
-    await conn.sendMessage(m.chat, { 
-        text: text + '\n\n' + githubLink, 
-        contextInfo: { mentionedJid: [user] } 
+    await conn.sendMessage(m.chat, {
+        text: text + '\n\n' + githubLink,
+        contextInfo: { mentionedJid: [user] }
     }, { quoted: null })
   }
 }
