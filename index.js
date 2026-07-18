@@ -221,17 +221,35 @@ version,
 
 const MAIN_MAX_RECONNECT_RETRIES = 5
 let mainReconnectAttempts = 0
+let gracefulShutdownStarted = false
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-const getReconnectDelay = (attempt) => Math.min(5000 * (2 ** Math.max(attempt - 1, 0)), 20000)
-const deleteSessionFolder = async (folderPath) => {
+const getReconnectDelay = (attempt) => Math.min(5000 * (2 ** Math.max(attempt - 1, 0)), 60000)
+const sessionDbFiles = () => [sessionDbPath, `${sessionDbPath}-wal`, `${sessionDbPath}-shm`, `${sessionDbPath}-journal`]
+const deleteMainSessionDatabase = async () => {
+await Promise.all(sessionDbFiles().map(async (filePath) => {
 try {
-await fs.promises.rm(folderPath, { recursive: true, force: true })
-console.log(chalk.bold.redBright(`
-⚠️ Sesión eliminada: ${folderPath}`))
+await fs.promises.rm(filePath, { force: true })
 } catch (error) {
-console.error(`No se pudo eliminar la sesión ${folderPath}:`, error)
+console.error(`No se pudo eliminar ${filePath}:`, error)
 }
+}))
+console.log(chalk.bold.redBright(`
+⚠️ Sesión SQLite eliminada tras ${MAIN_MAX_RECONNECT_RETRIES} reintentos fallidos: ${sessionDbFiles().join(', ')}`))
 }
+const shutdown = async (signal = 'SIGTERM', exitCode = 0) => {
+if (gracefulShutdownStarted) return
+gracefulShutdownStarted = true
+console.log(chalk.bold.yellow(`
+⚠️ ${signal} recibido. Guardando store y cerrando proceso...`))
+try {
+store.writeToFile?.('./src/database/store.json')
+} catch (error) {
+console.error('No se pudo guardar el store antes de cerrar:', error)
+}
+setTimeout(() => process.exit(exitCode), 250).unref?.()
+}
+process.once('SIGINT', () => shutdown('SIGINT', 0))
+process.once('SIGTERM', () => shutdown('SIGTERM', 0))
 
 global.conn = makeWASocket(connectionOptions);
 
@@ -288,24 +306,21 @@ console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 
 const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
-if (statusCode === 401 || statusCode === 403) {
-console.log(chalk.bold.redBright(`
-⚠️ SESIÓN DEL BOT PRINCIPAL CERRADA O BANEADA (${statusCode}). BORRANDO ${global.Ellensessions} Y DETENIENDO RECONEXIÓN ⚠️`))
-await fs.promises.rm(sessionDbPath, { force: true })
-return
-}
-
-if (mainReconnectAttempts >= MAIN_MAX_RECONNECT_RETRIES) {
-console.log(chalk.bold.redBright(`
-⚠️ RECONEXIÓN CANCELADA: ${MAIN_MAX_RECONNECT_RETRIES} intentos fallidos consecutivos para el bot principal. Último código: ${statusCode || 'No Encontrado'}`))
-return
-}
-
 mainReconnectAttempts += 1
+
+if (mainReconnectAttempts > MAIN_MAX_RECONNECT_RETRIES) {
+console.log(chalk.bold.redBright(`
+⚠️ RECONEXIÓN AGOTADA: ${MAIN_MAX_RECONNECT_RETRIES} intentos consecutivos fallaron. Último código: ${statusCode || 'No Encontrado'}.
+⚠️ Eliminando sesion.db, sesion.db-wal, sesion.db-shm y saliendo con process.exit(1).`))
+await deleteMainSessionDatabase()
+return process.exit(1)
+}
+
 const delayMs = getReconnectDelay(mainReconnectAttempts)
 console.log(chalk.bold.yellowBright(`
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸
-┆ ⚠️ CONEXIÓN CERRADA (${statusCode || 'No Encontrado'}). Reintento ${mainReconnectAttempts}/${MAIN_MAX_RECONNECT_RETRIES} en ${delayMs / 1000}s...
+┆ ⚠️ CONEXIÓN CERRADA (${statusCode || 'No Encontrado'}).
+┆ Reintento ciego ${mainReconnectAttempts}/${MAIN_MAX_RECONNECT_RETRIES} en ${delayMs / 1000}s...
 ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸`))
 await wait(delayMs)
 await global.reloadHandler(true).catch(console.error)

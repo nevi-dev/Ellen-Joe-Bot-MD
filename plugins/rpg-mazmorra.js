@@ -26,21 +26,14 @@ let handler = async (m, { conn, usedPrefix, command }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `— Limpieza de Cavidades para ${name}`,
-            thumbnail: icons, 
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     let tiempoEspera = 8 * 60; // 8 minutos
 
     if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {
         let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempoEspera * 1000 - Date.now()) / 1000));
-        return conn.reply(m.chat, `*— (Bostezo)*... Qué insistente eres. Todavía no me recupero de la última incursión. Espera **${tiempoRestante}** o ve tú solo.`, m, { contextInfo });
+        return m.replyExternal(`*— (Bostezo)*... Qué insistente eres. Todavía no me recupero de la última incursión. Espera **${tiempoRestante}** o ve tú solo.`, { contextInfo });
     }
 
     if (!user) {

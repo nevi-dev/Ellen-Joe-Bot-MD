@@ -14,14 +14,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
       newsletterName,
       serverMessageId: -1
     },
-    externalAdReply: {
-      title: botname,
-      body: wm,
-      thumbnail: icons,
-      sourceUrl: redes,
-      mediaType: 1,
-      renderLargerThumbnail: false
-    }
+
   };
 
   const prompt = args.join(' ');
@@ -38,7 +31,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     // Traducir prompt a inglés
     const { text: translatedPrompt } = await translate(prompt, { to: 'en', autoCorrect: true });
 
-    await conn.reply(m.chat, `🎨 *Creando imagen a partir del texto...* ✨\n(⌒‿⌒) 〰️`, m, { contextInfo, quoted: m });
+    await m.replyExternal(`🎨 *Creando imagen a partir del texto...* ✨\n(⌒‿⌒) 〰️`, { contextInfo });
 
     const apiUrl = `https://api.vreden.my.id/api/artificial/aiease/text2img?prompt=${encodeURIComponent(translatedPrompt)}&style=19`;
     const res = await fetch(apiUrl, {
@@ -82,7 +75,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
   } catch (e) {
     console.error(e);
-    conn.reply(m.chat, `😿 *Ocurrió un error al crear la imagen...*\n\`\`\`${e.message}\`\`\``, m, { contextInfo, quoted: m });
+    m.replyExternal(`😿 *Ocurrió un error al crear la imagen...*\n\`\`\`${e.message}\`\`\``, { contextInfo });
   }
 };
 

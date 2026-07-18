@@ -32,18 +32,11 @@ let handler = async (m, { conn, args }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `— Servicio de Seguridad para ${name}`,
-            thumbnail: icons, // Asegúrate de que 'icons' esté definido globalmente
-            sourceUrl: redes, // Asegúrate de que 'redes' esté definido globalmente
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     }
 
     if (args.length === 0) {
-        return await conn.reply(m.chat, `*— (Bostezo)*... Si quieres que trabaje extra, al menos dime el ID o el nombre de la waifu. No soy adivina.`, m, { contextInfo })
+        return await m.replyExternal(`*— (Bostezo)*... Si quieres que trabaje extra, al menos dime el ID o el nombre de la waifu. No soy adivina.`, { contextInfo })
     }
 
     const input = args.join(' ').toLowerCase().trim()
@@ -53,19 +46,19 @@ let handler = async (m, { conn, args }) => {
         const targetIndex = characters.findIndex(c => c.id == input || c.name.toLowerCase() === input)
         const targetCharacter = characters[targetIndex]
 
-        if (!targetCharacter) return await conn.reply(m.chat, `*— ¿Eh?* Esa waifu no existe en mis registros. No me hagas perder el tiempo.`, m, { contextInfo })
+        if (!targetCharacter) return await m.replyExternal(`*— ¿Eh?* Esa waifu no existe en mis registros. No me hagas perder el tiempo.`, { contextInfo })
         
-        if (targetCharacter.user !== userId) return await conn.reply(m.chat, `*— Escucha...* Esa waifu no es tuya. No puedo ponerle un escudo a algo que no te pertenece. Qué molestia.`, m, { contextInfo })
+        if (targetCharacter.user !== userId) return await m.replyExternal(`*— Escucha...* Esa waifu no es tuya. No puedo ponerle un escudo a algo que no te pertenece. Qué molestia.`, { contextInfo })
 
         // BLOQUEO SI YA TIENE TOKEN ACTIVO
         if (targetCharacter.protectionUntil && targetCharacter.protectionUntil > now) {
-            return await conn.reply(m.chat, `*— Suspiro...* **${targetCharacter.name}** ya tiene un escudo puesto. No voy a gastar más energía en algo que ya está protegido. Vuelve cuando se rompa.`, m, { contextInfo })
+            return await m.replyExternal(`*— Suspiro...* **${targetCharacter.name}** ya tiene un escudo puesto. No voy a gastar más energía en algo que ya está protegido. Vuelve cuando se rompa.`, { contextInfo })
         }
 
         // COBRO DE MONEDAS
         let user = global.db.data.users[userId]
         if (!user || (user.coin || 0) < PROTECTION_TOKEN_COST) {
-            return await conn.reply(m.chat, `*— Tsk.* No tienes suficientes créditos. El servicio de Victoria Housekeeping cuesta **${PROTECTION_TOKEN_COST}** 💰. Vuelve cuando seas rico.`, m, { contextInfo })
+            return await m.replyExternal(`*— Tsk.* No tienes suficientes créditos. El servicio de Victoria Housekeeping cuesta **${PROTECTION_TOKEN_COST}** 💰. Vuelve cuando seas rico.`, { contextInfo })
         }
 
         // PROCESO DE PROTECCIÓN
@@ -80,10 +73,10 @@ let handler = async (m, { conn, args }) => {
 
         const statusMsg = `🦈 **𝐒𝐄𝐑𝐕𝐈𝐂𝐈𝐎 𝐃𝐄 𝐏𝐑𝐎𝐓𝐄𝐂𝐂𝐈𝐎́𝐍**\n\n*— Bien, ya está.* He puesto a **${targetCharacter.name}** bajo mi guardia. Nadie la tocará mientras esté de turno... supongo.\n\n📅 **Termino mi turno el:** ${expirationDate}\n💰 **Tarifa cobrada:** ${PROTECTION_TOKEN_COST.toLocaleString()} 💰\n\n*— Me voy a mi descanso, no me molestes.*`
 
-        await conn.reply(m.chat, statusMsg, m, { contextInfo })
+        await m.replyExternal(statusMsg, { contextInfo })
 
     } catch (error) {
-        await conn.reply(m.chat, `*— Tsk, algo salió mal:* ${error.message}. Qué problemático...`, m, { contextInfo })
+        await m.replyExternal(`*— Tsk, algo salió mal:* ${error.message}. Qué problemático...`, { contextInfo })
     }
 }
 

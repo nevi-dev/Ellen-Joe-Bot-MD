@@ -68,28 +68,7 @@ ${sep}
     ? global.icons
     : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
 
-  const sendExternalMessage = async (msgText) => {
-    await conn.sendMessage(m.chat, {
-      text: `${matchedUrl}
-
-${msgText}`,
-      linkPreview: null,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardingScore: 999,
-        forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
-        externalAdReply: {
-          title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-          body: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
-          thumbnail: thumbnailBuffer,
-          sourceUrl: matchedUrl,
-          mediaType: 1,
-          renderLargerThumbnail: false
-        }
-      }
-    }, { quoted: m });
-  };
+  const sendExternalMessage = (msgText, options = {}) => m.replyExternal(msgText, options)
 
   await sendExternalMessage(encabezado);
 };

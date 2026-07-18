@@ -96,28 +96,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         thumbnailBuffer = Buffer.alloc(0);
     }
 
-    const sendExternalMessage = async (msgText) => {
-        await conn.sendMessage(m.chat, {
-            text: `${matchedUrl}
-
-${msgText}`,
-            linkPreview: null,
-            contextInfo: {
-                mentionedJid: [m.sender],
-                isForwarded: true,
-                forwardingScore: 999,
-                forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
-                externalAdReply: {
-                    title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-                    body: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
-                    thumbnail: thumbnailBuffer,
-                    sourceUrl: matchedUrl,
-                    mediaType: 1,
-                    renderLargerThumbnail: false
-                }
-            }
-        }, { quoted: m });
-    };
+    const sendExternalMessage = (msgText, options = {}) => m.replyExternal(msgText, options)
 
     const sendInteractiveCard = async (text, imageUrl, buttons = []) => {
         const nativeFlow = buttons.map((button, index) => {

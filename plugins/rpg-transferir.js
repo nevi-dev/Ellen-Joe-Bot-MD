@@ -20,14 +20,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `— Gestión de Fondos para ${name}`,
-            thumbnail: icons, 
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     // --- 1. DETECTAR DESTINATARIO Y MONTO ---
@@ -45,32 +38,32 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         const pendingTx = user[txState];
         if (!pendingTx || pendingTx.amount !== amount || pendingTx.recipient !== who) {
             user[txState] = null;
-            return conn.reply(m.chat, `*— Tsk.* Esa transferencia ya no es válida o expiró. Inténtalo de nuevo.`, m, { contextInfo });
+            return m.replyExternal(`*— Tsk.* Esa transferencia ya no es válida o expiró. Inténtalo de nuevo.`, { contextInfo });
         }
 
         if (action === 'CANCEL') {
             user[txState] = null;
-            return conn.reply(m.chat, `*— Bien.* He cancelado el envío de **${amount} ${moneda}**. Me vuelvo a mi descanso.`, m, { contextInfo });
+            return m.replyExternal(`*— Bien.* He cancelado el envío de **${amount} ${moneda}**. Me vuelvo a mi descanso.`, { contextInfo });
         }
     } else {
         // Comando normal: .transferir <monto> (respondiendo o mencionando)
         amount = parseInt(args[0]);
     }
 
-    if (!who) return conn.reply(m.chat, `*— (Bostezo)*... Responde a alguien o menciónalo para enviarle dinero. No voy a adivinar a quién.`, m, { contextInfo });
-    if (!amount || isNaN(amount) || amount < 100) return conn.reply(m.chat, `*— Oye...* Dime una cantidad válida (mínimo 100 ${moneda}). No me hagas trabajar por nada.`, m, { contextInfo });
+    if (!who) return m.replyExternal(`*— (Bostezo)*... Responde a alguien o menciónalo para enviarle dinero. No voy a adivinar a quién.`, { contextInfo });
+    if (!amount || isNaN(amount) || amount < 100) return m.replyExternal(`*— Oye...* Dime una cantidad válida (mínimo 100 ${moneda}). No me hagas trabajar por nada.`, { contextInfo });
 
     // --- 2. VALIDACIONES ---
     if (user[bankType] < amount) {
-        return conn.reply(m.chat, `*— Tsk.* No tienes suficiente en el banco. Tu saldo es de **${user[bankType]} ${moneda}**. Vuelve cuando seas rico.`, m, { contextInfo });
+        return m.replyExternal(`*— Tsk.* No tienes suficiente en el banco. Tu saldo es de **${user[bankType]} ${moneda}**. Vuelve cuando seas rico.`, { contextInfo });
     }
 
     if (who === m.sender) {
-        return conn.reply(m.chat, `*— ¿En serio?* No puedes enviarte dinero a ti mismo. Qué pérdida de tiempo.`, m, { contextInfo });
+        return m.replyExternal(`*— ¿En serio?* No puedes enviarte dinero a ti mismo. Qué pérdida de tiempo.`, { contextInfo });
     }
 
     if (!(who in global.db.data.users)) {
-        return conn.reply(m.chat, `*— ¿Eh?* Ese usuario no está en mis registros. Qué problemático.`, m, { contextInfo });
+        return m.replyExternal(`*— ¿Eh?* Ese usuario no está en mis registros. Qué problemático.`, { contextInfo });
     }
 
     // --- 3. PROCESO DE CONFIRMACIÓN ---
@@ -106,7 +99,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         const successMsg = `🦈 **¡𝐓𝐑𝐀𝐍𝐒𝐅𝐄𝐑𝐄𝐍𝐂𝐈𝐀 𝐄𝐗𝐈𝐓𝐎𝐒𝐀!**\n\n*— Trato hecho.* He movido los fondos. @${who.split('@')[0]} ha recibido **${amount} ${moneda}** en su banco.\n\n💰 **Tu saldo actual:** ${user[bankType]} ${moneda}\n\n*— Mi trabajo terminó. No me molestes.*`;
 
         contextInfo.mentionedJid.push(who);
-        return conn.reply(m.chat, successMsg, m, { contextInfo });
+        return m.replyExternal(successMsg, { contextInfo });
     }
 }
 

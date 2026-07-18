@@ -38,36 +38,7 @@ let handler = async function (m, { conn, text, args, usedPrefix, command }) {
     }
 
     // Función unificada para responder con la estética de Ellen Joe
-    const sendExternalMessage = async (msgText) => {
-        // Variables requeridas por el newsletter de tu bot
-        const newsletterJid = global.newsletterJid || '120363198533816654@newsletter';
-        const newsletterName = global.newsletterName || 'Ellen Joe Bot Updates 🦈';
-
-        await conn.relayMessage(m.chat, {
-            extendedTextMessage: {
-                text: `${matchedUrl}\n\n${msgText}`,
-                matchedText: matchedUrl,
-                canonicalUrl: matchedUrl,
-                title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂', 
-                description: `✦ ¿Necesitas algo, ${name}? Date prisa...`, 
-                previewType: 'shadow',
-                jpegThumbnail: thumbnailBuffer,
-                contextInfo: {
-                    quotedMessage: m.message,
-                    participant: m.sender,
-                    stanzaId: m.id,
-                    remoteJid: m.chat,
-                    isForwarded: true,
-                    forwardingScore: 999,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid,
-                        newsletterName,
-                        serverMessageId: -1
-                    }
-                }
-            }
-        }, { quoted: m });
-    };
+    const sendExternalMessage = (msgText, options = {}) => m.replyExternal(msgText, options)
 
     // 1. Mensaje de Usuario ya registrado
     if (user.registered === true) {
