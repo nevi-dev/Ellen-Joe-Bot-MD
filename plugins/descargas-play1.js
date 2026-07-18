@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import fs from 'fs';
 import axios from 'axios';
 import yts from "yt-search";
@@ -8,71 +8,69 @@ import path from 'path';
 const execPromise = promisify(exec);
 const API_KEY = 'causa-ee5ee31dcfc79da4';
 const API_SAVENOW = 'https://rest.apicausas.xyz/api/v3/descargas/YouTube';
+const API_V2 = 'https://rest.apicausas.xyz/api/v2/descargas/youtube';
 
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⏤͟͞ू⃪፝͜⁞⟡ 𝐄llen 𝐉ᴏ𝐄\'s 𝐒ervice';
 
-// Cabeceras para simular que somos un navegador y evitar el Error 403
 const requestHeaders = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': '*/*'
 };
 
-// Función auxiliar para obtener el peso del archivo
 const getFileSize = async (url) => {
     try {
-        const response = await axios.get(url, {
-            responseType: 'stream',
-            headers: requestHeaders
-        });
+        const response = await axios.get(url, { responseType: 'stream', headers: requestHeaders });
         const bytes = response.headers['content-length'];
-        response.data.destroy(); // Cancelar la descarga
-        if (bytes) {
-            const mb = (bytes / (1024 * 1024)).toFixed(2);
-            return `${mb} MB`;
-        }
-    } catch (e) {
-        console.error("No se pudo leer el tamaño del archivo:", e.message);
-    }
+        response.data.destroy(); 
+        if (bytes) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    } catch (e) {}
     return 'Desconocido';
 };
 
-// Función modificada para soportar cancelación inmediata (AbortSignal) con Pipe continuo
-const downloadMedia = async (url, filepath, signal) => {
+// Descarga directa (Para V3)
+const downloadMedia = async (url, filepath) => {
     const writer = fs.createWriteStream(filepath);
-    try {
-        const response = await axios.get(url, {
-            responseType: 'stream',
-            headers: requestHeaders,
-            signal: signal
+    const response = await axios.get(url, { responseType: 'stream', headers: requestHeaders });
+    response.data.pipe(writer);
+    
+    return new Promise((resolve, reject) => {
+        writer.on('finish', () => resolve(filepath));
+        writer.on('error', (err) => {
+            writer.close();
+            if (fs.existsSync(filepath)) try { fs.unlinkSync(filepath); } catch {}
+            reject(err);
         });
-        response.data.pipe(writer);
-        return new Promise((resolve, reject) => {
-            const cleanupAndReject = (err) => {
-                writer.close();
-                if (fs.existsSync(filepath)) {
-                    try { fs.unlinkSync(filepath); } catch {}
-                }
-                reject(err);
-            };
+    });
+};
 
-            writer.on('finish', () => resolve(filepath));
-            writer.on('error', cleanupAndReject);
-
-            if (signal) {
-                if (signal.aborted) return cleanupAndReject(new Error('Descarga abortada por el sistema en paralelo'));
-                signal.addEventListener('abort', () => {
-                    cleanupAndReject(new Error('Descarga abortada por el sistema en paralelo'));
-                });
+// Descarga y procesa en tiempo real con FFmpeg (Para V2)
+const downloadAndProcessV2 = async (url, type, filepath) => {
+    const response = await axios.get(url, { responseType: 'stream', headers: requestHeaders });
+    
+    return new Promise((resolve, reject) => {
+        const args = type === 'audio' 
+            ? ['-y', '-i', 'pipe:0', '-c:a', 'libmp3lame', '-b:a', '128k', filepath]
+            : ['-y', '-i', 'pipe:0', '-c:v', 'libx264', '-c:a', 'aac', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', filepath];
+            
+        const ffmpeg = spawn('ffmpeg', args);
+        
+        // Pasamos el stream de axios directo a la entrada de ffmpeg
+        response.data.pipe(ffmpeg.stdin);
+        
+        ffmpeg.on('close', (code) => {
+            if (code === 0) resolve(filepath);
+            else {
+                if (fs.existsSync(filepath)) try { fs.unlinkSync(filepath); } catch {}
+                reject(new Error(`FFmpeg falló con código ${code}`));
             }
         });
-    } catch (error) {
-        writer.close();
-        if (fs.existsSync(filepath)) {
-            try { fs.unlinkSync(filepath); } catch {}
-        }
-        throw error;
-    }
+        
+        ffmpeg.on('error', (err) => {
+            if (fs.existsSync(filepath)) try { fs.unlinkSync(filepath); } catch {}
+            reject(err);
+        });
+    });
 };
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -83,18 +81,6 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const isMode = ["audio", "video"].includes(args[0]?.toLowerCase());
     const type = isMode ? args[0].toLowerCase() : null;
     const query = isMode ? args.slice(1).join(" ") : args.join(" ");
-
-    const name = await conn.getName(m.sender);
-    const matchedUrl = 'https://github.com/nevi-dev';
-
-    let thumbnailBuffer;
-    try {
-        thumbnailBuffer = Buffer.isBuffer(global.icons)
-            ? global.icons
-            : (fs.existsSync(global.icons) ? fs.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
-    } catch (e) {
-        thumbnailBuffer = Buffer.alloc(0);
-    }
 
     const sendExternalMessage = (msgText, options = {}) => m.replyExternal(msgText, options)
 
@@ -125,132 +111,79 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     if (isMode) {
         await m.react(type === 'audio' ? "🎧" : "🎬");
-
         const ext = type === 'audio' ? 'mp3' : 'mp4';
-        const mediaPathV3 = path.join(tmpDir, `${Date.now()}_v3.${ext}`);
-        const mediaPathV2 = path.join(tmpDir, `${Date.now()}_v2.${ext}`);
+        const finalPath = path.join(tmpDir, `${Date.now()}_final.${ext}`);
 
-        const controllerV3 = new AbortController();
-        const controllerV2 = new AbortController();
-
-        const configV3 = {
-            url: API_SAVENOW,
-            params: { url: query, type: type, quality: type === 'video' ? '360' : '320', apikey: API_KEY },
-            targetQuality: type === 'video' ? '360' : '320'
-        };
-
-        const configV2 = {
-            url: 'https://rest.apicausas.xyz/api/v2/descargas/youtube',
-            params: { apikey: API_KEY, url: query, type: type },
-            targetQuality: type === 'video' ? '360' : '320'
-        };
-        if (type === 'video') configV2.params.quality = '360';
-
-        let won = false;
-
-        const runPipeline = async (version, config, mediaPath, myController, otherController) => {
-            const response = await axios.get(config.url, {
-                params: config.params,
-                headers: requestHeaders,
-                signal: myController.signal
-            });
-
-            if (!response.data || !response.data.status || !response.data.data?.download?.url) {
-                throw new Error(`API ${version} no entregó enlaces válidos.`);
-            }
-
-            const finalUrl = response.data.data.download.url;
-            const fileTitle = response.data.data.title || "Archivo";
-            const fileQuality = response.data.data.quality || config.targetQuality;
-
-            await downloadMedia(finalUrl, mediaPath, myController.signal);
-
-            if (won) {
-                if (fs.existsSync(mediaPath)) try { fs.unlinkSync(mediaPath); } catch {}
-                throw new Error(`La API ${version} llegó tarde.`);
-            }
-
-            won = true;
-            otherController.abort(); // Cancela la descarga competidora
-
-            const fileSize = response.data.data.size || await getFileSize(finalUrl);
-
-            return { version, mediaPath, fileTitle, fileQuality, fileSize };
-        };
-
-        const tasks = [
-            runPipeline('v3', configV3, mediaPathV3, controllerV3, controllerV2),
-            runPipeline('v2', configV2, mediaPathV2, controllerV2, controllerV3)
-        ];
-
-        let winner = null;
         try {
-            winner = await new Promise((resolve, reject) => {
-                let errors = 0;
-                tasks.forEach(p => {
-                    p.then(resolve).catch(err => {
-                        errors++;
-                        if (errors === tasks.length) {
-                            reject(new Error('Ambos servidores fallaron.'));
-                        }
-                    });
-                });
+            // ==========================================
+            // INTENTO 1: MOTOR V3 (Descarga Directa)
+            // ==========================================
+            const resV3 = await axios.get(API_SAVENOW, {
+                params: { url: query, type: type, quality: type === 'video' ? '360' : '320', apikey: API_KEY },
+                headers: requestHeaders
             });
-        } catch (e) {
-            console.error("Error en carrera paralela:", e.message);
-        }
 
-        if (winner) {
-            const fixedPath = path.join(tmpDir, `${Date.now()}_fixed_${winner.version}.${ext}`);
-            let finalPath = winner.mediaPath;
+            if (!resV3.data?.status || !resV3.data?.data?.download?.url) throw new Error("V3 no entregó enlaces");
+            
+            const v3Data = resV3.data.data;
+            await downloadMedia(v3Data.download.url, finalPath);
 
+            const fileSize = v3Data.size || await getFileSize(v3Data.download.url);
+            
+            if (type === 'audio') {
+                await conn.sendMessage(m.chat, { audio: { url: finalPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
+            } else {
+                const videoCaption = `🎬 *Aquí tienes.*\n\n> *Título:* ${v3Data.title || 'Video'}\n> *Calidad:* ${v3Data.quality || '360p'}\n> *Peso:* ${fileSize}\n> *Servidor:* V3`;
+                await conn.sendMessage(m.chat, { video: { url: finalPath }, caption: videoCaption, mimetype: "video/mp4" }, { quoted: m });
+            }
+            await m.react("✅");
+
+        } catch (errorV3) {
+            console.log(`[V3 Falló]: ${errorV3.message}`);
+            await sendExternalMessage(`*— Tsk...* El motor V3 falló. Intentando con el motor V2... ⚙️`);
+            
+            // ==========================================
+            // INTENTO 2: MOTOR V2 (Procesamiento en Stream con FFmpeg)
+            // ==========================================
             try {
-                // Reacción de "engranaje" para indicar que se está procesando (FFmpeg)
+                const resV2 = await axios.get(API_V2, {
+                    params: { apikey: API_KEY, url: query, type: type, quality: type === 'video' ? '360' : undefined },
+                    headers: requestHeaders
+                });
+
+                if (!resV2.data?.status || !resV2.data?.data?.download?.url) throw new Error("V2 no entregó enlaces");
+                
+                const v2Data = resV2.data.data;
+                const v2Url = v2Data.download.url;
+                
                 await m.react("⚙️"); 
+                // Descarga y procesa simultáneamente
+                await downloadAndProcessV2(v2Url, type, finalPath);
+                
+                const fileSizeV2 = v2Data.size || await getFileSize(v2Url);
 
                 if (type === 'audio') {
-                    // Forzamos codec mp3 a 128k para limpiar metadatos o reparar descargas de V2/V3
-                    await execPromise(`ffmpeg -y -i "${winner.mediaPath}" -c:a libmp3lame -b:a 128k "${fixedPath}"`);
-                    finalPath = fixedPath;
                     await conn.sendMessage(m.chat, { audio: { url: finalPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
                 } else {
-                    // Forzamos h264, aac, yuv420p (vital para WhatsApp) con preset ultrafast
-                    await execPromise(`ffmpeg -y -i "${winner.mediaPath}" -c:v libx264 -c:a aac -preset ultrafast -pix_fmt yuv420p "${fixedPath}"`);
-                    finalPath = fixedPath;
-                    const videoCaption = `🎬 *Aquí tienes.*\n\n> *Título:* ${winner.fileTitle}\n> *Calidad:* ${winner.fileQuality}\n> *Peso:* ${winner.fileSize}\n> *Servidor:* ${winner.version.toUpperCase()}`;
+                    const videoCaption = `🎬 *Aquí tienes.*\n\n> *Título:* ${v2Data.title || 'Video'}\n> *Calidad:* ${v2Data.quality || '360p'}\n> *Peso:* ${fileSizeV2}\n> *Servidor:* V2 (Corregido)`;
                     await conn.sendMessage(m.chat, { video: { url: finalPath }, caption: videoCaption, mimetype: "video/mp4" }, { quoted: m });
                 }
                 await m.react("✅");
-            } catch (e) {
-                console.error("Error al enviar/procesar el archivo definitivo:", e.message);
-                
-                // Fallback: si falla FFmpeg, intenta mandar el archivo original
-                try {
-                    if (type === 'audio') {
-                        await conn.sendMessage(m.chat, { audio: { url: winner.mediaPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
-                    } else {
-                        await conn.sendMessage(m.chat, { video: { url: winner.mediaPath }, mimetype: "video/mp4" }, { quoted: m });
-                    }
-                    await m.react("✅");
-                } catch (errFallback) {
-                    await m.react("❌");
-                }
-            } finally {
-                // Limpieza total: borramos el archivo fijo si se creó
-                if (fs.existsSync(fixedPath)) try { fs.unlinkSync(fixedPath); } catch {}
-            }
-        } else {
-            await m.react("❌");
-            await sendExternalMessage(`*— Tsk...* Ninguno de los servidores pudo procesar el enlace en este momento. Intenta de nuevo.`);
-        }
 
-        // Limpieza de los archivos originales de la carrera
-        [mediaPathV3, mediaPathV2].forEach(p => {
-            if (fs.existsSync(p)) try { fs.unlinkSync(p); } catch {}
-        });
+            } catch (errorV2) {
+                console.log(`[V2 Falló]: ${errorV2.message}`);
+                await m.react("❌");
+                await sendExternalMessage(`*— Tsk...* Ninguno de los motores pudo procesar el enlace. Intenta de nuevo más tarde.`);
+            }
+        } finally {
+            if (fs.existsSync(finalPath)) try { fs.unlinkSync(finalPath); } catch {}
+        }
         return;
     }
 
+    // ==========================================
+    // BÚSQUEDA NORMAL
+    // ==========================================
     await m.react("🔍");
     const searchResult = await yts(query);
     const video = searchResult.videos?.[0];
