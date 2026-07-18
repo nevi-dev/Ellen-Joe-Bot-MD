@@ -55,14 +55,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, // Ensure 'icons' and 'redes' are globally defined
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!args[0]) {
@@ -77,7 +70,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
     // Checking for premium status, assuming global.db.data.users is accessible.
     let user = global.db.data.users[m.sender];
     if (!user.premium) {
-        return conn.reply(m.chat, `⧼✦⧽ *Acceso Restringido, Proxy ${name}.*\nEl protocolo *${usedPrefix + command}* solo está disponible para usuarios con autorización de *Nivel Élite*.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`⧼✦⧽ *Acceso Restringido, Proxy ${name}.*\nEl protocolo *${usedPrefix + command}* solo está disponible para usuarios con autorización de *Nivel Élite*.`, { contextInfo });
     }
 
     m.react('🔄'); // Reaction for processing
@@ -93,7 +86,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
 
         if (links.error) {
             await m.react('❌'); // Error reaction
-            return conn.reply(m.chat, `❌ *Fallo en la extracción, Proxy ${name}.*\n${links.error}. Verifica el enlace o informa de la anomalía.`, m, { contextInfo, quoted: m });
+            return m.replyExternal(`❌ *Fallo en la extracción, Proxy ${name}.*\n${links.error}. Verifica el enlace o informa de la anomalía.`, { contextInfo });
         }
 
         let messageText = `╭━━━━[ 𝙰𝚗𝚒𝚖𝚎 𝙳𝚎𝚌𝚘𝚍𝚎𝚍: 𝙴𝚗𝚕𝚊𝚌𝚎𝚜 𝙰𝚜𝚎𝚐𝚞𝚛𝚊𝚍𝚘𝚜 ]━━━━⬣\n`;
@@ -108,7 +101,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
 
         if (linkCount === 0) {
             await m.react('❌');
-            return conn.reply(m.chat, `❌ *Fallo en la extracción, Proxy ${name}.*\nNo se encontraron enlaces de descarga válidos para esta URL.`, m, { contextInfo, quoted: m });
+            return m.replyExternal(`❌ *Fallo en la extracción, Proxy ${name}.*\nNo se encontraron enlaces de descarga válidos para esta URL.`, { contextInfo });
         }
 
         messageText += `\n*Nota:* Los enlaces antiguos podrían estar inactivos. Procede con precaución, Proxy.\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`;
@@ -119,7 +112,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
     } catch (error) {
         console.error("Error al procesar enlaces de anime:", error);
         await m.react('❌'); // Error reaction
-        conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación, Proxy ${name}.*\nNo pude completar la extracción de enlaces. Verifica la URL o informa del error.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía crítica en la operación, Proxy ${name}.*\nNo pude completar la extracción de enlaces. Verifica la URL o informa del error.\nDetalles: ${error.message}`, { contextInfo });
     }
 }
 

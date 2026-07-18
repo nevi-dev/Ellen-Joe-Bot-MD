@@ -17,18 +17,11 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       newsletterName,
       serverMessageId: -1
     },
-    externalAdReply: {
-      title: 'Ellen Joe: Pista localizada. 🦈',
-      body: `Procesando solicitud para el/la Proxy ${name}...`,
-      thumbnail: icons, // Asegúrate de que 'icons' y 'redes' estén definidos globalmente
-      sourceUrl: redes,
-      mediaType: 1,
-      renderLargerThumbnail: false
-    }
+
   };
 
   if (!text) {
-    return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito la designación del paquete NPM y su versión (opcional) para iniciar la extracción.\n\n_Ejemplo: ${usedPrefix + command} express,4.18.2_`, m, { contextInfo, quoted: m });
+    return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito la designación del paquete NPM y su versión (opcional) para iniciar la extracción.\n\n_Ejemplo: ${usedPrefix + command} express,4.18.2_`, { contextInfo });
   }
 
   async function npmdownloader(pkg, pkgver) {
@@ -79,7 +72,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     } catch (err) {
       console.error(`Error en npmdownloader: ${err.message}`);
-      conn.reply(m.chat, `❌ *Fallo en la extracción de NPM, Proxy ${name}.*\n${err.message}`, m, { contextInfo, quoted: m });
+      m.replyExternal(`❌ *Fallo en la extracción de NPM, Proxy ${name}.*\n${err.message}`, { contextInfo });
     }
   }
 
@@ -95,7 +88,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     await npmdownloader(pkgName.trim(), (version || 'latest').trim());
   } catch (error) {
     console.error(`Error en handler principal: ${error.message}`);
-    conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de NPM, Proxy ${name}.*\nNo pude completar la extracción. Verifica los parámetros o informa del error.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+    m.replyExternal(`⚠️ *Anomalía crítica en la operación de NPM, Proxy ${name}.*\nNo pude completar la extracción. Verifica los parámetros o informa del error.\nDetalles: ${error.message}`, { contextInfo });
   }
 };
 

@@ -76,22 +76,15 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, 
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!text) {
-        return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para localizar imágenes.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para localizar imágenes.`, { contextInfo });
     }
 
     await m.react('🔄'); 
-    conn.reply(m.chat, `🔄 *Iniciando protocolo de barrido (JSON/Headers Optimizado), Proxy ${name}.* Extrayendo URLs de alta calidad...`, m, { contextInfo, quoted: m });
+    m.replyExternal(`🔄 *Iniciando protocolo de barrido (JSON/Headers Optimizado), Proxy ${name}.* Extrayendo URLs de alta calidad...`, { contextInfo });
 
     try {
         // 1. Usar la función de extracción avanzada
@@ -100,7 +93,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         if (!results || results.length === 0) {
             await m.react('❌'); 
             // El error más probable es que la RegEx falló de nuevo o no hay resultados.
-            return conn.reply(m.chat, `❌ *Carga visual fallida, Proxy ${name}.*\nNo se encontraron imágenes o la estructura de Google ha sido actualizada.`, m, { contextInfo, quoted: m });
+            return m.replyExternal(`❌ *Carga visual fallida, Proxy ${name}.*\nNo se encontraron imágenes o la estructura de Google ha sido actualizada.`, { contextInfo });
         }
 
         // 2. Selección Aleatoria de una URL (para variar el resultado)
@@ -119,7 +112,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     } catch (error) {
         console.error("Error al procesar Google Image (Optimizado):", error);
         await m.react('❌'); 
-        conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de extracción, Proxy ${name}.*\nError: ${error.message}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía crítica en la operación de extracción, Proxy ${name}.*\nError: ${error.message}`, { contextInfo });
     }
 };
 

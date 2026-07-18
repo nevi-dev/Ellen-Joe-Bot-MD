@@ -19,32 +19,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     ? global.icons
     : (fsSync.existsSync(global.icons) ? fsSync.readFileSync(global.icons) : Buffer.from(global.icons, 'base64'));
 
-  const sendExternalMessage = async (msgText) => {
-    await conn.relayMessage(m.chat, {
-      extendedTextMessage: {
-        text: `${matchedUrl}\n\n${msgText}`,
-        matchedText: matchedUrl,
-        canonicalUrl: matchedUrl,
-        title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-        description: `✦ ¿Necesitas algo, ${name}? Date prisa...`,
-        previewType: 'shadow',
-        jpegThumbnail: thumbnailBuffer,
-        contextInfo: {
-          quotedMessage: m.message,
-          participant: m.sender,
-          stanzaId: m.id,
-          remoteJid: m.chat,
-          isForwarded: true,
-          forwardingScore: 999,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid,
-            newsletterName,
-            serverMessageId: -1
-          }
-        }
-      }
-    }, { quoted: m });
-  };
+  const sendExternalMessage = (msgText, options = {}) => m.replyExternal(msgText, options)
 
   if (!args[0]) {
     return await sendExternalMessage(`*— (Bostezo)*... ¿Viniste a pedirme algo sin saber qué?\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} https://vt.tiktok.com/ZSmrDCvrS/`);

@@ -20,20 +20,13 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         isForwarded: true,
         forwardingScore: 999,
         forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
-        externalAdReply: {
-            title: 'Ellen Joe: Rastro Visual Detectado 🦈',
-            body: `Extrayendo datos para Proxy ${name}...`,
-            thumbnail: icons, // Asegúrate que 'icons' esté definido globalmente
-            sourceUrl: redes, // Asegúrate que 'redes' esté definido globalmente
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
-    if (!text) return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Dime qué buscar en Pinterest.`, m, { contextInfo, quoted: m });
+    if (!text) return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Dime qué buscar en Pinterest.`, { contextInfo });
 
     await m.react('🔄');
-    conn.reply(m.chat, `🔄 *Iniciando barrido de red...* Buscando: ${text}`, m, { contextInfo, quoted: m });
+    m.replyExternal(`🔄 *Iniciando barrido de red...* Buscando: ${text}`, { contextInfo });
 
     try {
         // 1. LLAMADA A LA NUEVA API (GET)
@@ -78,7 +71,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     } catch (error) {
         console.error(error);
         await m.react('❌');
-        conn.reply(m.chat, `⚠️ *Anomalía, Proxy ${name}.*\nNo pude obtener las imágenes.\nMotivo: ${error.message}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía, Proxy ${name}.*\nNo pude obtener las imágenes.\nMotivo: ${error.message}`, { contextInfo });
     }
 };
 

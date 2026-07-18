@@ -58,22 +58,15 @@ let handler = async (m, { conn, args }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `— Gestión de Personal para ${name}`,
-            thumbnail: icons, // Configurado globalmente
-            sourceUrl: redes, // Configurado globalmente
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     }
 
     if (!who) {
-        return await conn.reply(m.chat, `*— (Bostezo)*... Responde al mensaje de alguien para regalarle algo. No voy a andar buscando a quién te refieres.`, m, { contextInfo })
+        return await m.replyExternal(`*— (Bostezo)*... Responde al mensaje de alguien para regalarle algo. No voy a andar buscando a quién te refieres.`, { contextInfo })
     }
 
     if (!args[0]) {
-        return await conn.reply(m.chat, `*— Oye...* Dime el nombre de la waifu que quieres regalar. No puedo leer tu mente, qué pereza.`, m, { contextInfo })
+        return await m.replyExternal(`*— Oye...* Dime el nombre de la waifu que quieres regalar. No puedo leer tu mente, qué pereza.`, { contextInfo })
     }
 
     const characterName = args.join(' ').toLowerCase().trim()
@@ -84,11 +77,11 @@ let handler = async (m, { conn, args }) => {
         const character = characters[targetIndex]
 
         if (!character) {
-            return await conn.reply(m.chat, `*— ¿Eh?* Esa waifu no es tuya o ni siquiera existe. No intentes regalar cosas que no posees, es vergonzoso.`, m, { contextInfo })
+            return await m.replyExternal(`*— ¿Eh?* Esa waifu no es tuya o ni siquiera existe. No intentes regalar cosas que no posees, es vergonzoso.`, { contextInfo })
         }
 
         if (who === userId) {
-            return await conn.reply(m.chat, `*— ¿Auto-regalo?* Qué pérdida de tiempo... Quédate con ella y déjame descansar.`, m, { contextInfo })
+            return await m.replyExternal(`*— ¿Auto-regalo?* Qué pérdida de tiempo... Quédate con ella y déjame descansar.`, { contextInfo })
         }
 
         // Transferencia de dueño
@@ -116,10 +109,10 @@ let handler = async (m, { conn, args }) => {
 
         const successMsg = `🦈 **𝐓𝐑𝐀𝐍𝐒𝐅𝐄𝐑𝐄𝐍𝐂𝐈𝐀 𝐃𝐄 𝐏𝐄𝐑𝐒𝐎𝐍𝐀𝐋**\n\n*— Bien, trato hecho.* He enviado a **${character.name}** con @${who.split('@')[0]}. Espero que la cuides mejor que este tipo... o no, me da igual.\n\n*— Mi trabajo aquí terminó. Me voy a comer algo dulce.*`
 
-        await conn.reply(m.chat, successMsg, m, { contextInfo })
+        await m.replyExternal(successMsg, { contextInfo })
 
     } catch (error) {
-        await conn.reply(m.chat, `*— Tsk, algo se rompió:* ${error.message}. Qué molesto es esto.`, m, { contextInfo })
+        await m.replyExternal(`*— Tsk, algo se rompió:* ${error.message}. Qué molesto es esto.`, { contextInfo })
     }
 }
 

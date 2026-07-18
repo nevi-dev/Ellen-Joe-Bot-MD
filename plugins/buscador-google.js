@@ -16,22 +16,15 @@ let handler = async (m, { conn, text }) => { // Added conn to params
       newsletterName,
       serverMessageId: -1
     },
-    externalAdReply: {
-      title: 'Ellen Joe: Pista localizada. 🦈',
-      body: `Procesando solicitud para el/la Proxy ${name}...`,
-      thumbnail: icons, // Ensure 'icons' and 'redes' are globally defined
-      sourceUrl: redes,
-      mediaType: 1,
-      renderLargerThumbnail: false
-    }
+
   };
 
   if (!text) {
-    return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para iniciar el barrido en Google.`, m, { contextInfo, quoted: m });
+    return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para iniciar el barrido en Google.`, { contextInfo });
   }
 
   m.react('🔄'); // Processing reaction
-  conn.reply(m.chat, `🔄 *Iniciando protocolo de barrido en Google, Proxy ${name}.* Aguarda, la carga de datos está siendo procesada.`, m, { contextInfo, quoted: m });
+  m.replyExternal(`🔄 *Iniciando protocolo de barrido en Google, Proxy ${name}.* Aguarda, la carga de datos está siendo procesada.`, { contextInfo });
 
   const apiUrl = `https://delirius-apiofc.vercel.app/search/googlesearch?query=${encodeURIComponent(text)}`;
 
@@ -41,7 +34,7 @@ let handler = async (m, { conn, text }) => { // Added conn to params
 
     if (!result.status || !result.data || result.data.length === 0) {
       await m.react('❌'); // Error reaction
-      return conn.reply(m.chat, `❌ *Carga de datos fallida, Proxy ${name}.*\nNo se encontraron resultados para "${text}". Verifica el término de búsqueda.`, m, { contextInfo, quoted: m });
+      return m.replyExternal(`❌ *Carga de datos fallida, Proxy ${name}.*\nNo se encontraron resultados para "${text}". Verifica el término de búsqueda.`, { contextInfo });
     }
 
     let replyMessage = `╭━━━━[ 𝙶𝚘𝚘𝚐𝚕𝚎 𝙳𝚎𝚌𝚘𝚍𝚎𝚍: 𝚁𝚎𝚜𝚞𝚕𝚝𝚊𝚍𝚘𝚜 𝙰𝚜𝚎𝚐𝚞𝚛𝚊𝚍𝚘𝚜 ]━━━━⬣\n`;
@@ -55,12 +48,12 @@ let handler = async (m, { conn, text }) => { // Added conn to params
     replyMessage += `╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`;
 
     await m.react('✅'); // Success reaction
-    conn.reply(m.chat, replyMessage, m, { contextInfo, quoted: m });
+    m.replyExternal(replyMessage, { contextInfo });
 
   } catch (error) {
     console.error("Error al procesar Google search:", error);
     await m.react('❌'); // Error reaction
-    conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de Google, Proxy ${name}.*\nNo pude completar la búsqueda. Verifica el término o informa del error.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+    m.replyExternal(`⚠️ *Anomalía crítica en la operación de Google, Proxy ${name}.*\nNo pude completar la búsqueda. Verifica el término o informa del error.\nDetalles: ${error.message}`, { contextInfo });
   }
 };
 

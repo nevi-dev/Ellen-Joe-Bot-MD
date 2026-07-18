@@ -15,23 +15,16 @@ const handler = async (m, { args, conn }) => {
       newsletterName,
       serverMessageId: -1
     },
-    externalAdReply: {
-      title: 'Ellen Joe: Pista localizada. 🦈',
-      body: `Procesando solicitud para el/la Proxy ${name}...`,
-      thumbnailUrl: icons,
-      sourceUrl: redes,
-      mediaType: 1,
-      renderLargerThumbnail: true
-    }
+
   };
 
   if (!args[0]) {
-    return conn.reply(m.chat, `🦈 *Rastro frío, ${name}.* Necesito la URL del post o reel.`, m, { contextInfo, quoted: m });
+    return m.replyExternal(`🦈 *Rastro frío, ${name}.* Necesito la URL del post o reel.`, { contextInfo });
   }
 
   const url = args[0].trim();
   if (!url.match(/instagram\.com|instagr\.am/)) {
-    return conn.reply(m.chat, `🚫 Ese enlace no parece de Instagram, ${name}.`, m, { contextInfo, quoted: m });
+    return m.replyExternal(`🚫 Ese enlace no parece de Instagram, ${name}.`, { contextInfo });
   }
 
   try {
@@ -59,12 +52,7 @@ const handler = async (m, { args, conn }) => {
 
     const thumbContext = {
       ...contextInfo,
-      externalAdReply: {
-        ...contextInfo.externalAdReply,
-        thumbnailUrl: data.thumbnail || icons,
-        body: `Pista asegurada • ${data.title || 'Contenido'} • ${data.user || 'Usuario'}`,
-        renderLargerThumbnail: true
-      }
+
     };
 
     await conn.sendMessage(m.chat, {
@@ -121,7 +109,7 @@ const handler = async (m, { args, conn }) => {
 
   } catch (e) {
     await m.react('❌');
-    conn.reply(m.chat, `🦈 *La pista se desvaneció, ${name}.*\nNo pude localizar el contenido. Intenta con otro enlace o espera un momento.`, m, { contextInfo, quoted: m });
+    m.replyExternal(`🦈 *La pista se desvaneció, ${name}.*\nNo pude localizar el contenido. Intenta con otro enlace o espera un momento.`, { contextInfo });
   }
 };
 

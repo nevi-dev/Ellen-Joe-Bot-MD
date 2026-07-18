@@ -18,29 +18,22 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, // Asegúrate de que 'icons' y 'redes' estén definidos globalmente
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!args || !args[0]) {
-        return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de un video o imagen de X/Twitter para iniciar la extracción.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de un video o imagen de X/Twitter para iniciar la extracción.`, { contextInfo });
     }
 
     if (enviando) {
-        return conn.reply(m.chat, `⚠️ *Transmisión en curso, Proxy ${name}.* Ya estoy procesando una solicitud. Espera un momento antes de enviar otra.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`⚠️ *Transmisión en curso, Proxy ${name}.* Ya estoy procesando una solicitud. Espera un momento antes de enviar otra.`, { contextInfo });
     }
     
     enviando = true; // Activar el flag de envío
 
     try {
         m.react('🔄'); // Reacción de procesamiento
-        conn.reply(m.chat, `🔄 *Iniciando protocolo de extracción de X/Twitter, Proxy ${name}.* Aguarda, la carga visual está siendo procesada.`, m, { contextInfo, quoted: m });
+        m.replyExternal(`🔄 *Iniciando protocolo de extracción de X/Twitter, Proxy ${name}.* Aguarda, la carga visual está siendo procesada.`, { contextInfo });
 
         const apiResponse = await axios.get(`https://delirius-apiofc.vercel.app/download/twitterdl?url=${args[0]}`);
         const res = apiResponse.data;
@@ -79,7 +72,7 @@ ${res.caption ? `📝 *Manifiesto de Carga:* ${res.caption}\n` : ''}🔗 *Enlace
         enviando = false; // Asegurar que el flag se resetee en caso de error
         console.error("Error al procesar X/Twitter:", error);
         await m.react('❌'); // Reacción de error
-        conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de X/Twitter, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${error.message || error}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía crítica en la operación de X/Twitter, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${error.message || error}`, { contextInfo });
     }
 };
 
