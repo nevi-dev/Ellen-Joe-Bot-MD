@@ -18,29 +18,22 @@ let handler = async (m, { conn }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-            body: `— Incursión en Cavidad para ${name}`,
-            thumbnail: icons, // Buffer directo
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!user) {
-        return conn.reply(m.chat, `*— ¿Eh?* No estás en mis registros. Qué pérdida de tiempo.`, m);
+        return m.replyExternal(`*— ¿Eh?* No estás en mis registros. Qué pérdida de tiempo.`, m);
     }
 
     // Validación de Salud (Mínimo 80 HP para entrar a la Cavidad)
     if ((user.health || 0) < 80) {
-        return conn.reply(m.chat, `*— Tsk...* El nivel de éter te mataría con esa salud. Tienes **${user.health || 0} HP**. Ve a descansar o usa #heal, no quiero recoger tus restos.`, m, { contextInfo });
+        return m.replyExternal(`*— Tsk...* El nivel de éter te mataría con esa salud. Tienes **${user.health || 0} HP**. Ve a descansar o usa #heal, no quiero recoger tus restos.`, { contextInfo });
     }
 
     // Cooldown de 25 minutos (1500000 ms)
     if (user.lastAdventure && new Date() - user.lastAdventure <= 1500000) {
         let timeLeft = 1500000 - (new Date() - user.lastAdventure);
-        return conn.reply(m.chat, `*— (Bostezo)*... Las incursiones agotan. Vuelve en **${msToTime(timeLeft)}**. Estoy en mi descanso y no pienso moverme.`, m, { contextInfo });
+        return m.replyExternal(`*— (Bostezo)*... Las incursiones agotan. Vuelve en **${msToTime(timeLeft)}**. Estoy en mi descanso y no pienso moverme.`, { contextInfo });
     }
 
     // Zonas de Zenless Zone Zero

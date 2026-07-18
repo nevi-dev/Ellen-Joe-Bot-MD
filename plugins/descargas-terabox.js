@@ -17,29 +17,22 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
       newsletterName,
       serverMessageId: -1
     },
-    externalAdReply: {
-      title: 'Ellen Joe: Pista localizada. 🦈',
-      body: `Procesando solicitud para el/la Proxy ${name}...`,
-      thumbnail: icons, // Ensure 'icons' and 'redes' are globally defined
-      sourceUrl: redes,
-      mediaType: 1,
-      renderLargerThumbnail: false
-    }
+
   };
 
   if (!text) {
-    return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de un archivo de Terabox para iniciar la extracción.`, m, { contextInfo, quoted: m });
+    return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de un archivo de Terabox para iniciar la extracción.`, { contextInfo });
   }
 
   m.react('🔄'); // Processing reaction
-  conn.reply(m.chat, `🔄 *Iniciando protocolo de extracción Terabox, Proxy ${name}.* Aguarda, la carga de datos está siendo procesada.`, m, { contextInfo, quoted: m });
+  m.replyExternal(`🔄 *Iniciando protocolo de extracción Terabox, Proxy ${name}.* Aguarda, la carga de datos está siendo procesada.`, { contextInfo });
 
   try {
     const result = await terabox(text);
 
     if (!result || result.length === 0) {
       await m.react('❌'); // Error reaction
-      return conn.reply(m.chat, `❌ *Carga de datos fallida, Proxy ${name}.*\nNo se encontraron archivos válidos en la URL proporcionada. Verifica el enlace.`, m, { contextInfo, quoted: m });
+      return m.replyExternal(`❌ *Carga de datos fallida, Proxy ${name}.*\nNo se encontraron archivos válidos en la URL proporcionada. Verifica el enlace.`, { contextInfo });
     }
 
     for (let i = 0; i < result.length; i++) {
@@ -47,7 +40,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
       if (!fileName || !url) {
         console.error('Error: Datos del archivo Terabox incompletos', { fileName, url });
-        conn.reply(m.chat, `⚠️ *Anomalía de datos, Proxy ${name}.*\nUn archivo de la lista no pudo ser procesado correctamente (nombre o URL faltante).`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía de datos, Proxy ${name}.*\nUn archivo de la lista no pudo ser procesado correctamente (nombre o URL faltante).`, { contextInfo });
         continue;
       }
 
@@ -67,14 +60,14 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         await m.react('✅'); // React to each successful file send
       } catch (fileSendError) {
         console.error(`Error al enviar el archivo "${fileName}":`, fileSendError);
-        conn.reply(m.chat, `❌ *Fallo en la transmisión de archivo, Proxy ${name}.*\nNo pude enviar "${fileName}". Detalles: ${fileSendError.message}.`, m, { contextInfo, quoted: m });
+        m.replyExternal(`❌ *Fallo en la transmisión de archivo, Proxy ${name}.*\nNo pude enviar "${fileName}". Detalles: ${fileSendError.message}.`, { contextInfo });
         await m.react('❌'); // React to each failed file send
       }
     }
   } catch (err) {
     console.error('Error general al descargar Terabox:', err);
     await m.react('❌'); // React to general failure
-    conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación Terabox, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${err.message || err}`, m, { contextInfo, quoted: m });
+    m.replyExternal(`⚠️ *Anomalía crítica en la operación Terabox, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${err.message || err}`, { contextInfo });
   }
 };
 

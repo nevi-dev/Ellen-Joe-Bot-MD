@@ -17,22 +17,15 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, // Ensure 'icons' and 'redes' are globally defined
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!text) {
-        return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de un video de TikTok para extraer su audio.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de un video de TikTok para extraer su audio.`, { contextInfo });
     }
 
     conn.sendMessage(m.chat, { react: { text: "🔄", key: m.key } }); // Changed emoji to '🔄' for consistency
-    conn.reply(m.chat, `🔄 *Iniciando protocolo de extracción de audio de TikTok, Proxy ${name}.* Aguarda, el flujo de datos está siendo procesado.`, m, { contextInfo, quoted: m });
+    m.replyExternal(`🔄 *Iniciando protocolo de extracción de audio de TikTok, Proxy ${name}.* Aguarda, el flujo de datos está siendo procesado.`, { contextInfo });
 
     try {
         let resApi = await fetch(`https://eliasar-yt-api.vercel.app/api/search/tiktok?query=${encodeURIComponent(text)}`);
@@ -53,7 +46,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         const videoTitle = dp.results.title || 'Audio de TikTok';
         const thumbnailUrl = dp.results.thumbnail;
 
-        // Fetch thumbnail buffer for externalAdReply
+        // Fetch thumbnail buffer for safe newsletter reply
         let thumbnailBuffer = null;
         if (thumbnailUrl) {
             try {
@@ -69,15 +62,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             mimetype: 'audio/mp4',
             fileName: `${videoTitle.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`, // Sanitize filename
             contextInfo: {
-                externalAdReply: {
-                    showAdAttribution: true,
-                    mediaType: 2, // Audio type
-                    mediaUrl: text, // Link to the original TikTok video
-                    title: `🎵 ${videoTitle}`, // Title of the audio/video
-                    body: `Extraído por Ellen Joe's Service`, // Custom body
-                    sourceUrl: text, // Source of the original content
-                    thumbnail: thumbnailBuffer // Use the fetched thumbnail buffer
-                }
+
             }
         };
 
@@ -87,7 +72,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     } catch (error) {
         console.error("Error al procesar TikTok MP3:", error);
         await m.react('❌'); // Error reaction
-        conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de TikTok MP3, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía crítica en la operación de TikTok MP3, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${error.message}`, { contextInfo });
     }
 };
 

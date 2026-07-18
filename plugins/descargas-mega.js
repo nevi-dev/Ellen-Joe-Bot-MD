@@ -17,19 +17,12 @@ let handler = async (m, { conn, args, usedPrefix, text, command }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, // Asegúrate de que 'icons' y 'redes' estén definidos globalmente
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     try {
         if (!text) {
-            return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito un identificador de archivo de MEGA para proceder.\n\n_Ejemplo: ${usedPrefix + command} [tu_enlace_MEGA_aquí]`, m, { contextInfo, quoted: m });
+            return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito un identificador de archivo de MEGA para proceder.\n\n_Ejemplo: ${usedPrefix + command} [tu_enlace_MEGA_aquí]`, { contextInfo });
         }
 
         const file = File.fromURL(text);
@@ -37,7 +30,7 @@ let handler = async (m, { conn, args, usedPrefix, text, command }) => {
 
         // Considerando el límite de 300MB
         if (file.size >= 300000000) {
-            return conn.reply(m.chat, `⚠️ *Carga excesiva, Proxy ${name}.*\nEl archivo (${formatBytes(file.size)}) es demasiado grande para la transmisión estándar. Límite: 300MB.`, m, { contextInfo, quoted: m });
+            return m.replyExternal(`⚠️ *Carga excesiva, Proxy ${name}.*\nEl archivo (${formatBytes(file.size)}) es demasiado grande para la transmisión estándar. Límite: 300MB.`, { contextInfo });
         }
 
         m.react('🔄'); // Emoticono de procesamiento
@@ -75,7 +68,7 @@ let handler = async (m, { conn, args, usedPrefix, text, command }) => {
 
     } catch (error) {
         console.error("Error al procesar MEGA:", error);
-        return conn.reply(m.chat, `❌ *Anomalía crítica, Proxy ${name}.*\nNo pude asegurar la carga desde MEGA. Verifica el enlace o intenta de nuevo.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`❌ *Anomalía crítica, Proxy ${name}.*\nNo pude asegurar la carga desde MEGA. Verifica el enlace o intenta de nuevo.\nDetalles: ${error.message}`, { contextInfo });
     }
 }
 

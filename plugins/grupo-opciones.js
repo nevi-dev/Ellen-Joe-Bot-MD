@@ -56,14 +56,7 @@ _*✦ Nota: Puedes activar una de estas opciones de esta manera Ejemplo: #antili
 await conn.sendMessage(m.chat, {
 text: text,
 contextInfo: {
-externalAdReply: {
-title: packname,
-body: dev,
-thumbnailUrl: avatar,
-mediaType: 1,
-showAdAttribution: true,
-renderLargerThumbnail: true
-}
+
 }
 }, { quoted: m });
 };

@@ -20,18 +20,11 @@ let handler = async (m, { conn, text, args, command, usedPrefix }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, // Ensure 'icons' and 'redes' are globally defined
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!text) {
-        return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de una imagen de TikTok para iniciar la extracción.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito la URL de una imagen de TikTok para iniciar la extracción.`, { contextInfo });
     }
 
     let mainUrl = `https://dlpanda.com/id?url=${text}&token=G7eRpMaa`;
@@ -39,7 +32,7 @@ let handler = async (m, { conn, text, args, command, usedPrefix }) => {
     let creator = 'KenisawaDev'; // Keeping original creator info
 
     conn.sendMessage(m.chat, { react: { text: "🔄", key: m.key } }); // Changed emoji to '🔄' for consistency
-    conn.reply(m.chat, `🔄 *Iniciando protocolo de extracción de imágenes de TikTok, Proxy ${name}.* Aguarda, la carga visual está siendo procesada.`, m, { contextInfo, quoted: m });
+    m.replyExternal(`🔄 *Iniciando protocolo de extracción de imágenes de TikTok, Proxy ${name}.* Aguarda, la carga visual está siendo procesada.`, { contextInfo });
 
     try {
         let response = await axios.get(mainUrl, {
@@ -121,7 +114,7 @@ let handler = async (m, { conn, text, args, command, usedPrefix }) => {
             } catch (e) {
                 console.error(`Error al enviar imagen ${i + 1}:`, e);
                 // Can send a reply about a specific image failing
-                conn.reply(m.chat, `⚠️ *Error al enviar imagen ${i + 1}, Proxy ${name}.*\nDetalles: ${e.message}`, m, { contextInfo, quoted: m });
+                m.replyExternal(`⚠️ *Error al enviar imagen ${i + 1}, Proxy ${name}.*\nDetalles: ${e.message}`, { contextInfo });
             }
         }
         await m.react('✅'); // Success reaction for the whole operation
@@ -129,7 +122,7 @@ let handler = async (m, { conn, text, args, command, usedPrefix }) => {
     } catch (error) {
         console.error("Error al procesar TikTok Image:", error);
         await m.react('❌'); // Error reaction
-        conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de TikTok Image, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía crítica en la operación de TikTok Image, Proxy ${name}.*\nNo pude completar la extracción. Verifica el enlace o informa del error.\nDetalles: ${error.message}`, { contextInfo });
     }
 }
 

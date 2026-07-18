@@ -30,14 +30,7 @@ handler.before = async function (m, { conn, usedPrefix }) {
         if (user.level % 5 === 0) {
             /*let chtxt = `♛ *Usuario:* ${userName}\n★ *Nivel anterior:* ${before}\n✰ *Nivel actual:* ${user.level}\n\n⛁ *Recompensa por alcanzar el nivel ${user.level}:*\n- *${especialCant} ⛁ ${especial}*\n- *${especialCant2} ✰ ${especial2}*`;
             await conn.sendMessage(global.channelid, { text: chtxt, contextInfo: {
-                externalAdReply: {
-                    title: "【 ✿ 𝗡𝗢𝗧𝗜𝗙𝗜𝗖𝗔𝗖𝗜𝗢́𝗡 ✿ 】",
-                    body: '✎ ¡Un usuario ha alcanzado un nuevo nivel!',
-                    thumbnailUrl: perfil,
-                    mediaType: 1,
-                    showAdAttribution: false,
-                    renderLargerThumbnail: false
-                }
+
             }}, { quoted: null });*/
 
             user[especial] += especialCant;

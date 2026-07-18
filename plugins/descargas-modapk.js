@@ -16,14 +16,7 @@ var handler = async (m, { conn, usedPrefix, command, text }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Processing request for Proxy ${name}...`,
-            thumbnail: icons, // Ensure 'icons' and 'redes' are globally defined
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!text) {

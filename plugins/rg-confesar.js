@@ -25,14 +25,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
             text: teks,
             contextInfo: {
                 mentionedJid: [data.jid],
-                externalAdReply: {
-                    title: 'C O N F E S I O N E S',
-                    body: '¡responder! .respuesta (id) (Mensaje)',
-                    mediaType: 1,
-                    renderLargerThumbnail: true,
-                    thumbnailUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIyz1dMPkZuNleUyfXPMsltHwKKdVddTf4-A&usqp=CAU',
-                    sourceUrl: channel,
-                }
+
             }
         });
         

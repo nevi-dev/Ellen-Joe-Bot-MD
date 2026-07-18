@@ -81,35 +81,28 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, // Ensure 'icons' and 'redes' are globally defined
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!args[0]) {
-        return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito la URL del anime para iniciar la extracción de información.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito la URL del anime para iniciar la extracción de información.`, { contextInfo });
     }
 
     // Checking for premium status
     let user = global.db.data.users[m.sender];
     if (!user.premium) {
-        return conn.reply(m.chat, `⧼✦⧽ *Acceso Restringido, Proxy ${name}.*\nEl protocolo *${usedPrefix + command}* solo está disponible para usuarios con autorización de *Nivel Élite*.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`⧼✦⧽ *Acceso Restringido, Proxy ${name}.*\nEl protocolo *${usedPrefix + command}* solo está disponible para usuarios con autorización de *Nivel Élite*.`, { contextInfo });
     }
 
     m.react('🔄'); // Reaction for processing
-    conn.reply(m.chat, `🔄 *Iniciando protocolo de análisis de anime, Proxy ${name}.* Aguarda, la decodificación de episodios está en curso.`, m, { contextInfo, quoted: m });
+    m.replyExternal(`🔄 *Iniciando protocolo de análisis de anime, Proxy ${name}.* Aguarda, la decodificación de episodios está en curso.`, { contextInfo });
 
     try {
         let data = await getAnimeEpisodes(args[0]);
 
         if (data.error) {
             await m.react('❌'); // Error reaction
-            return conn.reply(m.chat, data.error, m, { contextInfo, quoted: m });
+            return m.replyExternal(data.error, { contextInfo });
         }
 
         let messageText = `╭━━━━[ 𝙰𝚗𝚒𝚖𝚎 𝙳𝚎𝚌𝚘𝚍𝚎𝚍: 𝙳𝚎𝚝𝚊𝚕𝚕𝚎𝚜 𝚍𝚎 𝙴𝚙𝚒𝚜𝚘𝚍𝚒𝚘 ]━━━━⬣\n`;
@@ -133,7 +126,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
     } catch (error) {
         console.error("Error general al procesar animeinfo:", error);
         await m.react('❌'); // Error reaction
-        conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación, Proxy ${name}.*\nNo pude completar la extracción de información del anime. Verifica la URL o informa del error.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía crítica en la operación, Proxy ${name}.*\nNo pude completar la extracción de información del anime. Verifica la URL o informa del error.\nDetalles: ${error.message}`, { contextInfo });
     }
 }
 

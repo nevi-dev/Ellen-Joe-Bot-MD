@@ -19,14 +19,7 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner, isPrems }) =
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: icons, // Asegúrate de que 'icons' y 'redes' estén definidos globalmente
-            sourceUrl: redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!args[0]) {
@@ -67,7 +60,7 @@ let handler = async (m, { conn, args, usedPrefix, command, isOwner, isPrems }) =
 
         responseCaption += `╰━━━━━━━━━━━━━━━━━━━━━━━━━━⬣`;
 
-        await conn.reply(m.chat, responseCaption, m, { contextInfo, quoted: m });
+        await m.replyExternal(responseCaption, { contextInfo });
 
         if (!isLimit) {
             await conn.sendMessage(m.chat, {

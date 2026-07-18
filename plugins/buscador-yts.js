@@ -16,21 +16,14 @@ var handler = async (m, { text, conn, args, command, usedPrefix }) => {
             newsletterName,
             serverMessageId: -1
         },
-        externalAdReply: {
-            title: 'Ellen Joe: Pista localizada. 🦈',
-            body: `Procesando solicitud para el/la Proxy ${name}...`,
-            thumbnail: global.icono, // Ensure 'icons' and 'redes' are globally defined
-            sourceUrl: global.redes,
-            mediaType: 1,
-            renderLargerThumbnail: false
-        }
+
     };
 
     if (!text) {
-        return conn.reply(m.chat, `🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para iniciar el barrido en YouTube.`, m, { contextInfo, quoted: m });
+        return m.replyExternal(`🦈 *Rastro frío, Proxy ${name}.* Necesito un término de búsqueda para iniciar el barrido en YouTube.`, { contextInfo });
     }
 
-    conn.reply(m.chat, `🔄 *Iniciando protocolo de barrido en YouTube, Proxy ${name}.* Aguarda, la carga de datos está siendo procesada.`, m, { contextInfo, quoted: m });
+    m.replyExternal(`🔄 *Iniciando protocolo de barrido en YouTube, Proxy ${name}.* Aguarda, la carga de datos está siendo procesada.`, { contextInfo });
     await m.react('🔄'); // Processing reaction
 
     try {
@@ -39,7 +32,7 @@ var handler = async (m, { text, conn, args, command, usedPrefix }) => {
 
         if (!videos || videos.length === 0) {
             await m.react('❌'); // Error reaction
-            return conn.reply(m.chat, `❌ *Carga de datos fallida, Proxy ${name}.*\nNo se encontraron videos para "${text}". Verifica el término de búsqueda.`, m, { contextInfo, quoted: m });
+            return m.replyExternal(`❌ *Carga de datos fallida, Proxy ${name}.*\nNo se encontraron videos para "${text}". Verifica el término de búsqueda.`, { contextInfo });
         }
 
         // Filter out non-video results and format the output
@@ -63,7 +56,7 @@ var handler = async (m, { text, conn, args, command, usedPrefix }) => {
     } catch (error) {
         console.error("Error al procesar YouTube search:", error);
         await m.react('❌'); // Error reaction
-        conn.reply(m.chat, `⚠️ *Anomalía crítica en la operación de YouTube, Proxy ${name}.*\nNo pude completar la búsqueda. Verifica el término o informa del error.\nDetalles: ${error.message}`, m, { contextInfo, quoted: m });
+        m.replyExternal(`⚠️ *Anomalía crítica en la operación de YouTube, Proxy ${name}.*\nNo pude completar la búsqueda. Verifica el término o informa del error.\nDetalles: ${error.message}`, { contextInfo });
     }
 }
 

@@ -15,22 +15,15 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     isForwarded: true,
     forwardingScore: 999,
     forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
-    externalAdReply: {
-      title: '🖤 ⏤͟͟͞͞𝙀𝙇𝙇𝙀𝙉 - 𝘽𝙊𝙏 ᨶ႒ᩚ',
-      body: `✦ 𝙀sperando 𝙩u s𝙤𝙡𝙞𝙘𝙞𝙩u𝙙, ${name}. ♡`,
-      thumbnail: icons, 
-      sourceUrl: redes, 
-      mediaType: 1,
-      renderLargerThumbnail: false
-    }
+
   };
 
   if (!spotifyUrl) {
-    return conn.reply(m.chat, `🎶 *¿᥎іᥒіs𝗍ᥱ ᥲ ⍴ᥱძіrmᥱ ᥲᥣg᥆ sіᥒ sᥲᑲᥱr 𝗊ᥙᥱ́?*\nძі ᥣ᥆ 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs... ᥆ ᥎ᥱ𝗍ᥱ.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} https://open.spotify.com/track/...`, m, { contextInfo });
+    return m.replyExternal(`🎶 *¿᥎іᥒіs𝗍ᥱ ᥲ ⍴ᥱძіrmᥱ ᥲᥣg᥆ sіᥒ sᥲᑲᥱr 𝗊ᥙᥱ́?*\nძі ᥣ᥆ 𝗊ᥙᥱ 𝗊ᥙіᥱrᥱs... ᥆ ᥎ᥱ𝗍ᥱ.\n\n🎧 ᥱȷᥱm⍴ᥣ᥆:\n${usedPrefix}${command} https://open.spotify.com/track/...`, { contextInfo });
   }
 
   if (!/open\.spotify\.com/.test(spotifyUrl)) {
-    return conn.reply(m.chat, `💔 *Fallé al procesar tu capricho.* Esa URL no es de Spotify.`, m, { contextInfo });
+    return m.replyExternal(`💔 *Fallé al procesar tu capricho.* Esa URL no es de Spotify.`, { contextInfo });
   }
 
   await m.react("📥");

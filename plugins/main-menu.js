@@ -118,14 +118,7 @@ ${textoFinal}`,
         isForwarded: true,
         forwardingScore: 999,
         forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
-        externalAdReply: {
-          title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊参𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-          body: `✦ Aquí tienes todo, ${nombre}...`,
-          thumbnail: thumbnailBuffer,
-          sourceUrl: redes,
-          mediaType: 1,
-          renderLargerThumbnail: false
-        }
+
       }
     }, { quoted: m });
 

@@ -56,14 +56,7 @@ let handler = async (m, { conn }) => {
             contextInfo: {
                 mentionedJid: [m.sender],
                 forwardedNewsletterMessageInfo: { newsletterJid, newsletterName, serverMessageId: -1 },
-                externalAdReply: {
-                    title: '🦈 𝙑𝙄𝘾𝙏𝙊𝙍𝙄𝘼 𝙃𝙊𝙐𝙎𝙀𝙆𝙀𝙀𝙋𝙄𝙉𝙂',
-                    body: `— Reporte Final para ${name}`,
-                    thumbnail: icons,
-                    sourceUrl: redes,
-                    mediaType: 1,
-                    renderLargerThumbnail: false
-                }
+
             }
         }, { quoted: m });
     }, 20000);

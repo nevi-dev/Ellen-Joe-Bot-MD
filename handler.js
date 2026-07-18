@@ -9,13 +9,26 @@ import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js'
 
-const { WAProto: proto, WAMessageStubType } = (await import('baileys'))
+const { WAProto: proto, WAMessageStubType, areJidsSameUser } = (await import('baileys'))
 
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(resolve, ms))
 
 // Normaliza el JID eliminando el número de sesión de la conexión (los :xx)
 const cleanJid = jid => jid ? jid.replace(/:\d+@/, '@') : ''
+const bareJid = jid => cleanJid(jid).split('@')[0]
+const sameUser = (a, b) => {
+    const cleanA = cleanJid(a)
+    const cleanB = cleanJid(b)
+    if (!cleanA || !cleanB) return false
+    if (cleanA === cleanB) return true
+    try { if (areJidsSameUser?.(cleanA, cleanB)) return true } catch {}
+    return bareJid(cleanA) === bareJid(cleanB)
+}
+const participantMatches = (participant = {}, jid = '') => [participant.id, participant.jid, participant.lid]
+    .filter(Boolean)
+    .some(value => sameUser(value, jid))
+const isParticipantAdmin = (participant = {}) => participant?.admin === 'admin' || participant?.admin === 'superadmin'
 
 const GROUP_METADATA_TTL = 12 * 60 * 60 * 1000
 const groupCache = new Map()
@@ -229,8 +242,24 @@ async function processChatUpdate(chatUpdate) {
                 }
             }
 
+            const isLikelyCommand = Boolean(matchPrefixFast(m.text || '', this.prefix || global.prefix))
+            if (isLikelyCommand) {
+                try {
+                    const freshMeta = await this.groupMetadata(m.chat)
+                    if (freshMeta?.participants?.length) {
+                        groupMetadata = {
+                            ...freshMeta,
+                            participants: freshMeta.participants.map(p => ({ ...p, id: p.jid || p.id, jid: p.jid || p.id, lid: p.lid }))
+                        }
+                        groupCache.set(m.chat, { data: groupMetadata, indexes: buildParticipantIndexes(groupMetadata.participants || []), timestamp: Date.now() })
+                    }
+                } catch (error) {
+                    console.error(`No se pudo refrescar metadata admin para ${m.chat}:`, error)
+                }
+            }
+
             participants = groupMetadata.participants || []
-            const participantIndexes = cachedGroup?.indexes || groupCache.get(m.chat)?.indexes || buildParticipantIndexes(participants)
+            const participantIndexes = groupCache.get(m.chat)?.indexes || cachedGroup?.indexes || buildParticipantIndexes(participants)
             participants_lid = participants.map(p => ({ id: p.jid, jid: p.jid, lid: p.lid, admin: p.admin }))
             sender = resolveRuntimeJid(sender, participantIndexes)
 
@@ -324,13 +353,13 @@ async function processChatUpdate(chatUpdate) {
         let botObj = {};
 
         if (m.isGroup && participants.length > 0) {
-            userObj = participants.find(p => cleanJid(p.id || p.jid) === senderJid) || {};
-            botObj = participants.find(p => cleanJid(p.id || p.jid) === botJid) || {};
+            userObj = participants.find(p => participantMatches(p, senderJid)) || {};
+            botObj = participants.find(p => participantMatches(p, botJid) || participantMatches(p, this.user?.jid) || participantMatches(p, this.user?.id)) || {};
         }
 
         const isRAdmin = userObj?.admin === 'superadmin' || false;
-        const isAdmin = isRAdmin || userObj?.admin === 'admin' || false;
-        const isBotAdmin = botObj?.admin === 'admin' || botObj?.admin === 'superadmin' || false;
+        const isAdmin = isRAdmin || isParticipantAdmin(userObj) || false;
+        const isBotAdmin = isParticipantAdmin(botObj) || false;
 
         const senderNum = sender.split('@')[0]
         const isROwner = [mainBot, ...global.owner.map(([n]) => n)].map(v => v.replace(/[^0-9]/g, '')).includes(senderNum)
