@@ -130,28 +130,24 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         const mediaPathV3 = path.join(tmpDir, `${Date.now()}_v3.${ext}`);
         const mediaPathV2 = path.join(tmpDir, `${Date.now()}_v2.${ext}`);
 
-        // Controladores para poder cancelar la API perdedora de golpe
         const controllerV3 = new AbortController();
         const controllerV2 = new AbortController();
 
-        // Configuración de parámetros para API V3
         const configV3 = {
             url: API_SAVENOW,
             params: { url: query, type: type, quality: type === 'video' ? '360' : '320', apikey: API_KEY },
             targetQuality: type === 'video' ? '360' : '320'
         };
 
-        // Configuración de parámetros para API V2
         const configV2 = {
             url: 'https://rest.apicausas.xyz/api/v2/descargas/youtube',
             params: { apikey: API_KEY, url: query, type: type },
             targetQuality: type === 'video' ? '360' : '320'
         };
-        if (type === 'video') configV2.params.quality = '360'; // Solo añade quality si es video
+        if (type === 'video') configV2.params.quality = '360';
 
         let won = false;
 
-        // Pipeline individual para procesar, descargar y competir en paralelo
         const runPipeline = async (version, config, mediaPath, myController, otherController) => {
             const response = await axios.get(config.url, {
                 params: config.params,
@@ -167,19 +163,16 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
             const fileTitle = response.data.data.title || "Archivo";
             const fileQuality = response.data.data.quality || config.targetQuality;
 
-            // Empieza la descarga física por streams vía Pipe
             await downloadMedia(finalUrl, mediaPath, myController.signal);
 
-            // Doble verificación por si la otra API terminó exactamente al mismo milisegundo
             if (won) {
                 if (fs.existsSync(mediaPath)) try { fs.unlinkSync(mediaPath); } catch {}
                 throw new Error(`La API ${version} llegó tarde.`);
             }
 
             won = true;
-            otherController.abort(); // ¡Bum! Cancela la otra API y destruye su descarga en proceso
+            otherController.abort(); // Cancela la descarga competidora
 
-            // Consultar peso tras ganar si la API no lo mandó listo
             const fileSize = response.data.data.size || await getFileSize(finalUrl);
 
             return { version, mediaPath, fileTitle, fileQuality, fileSize };
@@ -192,14 +185,13 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
         let winner = null;
         try {
-            // Estructura de carrera controlada: si una falla rápido, la otra sigue viva hasta terminar
             winner = await new Promise((resolve, reject) => {
                 let errors = 0;
                 tasks.forEach(p => {
                     p.then(resolve).catch(err => {
                         errors++;
                         if (errors === tasks.length) {
-                            reject(new Error('Ambos servidores fallaron en procesar el archivo.'));
+                            reject(new Error('Ambos servidores fallaron.'));
                         }
                     });
                 });
@@ -209,28 +201,52 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
         }
 
         if (winner) {
+            const fixedPath = path.join(tmpDir, `${Date.now()}_fixed_${winner.version}.${ext}`);
+            let finalPath = winner.mediaPath;
+
             try {
+                // Reacción de "engranaje" para indicar que se está procesando (FFmpeg)
+                await m.react("⚙️"); 
+
                 if (type === 'audio') {
-                    await conn.sendMessage(m.chat, { audio: { url: winner.mediaPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
+                    // Forzamos codec mp3 a 128k para limpiar metadatos o reparar descargas de V2/V3
+                    await execPromise(`ffmpeg -y -i "${winner.mediaPath}" -c:a libmp3lame -b:a 128k "${fixedPath}"`);
+                    finalPath = fixedPath;
+                    await conn.sendMessage(m.chat, { audio: { url: finalPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
                 } else {
+                    // Forzamos h264, aac, yuv420p (vital para WhatsApp) con preset ultrafast
+                    await execPromise(`ffmpeg -y -i "${winner.mediaPath}" -c:v libx264 -c:a aac -preset ultrafast -pix_fmt yuv420p "${fixedPath}"`);
+                    finalPath = fixedPath;
                     const videoCaption = `🎬 *Aquí tienes.*\n\n> *Título:* ${winner.fileTitle}\n> *Calidad:* ${winner.fileQuality}\n> *Peso:* ${winner.fileSize}\n> *Servidor:* ${winner.version.toUpperCase()}`;
-                    await conn.sendMessage(m.chat, { video: { url: winner.mediaPath }, caption: videoCaption, mimetype: "video/mp4" }, { quoted: m });
+                    await conn.sendMessage(m.chat, { video: { url: finalPath }, caption: videoCaption, mimetype: "video/mp4" }, { quoted: m });
                 }
                 await m.react("✅");
             } catch (e) {
-                console.error("Error al enviar el archivo definitivo:", e.message);
-                await m.react("❌");
+                console.error("Error al enviar/procesar el archivo definitivo:", e.message);
+                
+                // Fallback: si falla FFmpeg, intenta mandar el archivo original
+                try {
+                    if (type === 'audio') {
+                        await conn.sendMessage(m.chat, { audio: { url: winner.mediaPath }, mimetype: 'audio/mpeg', ptt: false }, { quoted: m });
+                    } else {
+                        await conn.sendMessage(m.chat, { video: { url: winner.mediaPath }, mimetype: "video/mp4" }, { quoted: m });
+                    }
+                    await m.react("✅");
+                } catch (errFallback) {
+                    await m.react("❌");
+                }
+            } finally {
+                // Limpieza total: borramos el archivo fijo si se creó
+                if (fs.existsSync(fixedPath)) try { fs.unlinkSync(fixedPath); } catch {}
             }
         } else {
             await m.react("❌");
-            return await sendExternalMessage(`*— Tsk...* Ninguno de los servidores pudo procesar el enlace en este momento. Intenta de nuevo.`);
+            await sendExternalMessage(`*— Tsk...* Ninguno de los servidores pudo procesar el enlace en este momento. Intenta de nuevo.`);
         }
 
-        // Limpieza absoluta de seguridad para que no queden residuos en ./tmp
+        // Limpieza de los archivos originales de la carrera
         [mediaPathV3, mediaPathV2].forEach(p => {
-            if (fs.existsSync(p)) {
-                try { fs.unlinkSync(p); } catch {}
-            }
+            if (fs.existsSync(p)) try { fs.unlinkSync(p); } catch {}
         });
         return;
     }
@@ -241,7 +257,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
     if (!video) return await sendExternalMessage(`*— No encontré nada con ese nombre.*`);
 
-    const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀 N 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
+    const caption = `₊‧꒰ 🦈 ꒱ 𝙀𝙇𝙇𝙀 𝙅𝙊𝙀 𝙎𝙀𝙍𝙑𝙄𝘾𝙀\n\n> *Título:* ${video.title}\n> *Uploader:* ${video.author.name}\n> *Duración:* ${video.timestamp}\n\n*— Elige si quieres audio o video.*`;
 
     const botonesNativos = [
         { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "🎧 𝘼𝙐𝘿𝙄𝙊", id: `${usedPrefix}${command} audio ${video.url}` }) },
