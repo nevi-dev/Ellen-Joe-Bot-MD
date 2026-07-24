@@ -198,12 +198,6 @@ const BROWSER_FINGERPRINTS = [
     ['Linux', 'Edge', '149.0.0.0']
 ];
 
-// Función para obtener uno al azar
-function getRandomBrowser() {
-    const randomIndex = Math.floor(Math.random() * BROWSER_FINGERPRINTS.length);
-    return BROWSER_FINGERPRINTS[randomIndex];
-}
-
 const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)]
 global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
 global.getRandomBrowser = getRandomBrowser
