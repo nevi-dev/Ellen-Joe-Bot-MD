@@ -38,15 +38,6 @@ const {CONNECTING} = ws
 const {chain} = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
 
-const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 })
-eventLoopDelay.enable()
-setInterval(() => {
-const p95 = Math.round(eventLoopDelay.percentile(95) / 1e6)
-const p99 = Math.round(eventLoopDelay.percentile(99) / 1e6)
-if (p95 > 100 || p99 > 250) console.log(chalk.yellow(`⚠️ Event Loop delay p95=${p95}ms p99=${p99}ms`))
-eventLoopDelay.reset()
-}, 60 * 1000).unref?.()
-
 //const yuw = dirname(fileURLToPath(import.meta.url))
 //let require = createRequire(megu)
 let { say } = cfonts
@@ -188,8 +179,30 @@ console.info = () => {}
 console.debug = () => {}
 
 const BROWSER_FINGERPRINTS = [
-    ['Mac OS', 'Safari', '26.5']
+    // Windows 11 / 10
+    ['Windows', 'Chrome', '150.0.0.0'],
+    ['Windows', 'Edge', '150.0.0.0'],
+    ['Windows', 'Firefox', '154.0'],
+    ['Windows', 'Opera', '116.0.0.0'],
+    
+    // macOS
+    ['Mac OS', 'Safari', '19.5'],
+    ['Mac OS', 'Chrome', '150.0.0.0'],
+    ['Mac OS', 'Edge', '150.0.0.0'],
+    ['Mac OS', 'Firefox', '154.0'],
+    
+    // Linux
+    ['Ubuntu', 'Chrome', '149.0.0.0'],
+    ['Ubuntu', 'Firefox', '153.0'],
+    ['Debian', 'Chrome', '149.0.0.0'],
+    ['Linux', 'Edge', '149.0.0.0']
 ];
+
+// Función para obtener uno al azar
+function getRandomBrowser() {
+    const randomIndex = Math.floor(Math.random() * BROWSER_FINGERPRINTS.length);
+    return BROWSER_FINGERPRINTS[randomIndex];
+}
 
 const getRandomBrowser = () => BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)]
 global.BROWSER_FINGERPRINTS = BROWSER_FINGERPRINTS
