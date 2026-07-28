@@ -1,4 +1,4 @@
-import { applyEconomyUserBalance, getDynamicSalary } from '../lib/economy.js'
+import { getDynamicSalary, recordWalletIncome } from '../lib/economy.js'
 
 let cooldowns = {}
 
@@ -14,8 +14,7 @@ const baseSalary = Math.floor(Math.random() * 500)
 let rsl = getDynamicSalary(baseSalary)
 cooldowns[m.sender] = Date.now()
 await conn.reply(m.chat, `${emoji} ${pickRandom(trabajo)} *${toNum(rsl)}* ( *${rsl}* ) ${moneda} 💸.`, m)
-user.coin += rsl
-applyEconomyUserBalance(m.sender, user)
+recordWalletIncome(m.sender, user, rsl, 'Trabajo manual', 'trabajar')
 }
 
 handler.help = ['trabajar']

@@ -1,3 +1,4 @@
+import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 let users = {};
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
@@ -26,10 +27,10 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     let resultado = Math.random() < 0.5 ? 'cara' : 'cruz';
    let mensaje = `${emoji} La moneda ha caído en `
     if (resultado === eleccion) {
-        user.coin += cantidad; 
+        recordWalletIncome(m.sender, user, cantidad, 'Ganancia cara o cruz', 'cf')
     mensaje += `*${resultado}* y has ganado *${cantidad} ${moneda}*!`;
     } else {
-        user.coin -= cantidad;
+        recordWalletExpense(m.sender, user, cantidad, 'Pérdida cara o cruz', 'cf')
         mensaje += `*${resultado}* y has perdido *${cantidad} ${moneda}*!`;
     }
 

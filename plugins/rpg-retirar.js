@@ -1,22 +1,17 @@
-import db from '../lib/database.js'
+import { moveBankToWallet } from '../lib/economy.js'
 
 let handler = async (m, { args }) => {
-let user = global.db.data.users[m.sender]
-if (!args[0]) return m.reply(`${emoji} Ingresa la cantidad de *${moneda}* que deseas Retirar.`)
-if (args[0] == 'all') {
-let count = parseInt(user.bank)
-user.bank -= count * 1
-user.coin += count * 1
-await m.reply(`${emoji} Retiraste *${count} ${moneda}* del banco, ahora podras usarlo pero tambien podran robartelo.`)
-return !0
+  const user = global.db.data.users[m.sender]
+  if (!args[0]) return m.reply(`${emoji} Ingresa la cantidad de *${moneda}* que deseas Retirar.`)
+  const count = String(args[0]).toLowerCase() === 'all' ? Number(user.bank || 0) : parseInt(args[0])
+  if (!Number.isFinite(count) || count < 1) return m.reply(`${emoji2} Debes retirar una cantidad válida.\n > Ejemplo 1 » *#retirar 25000*\n> Ejemplo 2 » *#retirar all*`)
+  try {
+    moveBankToWallet(m.sender, user, count)
+    await m.reply(`${emoji} Retiraste *${count} ${moneda}* del banco, ahora podras usarlo pero tambien podran robartelo.`)
+  } catch (error) {
+    return m.reply(`${emoji2} ${error.message}. Solo tienes *${user.bank || 0} ${moneda}* en el Banco.`)
+  }
 }
-if (!Number(args[0])) return m.reply(`${emoji2} Debes retirar una cantidad válida.\n > Ejemplo 1 » *#retirar 25000*\n> Ejemplo 2 » *#retirar all*`)
-let count = parseInt(args[0])
-if (!user.bank) return m.reply(`${emoji2} No tienes suficientes *${moneda}* en el Banco.`)
-if (user.bank < count) return m.reply(`${emoji2} Solo tienes *${user.bank} ${moneda}* en el Banco.`)
-user.bank -= count * 1
-user.coin += count * 1
-await m.reply(`${emoji} Retiraste *${count} ${moneda}* del banco, ahora podras usarlo pero tambien podran robartelo.`)}
 
 handler.help = ['retirar']
 handler.tags = ['rpg']

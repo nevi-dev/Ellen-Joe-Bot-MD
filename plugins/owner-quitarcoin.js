@@ -1,5 +1,6 @@
 import db from '../lib/database.js';
 import MessageType from 'baileys';
+import { recordWalletExpense } from '../lib/economy.js';
 
 let impts = 0;
 
@@ -36,7 +37,7 @@ let handler = async (m, { conn, text }) => {
         return m.reply(`${emoji2} El usuario no tiene suficientes coin para quitar. Tiene ${users[who].coin} ${moneda}.`);
     }
 
-    users[who].coin -= dmt;
+    recordWalletExpense(who, users[who], dmt, 'Ajuste owner: quitarcoin', m.sender);
 
     m.reply(`💸 *Quitado:*
 » ${dmt} \n@${who.split('@')[0]}, te han quitado ${dmt} 💸`, null, { mentions: [who] });

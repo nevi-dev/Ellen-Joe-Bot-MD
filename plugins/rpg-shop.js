@@ -1,3 +1,4 @@
+import { recordWalletIncome } from '../lib/economy.js'
 const xppercoin = 350;
 const handler = async (m, {conn, command, args}) => {
   let count = command.replace(/^buy/i, '');
@@ -5,7 +6,7 @@ const handler = async (m, {conn, command, args}) => {
   count = Math.max(1, count);
   if (global.db.data.users[m.sender].exp >= xppercoin * count) {
     global.db.data.users[m.sender].exp -= xppercoin * count;
-    global.db.data.users[m.sender].coin += count;
+    recordWalletIncome(m.sender, global.db.data.users[m.sender], count, 'Compra de monedas con XP', 'shop')
     conn.reply(m.chat, `
 ╔═══════⩽✰⩾═══════╗
 ║    𝐍𝐨𝐭𝐚 𝐃𝐞 𝐏𝐚𝐠𝐨 

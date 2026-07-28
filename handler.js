@@ -8,7 +8,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js'
-import { syncEconomyFromGlobal } from './lib/economy.js'
+import { getDynamicPrice, recordWalletExpense, syncEconomyFromGlobal } from './lib/economy.js'
 
 const { WAProto: proto, WAMessageStubType, areJidsSameUser } = (await import('baileys'))
 
@@ -493,8 +493,9 @@ async function processChatUpdate(chatUpdate) {
                 if (xp > 200) m.reply('chirrido -_-')
                 else m.exp += xp
 
-                if (!isPrems && plugin.coin && global.db.data.users[sender].coin < plugin.coin * 1) {
-                    conn.reply(m.chat, `❮✦❯ Se agotaron tus monedas`, m)
+                const commandCoinCost = !isPrems && plugin.coin ? getDynamicPrice(plugin.coin * 1) : 0
+                if (commandCoinCost && global.db.data.users[sender].coin < commandCoinCost) {
+                    conn.reply(m.chat, `❮✦❯ Se agotaron tus monedas. Costo dinámico: ${commandCoinCost}`, m)
                     continue
                 }
 
@@ -507,7 +508,7 @@ async function processChatUpdate(chatUpdate) {
 
                 try {
                     await plugin.call(this, m, extra)
-                    if (!isPrems) m.coin = m.coin || plugin.coin || false
+                    if (!isPrems) m.coin = m.coin || commandCoinCost || false
                 } catch (e) {
                     m.error = e
                     console.error(e)
@@ -560,7 +561,7 @@ async function processChatUpdate(chatUpdate) {
 
             if (sender && (userStats = global.db.data.users[sender])) {
                 userStats.exp += m.exp
-                userStats.coin -= (m.coin ? m.coin * 1 : 0)
+                if (m.coin) recordWalletExpense(sender, userStats, m.coin, 'Costo dinámico de comando', m.plugin || 'command-fee')
             }
 
             let stat
