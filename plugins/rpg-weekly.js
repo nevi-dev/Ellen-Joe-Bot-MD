@@ -1,3 +1,4 @@
+import { recordWalletIncome } from '../lib/economy.js'
 const we = 5000;
 let handler = async (m, { conn }) => {
 
@@ -13,7 +14,7 @@ let handler = async (m, { conn }) => {
     let coinReward = pickRandom([1, 2, 3]);
     let expReward = pickRandom([100, 200, 300]);
 
-    user.coin = (user.coin || 0) + coinReward;
+    recordWalletIncome(m.sender, user, coinReward, 'Recompensa semanal', 'rpg-weekly.js')
     user.exp = (user.exp || 0) + expReward;
 
     m.reply(`

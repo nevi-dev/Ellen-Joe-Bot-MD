@@ -1,4 +1,5 @@
 import db from '../lib/database.js'
+import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 
 let buatall = 1
 let cooldowns = {}
@@ -23,14 +24,14 @@ count = count ? /all/i.test(count) ? Math.floor(global.db.data.users[m.sender].l
 count = Math.max(1, count)
 if (args.length < 1) return conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m)
 if (user.coin >= count * 1) {
-user.coin -= count * 1
 if (Aku > Kamu) {
+recordWalletExpense(m.sender, user, count, 'Apuesta perdida en casino', 'casino')
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *PERDISTE* ${formatNumber(count)} 💸 ${moneda}.`.trim(), m)
 } else if (Aku < Kamu) {
-user.coin += count * 2
+recordWalletIncome(m.sender, user, count, 'Ganancia neta en casino', 'casino')
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username}, *GANASTE* ${formatNumber(count * 2)} 💸 ${moneda}.`.trim(), m)
 } else {
-user.coin += count * 1
+recordWalletIncome(m.sender, user, 0, 'Empate en casino', 'casino')
 conn.reply(m.chat, `${emoji2} \`Veamos que numeros tienen!\`\n\n`+ `➠ *${botname}* : ${Aku}\n➠ *${username}* : ${Kamu}\n\n> ${username} obtienes ${formatNumber(count * 1)} 💸 ${moneda}.`.trim(), m)}
 } else conn.reply(m.chat, `No tienes *${formatNumber(count)} 💸 ${moneda}* para apostar!`.trim(), m)}
 

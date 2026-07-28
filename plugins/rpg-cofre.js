@@ -1,3 +1,4 @@
+import { recordWalletIncome } from '../lib/economy.js'
 const handler = async (m, { isPrems, conn }) => {
   if (!global.db.data.users[m.sender]) {
     throw `${emoji4} Usuario no encontrado.`;
@@ -18,7 +19,7 @@ const handler = async (m, { isPrems, conn }) => {
   const ai = Math.floor(Math.random() * 40);
   const expp = Math.floor(Math.random() * 5000);
 
-  global.db.data.users[m.sender].coin += dia;
+  recordWalletIncome(m.sender, global.db.data.users[m.sender], dia, 'Cofre diario', 'cofre')
   global.db.data.users[m.sender].diamonds += ai;
   global.db.data.users[m.sender].joincount += tok;
   global.db.data.users[m.sender].exp += expp;

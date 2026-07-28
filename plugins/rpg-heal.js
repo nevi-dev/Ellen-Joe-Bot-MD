@@ -1,14 +1,16 @@
+import { getDynamicPrice, recordWalletExpense } from '../lib/economy.js'
 let handler = async (m, { conn }) => {
     let user = global.db.data.users[m.sender];
     if (!user) {
         return conn.reply(m.chat, `${emoji} El usuario no se encuentra en la base de Datos.`, m);
     }
-    if (user.coin < 50) {
-        return conn.reply(m.chat, `💔 Su saldó fue insuficiente para curarte. Necesitas al menos 20.`, m);
+    const healCost = getDynamicPrice(50)
+    if (user.coin < healCost) {
+        return conn.reply(m.chat, `💔 Su saldó fue insuficiente para curarte. Necesitas al menos ${healCost}.`, m);
     }
     let healAmount = 50; 
     user.health += healAmount;
-    user.coin -= 50; 
+    recordWalletExpense(m.sender, user, healCost, 'Curación', 'heal')
     if (user.health > 100) {
         user.health = 100; 
     }

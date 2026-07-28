@@ -1,4 +1,4 @@
-import { applyEconomyUserBalance, getDynamicSalary } from '../lib/economy.js'
+import { getDynamicSalary, recordWalletIncome } from '../lib/economy.js'
 
 let cooldowns = {}
 
@@ -35,14 +35,13 @@ await m.react('⛏️');
 
 user.health -= 50;
 user.pickaxedurability -= 30;
-user.coin += coin;
+recordWalletIncome(m.sender, user, coin, 'Minería', 'minar');
 user.iron += iron;
 user.gold += gold;
 user.emerald += emerald;
 user.coal += coal;
 user.stone += stone;
 user.lastmiming = new Date() * 1;
-applyEconomyUserBalance(m.sender, user);
 }
 
 handler.help = ['minar'];

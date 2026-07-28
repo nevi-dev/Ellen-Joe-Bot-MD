@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { recordBankTransfer } from '../lib/economy.js'
 
 // Configuración del Newsletter/Canal
 const newsletterJid = '120363418071540900@newsletter';
@@ -93,8 +94,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         user[txState] = null;
         const recipientData = global.db.data.users[who];
 
-        user[bankType] -= amount;
-        recipientData[bankType] = (recipientData[bankType] || 0) + amount;
+        recordBankTransfer(m.sender, who, amount, 'Transferencia legacy por mención');
 
         const successMsg = `🦈 **¡𝐓𝐑𝐀𝐍𝐒𝐅𝐄𝐑𝐄𝐍𝐂𝐈𝐀 𝐄𝐗𝐈𝐓𝐎𝐒𝐀!**\n\n*— Trato hecho.* He movido los fondos. @${who.split('@')[0]} ha recibido **${amount} ${moneda}** en su banco.\n\n💰 **Tu saldo actual:** ${user[bankType]} ${moneda}\n\n*— Mi trabajo terminó. No me molestes.*`;
 

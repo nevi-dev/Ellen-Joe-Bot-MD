@@ -1,3 +1,4 @@
+import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 const ro = 30;
 const handler = async (m, {conn, usedPrefix, command}) => {
   const time = global.db.data.users[m.sender].lastrob2 + 7200000;
@@ -19,8 +20,8 @@ return;
   const users = global.db.data.users[who];
   const rob = Math.floor(Math.random() * ro);
   if (users.coin < rob) return conn.reply(m.chat, `${emoji2} @${who.split`@`[0]} no tiene suficientes *${moneda}* fuera del banco como para que valga la pena intentar robar.`, m, {mentions: [who]});
-  global.db.data.users[m.sender].coin += rob;
-  global.db.data.users[who].coin -= rob;
+  recordWalletExpense(who, global.db.data.users[who], rob, 'Robo sufrido', m.sender);
+  recordWalletIncome(m.sender, global.db.data.users[m.sender], rob, 'Robo exitoso', who);
   conn.reply(m.chat, `${emoji} Le robaste ${rob} ${moneda} a @${who.split`@`[0]}`, m, {mentions: [who]});
   global.db.data.users[m.sender].lastrob2 = new Date * 1;
 };

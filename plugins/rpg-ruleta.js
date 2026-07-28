@@ -1,3 +1,4 @@
+import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 let cooldowns = {}
 
 let handler = async (m, { conn, text, command, usedPrefix }) => {
@@ -42,10 +43,10 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     }
 
     if (win) {
-      users.coin += coin
+      recordWalletIncome(m.sender, users, coin, 'Ganancia ruleta', 'ruleta')
       conn.reply(m.chat, `${emoji} ¡Ganaste! Obtuviste ${coin} *💸 ${moneda}*. Total: ${users.coin} *💸 ${moneda}*.`, m)
     } else {
-      users.coin -= coin
+      recordWalletExpense(m.sender, users, coin, 'Pérdida ruleta', 'ruleta')
       conn.reply(m.chat, `${emoji2} Perdiste. Se restaron ${coin} *💸 ${moneda}*. Total: ${users.coin} *💸 ${moneda}*.`, m)
     }
 
