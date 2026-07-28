@@ -8,6 +8,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js'
+import { syncEconomyFromGlobal } from './lib/economy.js'
 
 const { WAProto: proto, WAMessageStubType, areJidsSameUser } = (await import('baileys'))
 
@@ -108,6 +109,24 @@ const runDetached = (conn, task, label = 'background-task') => {
         .finally(() => tasks.delete(promise))
     tasks.add(promise)
     return promise
+}
+
+
+const markReadAndComposeForCommand = async (conn, m) => {
+    if (!m?.key || m.fromMe || m.presencePrepared) return
+    const jid = m.chat || m.key.remoteJid
+    if (!jid) return
+    try {
+        await conn.readMessages([m.key])
+    } catch (error) {
+        console.error(`No se pudo marcar como leído ${m.key?.id || ''}:`, error)
+    }
+    try {
+        await conn.sendPresenceUpdate('composing', jid)
+    } catch (error) {
+        console.error(`No se pudo enviar presencia composing a ${jid}:`, error)
+    }
+    m.presencePrepared = true
 }
 
 const normalizeTimestamp = timestamp => {
@@ -384,6 +403,10 @@ async function processChatUpdate(chatUpdate) {
         const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
         const pluginRegistry = getPluginRegistry()
         const commandCandidates = getCommandCandidates(m.text, conn.prefix || global.prefix, pluginRegistry)
+        if (commandCandidates?.size) {
+            syncEconomyFromGlobal()
+            await markReadAndComposeForCommand(this, m)
+        }
 
         for (let name in global.plugins) {
             let plugin = global.plugins[name]

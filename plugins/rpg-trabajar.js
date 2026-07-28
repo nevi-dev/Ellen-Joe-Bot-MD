@@ -1,3 +1,5 @@
+import { applyEconomyUserBalance, getDynamicSalary } from '../lib/economy.js'
+
 let cooldowns = {}
 
 let handler = async (m, { conn, isPrems }) => {
@@ -8,10 +10,12 @@ const tiempo2 = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempo * 1000 - Da
 conn.reply(m.chat, `${emoji3} Debes esperar *${tiempo2}* para usar *#w* de nuevo.`, m)
 return
 }
-let rsl = Math.floor(Math.random() * 500)
+const baseSalary = Math.floor(Math.random() * 500)
+let rsl = getDynamicSalary(baseSalary)
 cooldowns[m.sender] = Date.now()
 await conn.reply(m.chat, `${emoji} ${pickRandom(trabajo)} *${toNum(rsl)}* ( *${rsl}* ) ${moneda} 💸.`, m)
 user.coin += rsl
+applyEconomyUserBalance(m.sender, user)
 }
 
 handler.help = ['trabajar']

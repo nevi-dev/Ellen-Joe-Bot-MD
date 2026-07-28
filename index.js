@@ -226,23 +226,13 @@ version,
 }
 
 
-const MAIN_MAX_RECONNECT_RETRIES = 5
+const MAIN_RECONNECT_BASE_DELAY_MS = 5000
+const MAIN_RECONNECT_MAX_DELAY_MS = 60000
 let mainReconnectAttempts = 0
+let mainReconnectTimer = null
+let mainReconnectInFlight = false
 let gracefulShutdownStarted = false
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-const getReconnectDelay = (attempt) => Math.min(5000 * (2 ** Math.max(attempt - 1, 0)), 60000)
-const sessionDbFiles = () => [sessionDbPath, `${sessionDbPath}-wal`, `${sessionDbPath}-shm`, `${sessionDbPath}-journal`]
-const deleteMainSessionDatabase = async () => {
-await Promise.all(sessionDbFiles().map(async (filePath) => {
-try {
-await fs.promises.rm(filePath, { force: true })
-} catch (error) {
-console.error(`No se pudo eliminar ${filePath}:`, error)
-}
-}))
-console.log(chalk.bold.redBright(`
-⚠️ Sesión SQLite eliminada tras ${MAIN_MAX_RECONNECT_RETRIES} reintentos fallidos: ${sessionDbFiles().join(', ')}`))
-}
+const getReconnectDelay = (attempt) => Math.min(MAIN_RECONNECT_BASE_DELAY_MS * (2 ** Math.max(attempt - 1, 0)), MAIN_RECONNECT_MAX_DELAY_MS)
 const shutdown = async (signal = 'SIGTERM', exitCode = 0) => {
 if (gracefulShutdownStarted) return
 gracefulShutdownStarted = true
@@ -308,30 +298,59 @@ console.log(chalk.bold.yellow(`
 }
 if (connection == 'open') {
 mainReconnectAttempts = 0
+mainReconnectInFlight = false
+if (mainReconnectTimer) {
+clearTimeout(mainReconnectTimer)
+mainReconnectTimer = null
+}
 console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 }
 
-const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
 if (connection === 'close') {
-mainReconnectAttempts += 1
+const rawError = lastDisconnect?.error
+const boomError = rawError instanceof Boom ? rawError : new Boom(rawError)
+const statusCode = boomError?.output?.statusCode || rawError?.output?.statusCode || rawError?.statusCode
+const isLoggedOut = statusCode === DisconnectReason.loggedOut
+const reasonLabel = Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
 
-if (mainReconnectAttempts > MAIN_MAX_RECONNECT_RETRIES) {
+if (isLoggedOut) {
 console.log(chalk.bold.redBright(`
-⚠️ RECONEXIÓN AGOTADA: ${MAIN_MAX_RECONNECT_RETRIES} intentos consecutivos fallaron. Último código: ${statusCode || 'No Encontrado'}.
-⚠️ Eliminando sesion.db, sesion.db-wal, sesion.db-shm y saliendo con process.exit(1).`))
-await deleteMainSessionDatabase()
-return process.exit(1)
+╭─「 SESIÓN CERRADA 」
+│ WhatsApp devolvió Logged Out (${statusCode}).
+│ No se intentará reconectar automáticamente; vuelve a vincular la sesión.
+╰────────────────────`))
+return
 }
 
+if (mainReconnectTimer || mainReconnectInFlight) {
+console.log(chalk.bold.yellowBright(`⚠️ Ya hay una reconexión principal programada/en curso. Código recibido: ${statusCode || 'No Encontrado'} (${reasonLabel}).`))
+return
+}
+
+mainReconnectAttempts += 1
 const delayMs = getReconnectDelay(mainReconnectAttempts)
+const recoverableReason = statusCode === 500 || statusCode === DisconnectReason.connectionClosed || statusCode === DisconnectReason.connectionLost || statusCode === DisconnectReason.timedOut || statusCode === DisconnectReason.restartRequired
+
 console.log(chalk.bold.yellowBright(`
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸
-┆ ⚠️ CONEXIÓN CERRADA (${statusCode || 'No Encontrado'}).
-┆ Reintento ciego ${mainReconnectAttempts}/${MAIN_MAX_RECONNECT_RETRIES} en ${delayMs / 1000}s...
+┆ ⚠️ CONEXIÓN CERRADA (${statusCode || 'No Encontrado'} / ${reasonLabel}).
+┆ ${recoverableReason ? 'Error recuperable detectado' : 'Se tratará como recuperable mientras no sea Logged Out'}.
+┆ Reintentando en ${Math.round(delayMs / 1000)}s sin matar el proceso de Node...
 ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄ ▸`))
-await wait(delayMs)
-await global.reloadHandler(true).catch(console.error)
+
+mainReconnectTimer = setTimeout(async () => {
+mainReconnectTimer = null
+mainReconnectInFlight = true
+try {
+await global.reloadHandler(true)
 global.timestamp.connect = new Date
+} catch (error) {
+console.error('Error al reconectar el socket principal:', error)
+} finally {
+mainReconnectInFlight = false
+}
+}, delayMs)
+mainReconnectTimer.unref?.()
 }
 }
 
