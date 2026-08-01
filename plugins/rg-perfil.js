@@ -1,3 +1,4 @@
+import db from '../database.js'
 import moment from 'moment-timezone';
 import PhoneNumber from 'awesome-phonenumber';
 import fetch from 'node-fetch';
@@ -11,7 +12,7 @@ let handler = async (m, { conn, args }) => {
         userId = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
     }
 
-    let user = global.db.data.users[userId];
+    let user = db.data.users[userId];
     let name = await conn.getName(userId);
     let cumpleanos = user.birth || 'No lo ha dicho';
     let genero = user.genre || 'Desconocido';

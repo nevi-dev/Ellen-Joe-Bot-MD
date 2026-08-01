@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { promises as fs } from 'fs'
 import fsSync from 'fs'
 
@@ -61,8 +62,8 @@ let handler = async (m, { conn, args }) => {
             return await sendExternalMessage(`*— Tsk, olvídalo.* Tiene un escudo activo. Faltan **${h}h ${min}m** para que expire. No pienso pelear contra mis colegas.`)
         }
 
-        const uThief = global.db.data.users[thiefId] || { level: 1, health: 100 }
-        const uOwner = global.db.data.users[ownerId] || { level: 1 }
+        const uThief = db.data.users[thiefId] || { level: 1, health: 100 }
+        const uOwner = db.data.users[ownerId] || { level: 1 }
 
         // 3. VERIFICAR SALUD
         const currentHealth = uThief.health ?? 100

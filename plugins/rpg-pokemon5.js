@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   
   // --- BLOQUEO DE SEGURIDAD ---
   // Importamos o verificamos las variables de duelos (deben ser las mismas que en tus otros archivos)

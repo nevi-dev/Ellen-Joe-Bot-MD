@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { command, conn, args, usedPrefix }) => {
-  let user = global.db.data.users[m.sender];
+  let user = db.data.users[m.sender];
 
   switch (command) {
     case 'crearpet':

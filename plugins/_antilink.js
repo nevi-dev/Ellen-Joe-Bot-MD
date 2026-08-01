@@ -1,3 +1,4 @@
+import db from '../database.js'
 let linkRegex = /chat\.whatsapp\.com\/([0-9A-Za-z]{20,24})/i;
 let linkRegex1 = /whatsapp\.com\/channel\/([0-9A-Za-z]{20,24})/i;
 
@@ -18,7 +19,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner, 
 
   if (isAdmin || isOwner || m.fromMe || isROwner) return;
 
-  let chat = global.db.data.chats[m.chat];
+  let chat = db.data.chats[m.chat];
   if (!chat.antiLink) return;
 
   const user = `@${m.sender.split('@')[0]}`;

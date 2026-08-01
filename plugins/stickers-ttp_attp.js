@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { sticker } from '../lib/sticker.js'
 import fetch from 'node-fetch'
 import axios from 'axios'
@@ -6,7 +7,7 @@ let handler = async (m, { conn, text, args, usedPrefix, command }) => {
     if (!text) return m.reply(`❀ Por Favor, Ingresa Un Texto Para Realizar Tu Sticker.`)
 
     let userId = m.sender
-    let packstickers = global.db.data.users[userId] || {}
+    let packstickers = db.data.users[userId] || {}
     let texto1 = packstickers.text1 || global.packsticker
     let texto2 = packstickers.text2 || global.packsticker2
 

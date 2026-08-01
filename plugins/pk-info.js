@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { conn, args, usedPrefix }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   let id = parseInt(args[0]) - 1
 
   if (!user.pokemones || !user.pokemones[id]) {

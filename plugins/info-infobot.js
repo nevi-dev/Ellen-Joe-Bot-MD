@@ -1,4 +1,4 @@
-import db from '../lib/database.js'
+import db from '../database.js'
 import { cpus as _cpus, totalmem, freemem, platform, hostname } from 'os'
 import speed from 'performance-now'
 import { sizeFormatter } from 'human-readable'
@@ -11,8 +11,8 @@ let format = sizeFormatter({
 })
 
 let handler = async (m, { conn, usedPrefix }) => {
-    let bot = global.db.data.settings[conn.user.jid]
-    let totalStats = Object.values(global.db.data.stats).reduce((total, stat) => total + stat.total, 0)
+    let bot = db.data.settings[conn.user.jid]
+    let totalStats = Object.values(db.data.stats).reduce((total, stat) => total + stat.total, 0)
     let totalf = Object.values(global.plugins).filter((v) => v.help && v.tags).length
 
     let info = `✿  *Informacion de ${global.botname}*\n\n`

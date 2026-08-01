@@ -1,3 +1,4 @@
+import db from '../database.js'
 import MessageType from 'baileys';
 
 let handler = async (m, { conn, text }) => {
@@ -22,7 +23,7 @@ let handler = async (m, { conn, text }) => {
         who = m.sender;
     }
 
-    let users = global.db.data.users;
+    let users = db.data.users;
 
     if (!users[who]) {
         users[who] = { coin: 0, exp: 0, level: 0 };

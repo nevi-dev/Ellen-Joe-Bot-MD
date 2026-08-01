@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 let users = {};
 
@@ -19,7 +20,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     let userId = m.sender;
     if (!users[userId]) users[userId] = { coin: 100 };
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
     if (user.coin < cantidad) {
         return m.reply(`${emoji2} No tienes suficientes ${moneda} para apostar. Tienes ${user.coin} ${moneda}.`);
     }

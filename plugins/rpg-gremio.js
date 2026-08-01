@@ -1,3 +1,4 @@
+import db from '../database.js'
 let cooldowns = {};
 
 // Configuración de Identidad (Newsletter)
@@ -5,7 +6,7 @@ const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
 let handler = async (m, { conn }) => {
-  let users = global.db.data.users;
+  let users = db.data.users;
   let senderId = m.sender;
   let name = conn.getName(senderId);
 
@@ -80,7 +81,7 @@ let handler = async (m, { conn }) => {
     contextInfo 
   }, { quoted: m });
 
-  await global.db.write();
+  await db.write();
 };
 
 handler.tags = ['rpg'];

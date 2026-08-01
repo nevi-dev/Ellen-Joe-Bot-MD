@@ -1,10 +1,11 @@
+import db from '../database.js'
 import { recordWalletIncome } from '../lib/economy.js'
 const handler = async (m, { isPrems, conn }) => {
-  if (!global.db.data.users[m.sender]) {
+  if (!db.data.users[m.sender]) {
     throw `${emoji4} Usuario no encontrado.`;
   }
 
-  const lastCofreTime = global.db.data.users[m.sender].lastcofre;
+  const lastCofreTime = db.data.users[m.sender].lastcofre;
   const timeToNextCofre = lastCofreTime + 86400000;
 
   if (Date.now() < timeToNextCofre) {
@@ -19,11 +20,11 @@ const handler = async (m, { isPrems, conn }) => {
   const ai = Math.floor(Math.random() * 40);
   const expp = Math.floor(Math.random() * 5000);
 
-  recordWalletIncome(m.sender, global.db.data.users[m.sender], dia, 'Cofre diario', 'cofre')
-  global.db.data.users[m.sender].diamonds += ai;
-  global.db.data.users[m.sender].joincount += tok;
-  global.db.data.users[m.sender].exp += expp;
-  global.db.data.users[m.sender].lastcofre = Date.now();
+  recordWalletIncome(m.sender, db.data.users[m.sender], dia, 'Cofre diario', 'cofre')
+  db.data.users[m.sender].diamonds += ai;
+  db.data.users[m.sender].joincount += tok;
+  db.data.users[m.sender].exp += expp;
+  db.data.users[m.sender].lastcofre = Date.now();
 
   const texto = `
 ╭━〔 Cσϝɾҽ Aʅҽαƚσɾισ 〕⬣

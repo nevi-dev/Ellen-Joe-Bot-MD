@@ -1,12 +1,13 @@
+import db from '../database.js'
 let handler = async (m, { conn, usedPrefix, command, args }) => {
   let botname = global.botname || "Ellen Joe";
 
   // Verificar si el chat está registrado
-  if (!(m.chat in global.db.data.chats)) {
+  if (!(m.chat in db.data.chats)) {
     return conn.reply(m.chat, `🦈 *Ellen Joe*: Este chat ni siquiera está registrado... *qué flojera*.`, m);
   }
 
-  let chat = global.db.data.chats[m.chat];
+  let chat = db.data.chats[m.chat];
 
   if (command === 'bot') {
     if (args.length === 0) {

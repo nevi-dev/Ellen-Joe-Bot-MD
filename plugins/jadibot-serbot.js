@@ -23,6 +23,7 @@ const { child, spawn, exec } = await import('child_process')
 const { CONNECTING } = ws
 import { makeWASocket } from '../lib/simple.js'
 import { Boom } from '@hapi/boom'
+import db, { loadDatabase } from '../database.js'
 import { fileURLToPath } from 'url'
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
@@ -137,9 +138,9 @@ if (index >= 0) global.conns.splice(index, 1)
 global.subBotPruneInterval.unref?.()
 }
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
-//if (!globalThis.db.data.settings[conn.user.jid].jadibotmd) return m.reply(`♡ Comando desactivado temporalmente.`)
-let time = global.db.data.users[m.sender].Subs + 120000
-if (new Date - global.db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
+//if (!db.data.settings[conn.user.jid].jadibotmd) return m.reply(`♡ Comando desactivado temporalmente.`)
+let time = db.data.users[m.sender].Subs + 120000
+if (new Date - db.data.users[m.sender].Subs < 120000) return conn.reply(m.chat, `${emoji} Debes esperar ${msToTime(time - new Date())} para volver a vincular un *Sub-Bot.*`, m)
 const subBots = [...new Set([...global.conns.filter((conn) => conn.user && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn)])]
 const subBotsCount = subBots.length
 if (subBotsCount === 90) {
@@ -162,7 +163,7 @@ EllenJBOptions.usedPrefix = usedPrefix
 EllenJBOptions.command = command
 EllenJBOptions.fromCommand = true
 EllenJadiBot(EllenJBOptions)
-global.db.data.users[m.sender].Subs = new Date * 1
+db.data.users[m.sender].Subs = new Date * 1
 }
 handler.help = ['qr', 'code']
 handler.tags = ['serbot']
@@ -321,7 +322,7 @@ reconnectInFlight = false
 reconnectTimer.unref?.()
 return
 }
-if (global.db.data == null) loadDatabase()
+if (db.data == null) loadDatabase()
 if (connection == `open`) {
 reconnectAttempts = 0
 reconnectInFlight = false
@@ -329,7 +330,7 @@ if (reconnectTimer) {
 clearTimeout(reconnectTimer)
 reconnectTimer = null
 }
-if (!global.db.data?.users) loadDatabase()
+if (!db.data?.users) loadDatabase()
 let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
 userJid = sock.authState.creds.me.jid || `${path.basename(pathEllenJadiBot)}@s.whatsapp.net`

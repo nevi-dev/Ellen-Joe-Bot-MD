@@ -1,4 +1,4 @@
-import db from '../lib/database.js'
+import db from '../database.js'
 
 let handler = m => m
 
@@ -19,15 +19,15 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin }) {
     '973', '968', '965', '222', '252'
   ]
 
-  global.db.data.settings = global.db.data.settings || {}
-  global.db.data.settings[botJid] = global.db.data.settings[botJid] || {}
+  db.data.settings = db.data.settings || {}
+  db.data.settings[botJid] = db.data.settings[botJid] || {}
 
   if (!isPrivate) {
-    let chat = global.db.data.chats[chatId]
+    let chat = db.data.chats[chatId]
     if (isBotAdmin && chat?.antifake) {
       for (let prefijo of prefijosBloqueados) {
         if (numero.startsWith(prefijo)) {
-          global.db.data.users[sender].block = true
+          db.data.users[sender].block = true
           await conn.groupParticipantsUpdate(chatId, [sender], 'remove')
           await conn.sendMessage(chatId, { text: `🚫 Usuario con prefijo *${prefijo}* eliminado por antifake.` })
           break
@@ -35,11 +35,11 @@ handler.before = async function (m, { conn, isAdmin, isBotAdmin }) {
       }
     }
   } else {
-    let antifakePriv = global.db.data.settings[botJid].antifakePriv
+    let antifakePriv = db.data.settings[botJid].antifakePriv
     if (antifakePriv) {
       for (let prefijo of prefijosBloqueados) {
         if (numero.startsWith(prefijo)) {
-          global.db.data.users[sender].block = true
+          db.data.users[sender].block = true
           try {
             await conn.sendMessage(sender, { text: '🚫 Usuario bloqueado por antifake (número no permitido).' })
           } catch {}

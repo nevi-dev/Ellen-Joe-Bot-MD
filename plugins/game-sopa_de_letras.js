@@ -1,3 +1,4 @@
+import db from '../database.js'
 //CREADO POR @gata_dios
  
 let fila, columna, sopaNube, sopaPalabra, sopaDir, userSP, cambioLetra, coin = null
@@ -144,7 +145,7 @@ diamante = 24
 } else {
 diamante = 32
 }
-global.db.data.users[m.sender].coin += coin
+db.data.users[m.sender].coin += coin
 
 await m.reply(`\`\`\`${emoji} Has ganado ${moneda} ${rpgshop.emoticon('limit')}!!\`\`\`\n\n*Correcto!! la palabra _"${sopaPalabra}"_ Se encontraba en la dirección _${cambioLetra}_ De la fila _${fila}_ Y Columna _${columna}_*`)
 fila = null, columna = null, sopaNube = null, sopaPalabra = null, sopaDir = null, userSP = null, cambioLetra = null

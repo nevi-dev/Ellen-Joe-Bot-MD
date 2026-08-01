@@ -1,8 +1,9 @@
+import db from '../database.js'
 let handler = m => m
 
 handler.before = async function (m, {conn, isAdmin, isBotAdmin}) {
 if (!m.isGroup) return !1
-let chat = global.db.data.chats[m.chat]
+let chat = db.data.chats[m.chat]
 if (chat.autoAceptar && !isAdmin) {
     if (!isBotAdmin) return !0
         const participants = await conn.groupRequestParticipantsList(m.chat)

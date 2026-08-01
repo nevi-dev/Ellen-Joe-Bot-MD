@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 // --- FUNCIÓN QUE CONECTA CON LA POKE API ---
@@ -46,7 +47,7 @@ async function buildPokemonObj(idOrName, level = 1) {
 }
 
 let handler = async (m, { conn }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   
   // Cooldown de 1 hora
   let cooldown = 3600000 

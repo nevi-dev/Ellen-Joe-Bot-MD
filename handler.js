@@ -8,6 +8,7 @@ import { unwatchFile, watchFile } from 'fs'
 import chalk from 'chalk'
 import fetch from 'node-fetch'
 import failureHandler from './lib/respuesta.js'
+import db, { loadDatabase } from './database.js'
 import { getDynamicPrice, recordWalletExpense, syncEconomyFromGlobal } from './lib/economy.js'
 
 const { WAProto: proto, WAMessageStubType, areJidsSameUser } = (await import('baileys'))
@@ -207,7 +208,7 @@ async function processChatUpdate(chatUpdate) {
     if (m.messageStubType && IGNORED_STUB_TYPES.has(m.messageStubType)) return
     if (m.key.id.startsWith('BAE5') || m.key.id.startsWith('3EB0') || m.id?.startsWith('NJX-') || m.isBaileys) return
 
-    if (global.db.data == null) await global.loadDatabase()
+    if (db.data == null) await loadDatabase()
 
     try {
         m = smsg(this, m) || m
@@ -300,7 +301,7 @@ async function processChatUpdate(chatUpdate) {
 
             resolveMessageMentions(m, participants_lid)
 
-            const chatDb = global.db.data.chats[m.chat] || {}
+            const chatDb = db.data.chats[m.chat] || {}
 
             const currentBotJid = cleanJid(this.user?.id || this.user?.jid)
 
@@ -321,10 +322,10 @@ async function processChatUpdate(chatUpdate) {
         m.exp = 0
         m.coin = false
 
-        let user = global.db.data.users[sender]
+        let user = db.data.users[sender]
         if (!user) {
-            global.db.data.users[sender] = { ...defaultUser, name: m.name || '' }
-            user = global.db.data.users[sender]
+            db.data.users[sender] = { ...defaultUser, name: m.name || '' }
+            user = db.data.users[sender]
         } else {
             for (let key in defaultUser) {
                 if (user[key] === undefined) { user[key] = defaultUser[key] }
@@ -332,10 +333,10 @@ async function processChatUpdate(chatUpdate) {
             if (!user.name && m.name) { user.name = m.name }
         }
 
-        let chat = global.db.data.chats[m.chat]
+        let chat = db.data.chats[m.chat]
         if (!chat) {
-            global.db.data.chats[m.chat] = { ...defaultChat }
-            chat = global.db.data.chats[m.chat]
+            db.data.chats[m.chat] = { ...defaultChat }
+            chat = db.data.chats[m.chat]
         } else {
             for (let key in defaultChat) {
                 if (chat[key] === undefined) { chat[key] = defaultChat[key] }
@@ -343,10 +344,10 @@ async function processChatUpdate(chatUpdate) {
         }
 
         let currentBotId = cleanJid(this.user?.id || this.user?.jid)
-        let settings = global.db.data.settings[currentBotId]
+        let settings = db.data.settings[currentBotId]
         if (!settings) {
-            global.db.data.settings[currentBotId] = { ...defaultSettings }
-            settings = global.db.data.settings[currentBotId]
+            db.data.settings[currentBotId] = { ...defaultSettings }
+            settings = db.data.settings[currentBotId]
         } else {
             for (let key in defaultSettings) {
                 if (settings[key] === undefined) { settings[key] = defaultSettings[key] }
@@ -456,9 +457,9 @@ async function processChatUpdate(chatUpdate) {
                 if (!isAccept) continue
                 m.plugin = name
 
-                if (m.chat in global.db.data.chats || sender in global.db.data.users) {
-                    let chatData = global.db.data.chats[m.chat]
-                    let userData = global.db.data.users[sender]
+                if (m.chat in db.data.chats || sender in db.data.users) {
+                    let chatData = db.data.chats[m.chat]
+                    let userData = db.data.users[sender]
 
                     if (!['grupo-unbanchat.js', 'owner-exec.js', 'owner-exec2.js', 'grupo-delete.js'].includes(name) && chatData?.isBanned && !isROwner) return
 
@@ -473,7 +474,7 @@ async function processChatUpdate(chatUpdate) {
                     userData.spam = new Date() * 1
                 }
 
-                let adminMode = global.db.data.chats[m.chat]?.modoadmin
+                let adminMode = db.data.chats[m.chat]?.modoadmin
                 let mini = `${plugin.botAdmin || plugin.admin || plugin.group || plugin.command}`
                 if (adminMode && !isOwner && !isROwner && m.isGroup && !isAdmin && mini) return
 
@@ -494,7 +495,7 @@ async function processChatUpdate(chatUpdate) {
                 else m.exp += xp
 
                 const commandCoinCost = !isPrems && plugin.coin ? getDynamicPrice(plugin.coin * 1) : 0
-                if (commandCoinCost && global.db.data.users[sender].coin < commandCoinCost) {
+                if (commandCoinCost && db.data.users[sender].coin < commandCoinCost) {
                     conn.reply(m.chat, `❮✦❯ Se agotaron tus monedas. Costo dinámico: ${commandCoinCost}`, m)
                     continue
                 }
@@ -542,9 +543,9 @@ async function processChatUpdate(chatUpdate) {
             if (quequeIndex !== -1) this.msgqueque.splice(quequeIndex, 1)
         }
 
-        let userStats, stats = global.db.data.stats
+        let userStats, stats = db.data.stats
         if (m) {
-            const chatObj = global.db.data.chats[m.chat] ?? {};
+            const chatObj = db.data.chats[m.chat] ?? {};
 
             if (chatObj.users?.[sender]?.mute2) {
                 let botObjFinal = {}
@@ -559,7 +560,7 @@ async function processChatUpdate(chatUpdate) {
                 return
             }
 
-            if (sender && (userStats = global.db.data.users[sender])) {
+            if (sender && (userStats = db.data.users[sender])) {
                 userStats.exp += m.exp
                 if (m.coin) recordWalletExpense(sender, userStats, m.coin, 'Costo dinámico de comando', m.plugin || 'command-fee')
             }
@@ -593,7 +594,7 @@ async function processChatUpdate(chatUpdate) {
 
         if (opts['autoread']) await this.readMessages([m.key])
 
-        if (global.db.data.chats[m.chat]?.reaction && m.text.length > 0) {
+        if (db.data.chats[m.chat]?.reaction && m.text.length > 0) {
             const reactionRegex = /(ción|dad|aje|oso|izar|mente|pero|tion|age|ous|ate|and|but|ify|ai|yuki|a|s)/i
             if (reactionRegex.test(m.text)) {
                 const emotList = ["🍟", "😃", "😄", "😁", "😆", "🍓", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "🌺", "🌸", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🌟", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "💫", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😶‍🌫️", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🤖", "🍭", "🤫", "🫠", "🤥", "😶", "📇", "😐", "💧", "😑", "🫨", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😮‍💨", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👺", "🧿", "🌩", "👻", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🫶", "👍", "✌️", "🙏", "🫵", "🤏", "🤌", "☝️", "🖕", "🫂", "🐱", "🤹‍♀️", "🤹‍♂️", "🗿", "✨", "⚡", "🔥", "🌈", "🩷", "❤️", "🧡", "💛", "💚", "🩵", "💙", "💜", "🖤", "🩶", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🚩", "👊", "⚡️", "💋", "🫰", "💅", "👑", "🐣", "🐤", "🐈"]

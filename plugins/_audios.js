@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 import { readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs'
 import path from 'path'
@@ -10,7 +11,7 @@ const handler = m => m
 handler.all = async function (m) {
   if (!m.isGroup || m.isBaileys || !m.text || !this.user) return !0
 
-  let chat = global.db.data.chats[m.chat]
+  let chat = db.data.chats[m.chat]
   if (!chat || !chat.audios || m.text.length > 40) return !0
 
   // --- LÓGICA DE RESPUESTA ÚNICA ALEATORIA ---

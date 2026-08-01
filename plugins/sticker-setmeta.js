@@ -1,3 +1,4 @@
+import db from '../database.js'
 // ⁱ𝔇ĕ𝐬†𝓻⊙γ𒆜 -  >> https://github.com/The-King-Destroy
 
 let handler = async (m, { text, usedPrefix, command }) => {
@@ -12,11 +13,11 @@ let handler = async (m, { text, usedPrefix, command }) => {
         const packText1 = packParts[0];
         const packText2 = packParts[1];
 
-        if (!global.db.data.users[userId]) {
-            global.db.data.users[userId] = {};
+        if (!db.data.users[userId]) {
+            db.data.users[userId] = {};
         }
 
-        const packstickers = global.db.data.users[userId];
+        const packstickers = db.data.users[userId];
 
         if (packstickers.text1 || packstickers.text2) {
             return m.reply(`${emoji2} Ya tienes un pack de stickers establecida.\n> Usa el comando *${usedPrefix}delmeta* para eliminarla antes de establecer una nueva.`);
@@ -25,21 +26,21 @@ let handler = async (m, { text, usedPrefix, command }) => {
         packstickers.text1 = packText1;
         packstickers.text2 = packText2;
 
-        await global.db.write();
+        await db.write();
 
         return m.reply(`${emoji4} Se actualizo el pack y autor por defecto para tus stickers.`);
     }
 
     if (command === 'delmeta') {
-        if (!global.db.data.users[userId] || (!global.db.data.users[userId].text1 && !global.db.data.users[userId].text2)) {
+        if (!db.data.users[userId] || (!db.data.users[userId].text1 && !db.data.users[userId].text2)) {
             return m.reply(`${emoji3} Este usuario no a establecido un pack de stickers.`);
         }
 
-        const packstickers = global.db.data.users[userId];
+        const packstickers = db.data.users[userId];
         delete packstickers.text1;
         delete packstickers.text2;
 
-        await global.db.write();
+        await db.write();
 
         return m.reply(`${emoji} Se restablecio el pack y autor por defecto para tus stickers.`);
     }
@@ -61,13 +62,13 @@ return m.reply(`🚀 Escribe el pack y el autor que deseas usar por defecto para
 }
 const packName = metaParts[0]
 const authorName = metaParts[1]
-if (!global.db.data.users[m.sender]) {
-global.db.data.users[m.sender] = {}
+if (!db.data.users[m.sender]) {
+db.data.users[m.sender] = {}
 }
-const { packstickers, packstickers2 } = global.db.data.users[m.sender]
+const { packstickers, packstickers2 } = db.data.users[m.sender]
 packstickers = packName
 packstickers2 = authorName
-await global.db.write()
+await db.write()
 return m.reply(`✨ ¡Tus metadatos de stickers han sido actualizados con éxito! Pack: ${packName} | Autor: ${authorName}`)
 } catch (e) {
 await m.reply(`🚨 Ocurrió un problema al actualizar los ajustes: ${e}`)

@@ -10,7 +10,7 @@ import * as ws from 'ws'
 import fs, {readdirSync, existsSync, mkdirSync, readFileSync, rmSync, watch} from 'fs'
 import yargs from 'yargs';
 import {spawn} from 'child_process'
-import lodash from 'lodash'
+import db, { loadDatabase } from './database.js'
 import { EllenJadiBot } from './plugins/jadibot-serbot.js';
 import chalk from 'chalk'
 import syntaxerror from 'syntax-error'
@@ -24,10 +24,6 @@ import Pino from 'pino'
 import path, { join, dirname } from 'path'
 import {Boom} from '@hapi/boom'
 import {makeWASocket, protoType, serialize} from './lib/simple.js'
-import {Low} from 'lowdb'
-import BetterSQLiteAdapter from './lib/sqliteDB.js'
-import cloudDBAdapter from './lib/cloudDBAdapter.js'
-import {mongoDB, mongoDBV2} from './lib/mongoDB.js'
 import store from './lib/store.js'
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
@@ -35,7 +31,6 @@ const phoneUtil = PhoneNumberUtil.getInstance()
 const {DisconnectReason, useSqliteAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('baileys')
 import readline, { createInterface } from 'readline'
 const {CONNECTING} = ws
-const {chain} = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
 
 //const yuw = dirname(fileURLToPath(import.meta.url))
@@ -116,33 +111,7 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.prefix = new RegExp('^[#/!.]')
 // global.opts['db'] = process.env['db']
 
-global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new BetterSQLiteAdapter('./src/database/database.sqlite', { migrateFrom: './src/database/database.json' }))
-
-global.DATABASE = global.db
-global.loadDatabase = async function loadDatabase() {
-  // 1. Mejoramos la validación inicial para evitar que pase de largo si data es undefined
-  if (global.db.data && Object.keys(global.db.data).length > 0) return global.db.data
-  if (global.db.READ) return global.db.READ
-
-  global.db.READ = (async () => {
-    await global.db.read().catch(console.error)
-    global.db.data = {
-      users: {},
-      chats: {},
-      stats: {},
-      msgs: {},
-      sticker: {},
-      settings: {},
-      ...(global.db.data || {}),
-    }
-    global.db.chain = chain(global.db.data)
-    global.db.READ = null
-    return global.db.data
-  })()
-  return global.db.READ
-}
-
-// 2. Agregamos el await fundamental aquí:
+// database.js se importa temprano para exponer la instancia por módulos ES y mantener el fallback legacy durante la migración.
 await loadDatabase()
 
 if (!fs.existsSync(global.Ellensessions)) fs.mkdirSync(global.Ellensessions, { recursive: true })
@@ -294,8 +263,8 @@ conn.well = false;
 //conn.logger.info(`✦  H E C H O\n`)
 
 if (!opts['test']) {
-if (global.db) setInterval(async () => {
-if (global.db.data) await global.db.write()
+if (db) setInterval(async () => {
+if (db.data) await db.write()
 if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', `${jadi}`], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
 }, 30 * 1000);
 }
@@ -306,7 +275,7 @@ async function connectionUpdate(update) {
 const {connection, lastDisconnect, isNewLogin} = update;
 global.stopped = connection;
 if (isNewLogin) conn.isInit = true;
-if (global.db.data == null) loadDatabase();
+if (db.data == null) loadDatabase();
 if (update.qr != 0 && update.qr != undefined || methodCodeQR) {
 if (opcion == '1' || methodCodeQR) {
 console.log(chalk.bold.yellow(`

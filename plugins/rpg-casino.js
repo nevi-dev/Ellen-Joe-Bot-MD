@@ -1,11 +1,11 @@
-import db from '../lib/database.js'
+import db from '../database.js'
 import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 
 let buatall = 1
 let cooldowns = {}
 
 let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
-let user = global.db.data.users[m.sender]
+let user = db.data.users[m.sender]
 let randomaku = `${Math.floor(Math.random() * 101)}`.trim()
 let randomkamu = `${Math.floor(Math.random() * 55)}`.trim()
 let Aku = (randomaku * 1)
@@ -20,7 +20,7 @@ conn.reply(m.chat, `${emoji3} Ya has iniciado una apuesta recientemente, espera 
 return
 }
 cooldowns[m.sender] = Date.now()
-count = count ? /all/i.test(count) ? Math.floor(global.db.data.users[m.sender].limit / buatall) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
+count = count ? /all/i.test(count) ? Math.floor(db.data.users[m.sender].limit / buatall) : parseInt(count) : args[0] ? parseInt(args[0]) : 1
 count = Math.max(1, count)
 if (args.length < 1) return conn.reply(m.chat, `${emoji} Ingresa la cantidad de ` + `💸 *${moneda}*` + ' que deseas aportar contra' + ` *${botname}*` + `\n\n` + '`Ejemplo:`\n' + `> *${usedPrefix + command}* 100`, m)
 if (user.coin >= count * 1) {

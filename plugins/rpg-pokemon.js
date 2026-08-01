@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 // Memoria de sesiones
@@ -62,7 +63,7 @@ async function buildPokemonObj(idOrName, level = 1) {
 
 // --- HANDLER PRINCIPAL ---
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   if (!user.pokemones) user.pokemones = []
   if (!user.pkTorre) user.pkTorre = 1
 
@@ -152,7 +153,7 @@ function ejecutarAtaque(at, df, mv) {
 }
 
 function renderBattle(m, conn, b, log = '') {
-  let txt = `⛩️ **TORRE BATALLA - PISO ${global.db.data.users[m.sender].pkTorre}**\n\n`
+  let txt = `⛩️ **TORRE BATALLA - PISO ${db.data.users[m.sender].pkTorre}**\n\n`
   txt += `👾 **${b.p2.nombre}** (Nv. ${b.p2.nivel})\n💖 HP: ${b.p2.currentHp}/${b.p2.maxHp}\n`
   txt += `━━━━━━━━━━━━━━━\n`
   txt += `👤 **${b.p1.nombre}** (Nv. ${b.p1.nivel})\n💖 HP: ${b.p1.currentHp}/${b.p1.maxHp}\n\n`

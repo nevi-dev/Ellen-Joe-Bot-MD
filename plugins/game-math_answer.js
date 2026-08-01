@@ -1,3 +1,4 @@
+import db from '../database.js'
 global.math = global.math ? global.math : {};
 const handler = async (m, {conn}) => {
   const id = m.chat;
@@ -10,7 +11,7 @@ const handler = async (m, {conn}) => {
     const math = global.math[id][1];
     if (m.text == math.result) {
       conn.reply(m.chat, `Respuesta correcta!!\nHaz ganado: ${math.bonus} XP.`, m);
-      global.db.data.users[m.sender].exp += math.bonus;
+      db.data.users[m.sender].exp += math.bonus;
       clearTimeout(global.math[id][3]);
       delete global.math[id];
     } else {

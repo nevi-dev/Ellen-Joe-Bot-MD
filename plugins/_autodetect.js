@@ -1,3 +1,4 @@
+import db from '../database.js'
 let WAMessageStubType = (await import('baileys'))
 
 let handler = m => m
@@ -19,7 +20,7 @@ return null
 handler.before = async function (m, { conn, participants, groupMetadata }) {
 if (!m.messageStubType || !m.isGroup) return
 const fkontak = { "key": { "participants":"0@s.whatsapp.net", "remoteJid": "status@broadcast", "fromMe": false, "id": "Halo" }, "message": { "contactMessage": { "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` }}, "participant": "0@s.whatsapp.net"}
-let chat = global.db.data.chats[m.chat]
+let chat = db.data.chats[m.chat]
 const stubParticipant = normalizeStubParticipant(m.messageStubParameters?.[0])
 const stubParticipantTag = stubParticipant ? `@${stubParticipant.split('@')[0]}` : '@usuario'
 let usuario = `@${m.sender.split`@`[0]}`

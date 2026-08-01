@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { sticker } from '../lib/sticker.js';
 import axios from 'axios';
 
@@ -30,7 +31,7 @@ let handler = async (m, { conn, text }) => {
     try {
         const buffer = await fetchSticker(text);
         let userId = m.sender;
-        let packstickers = global.db.data.users[userId] || {};
+        let packstickers = db.data.users[userId] || {};
         let texto1 = packstickers.text1 || global.packsticker;
         let texto2 = packstickers.text2 || global.packsticker2;
         

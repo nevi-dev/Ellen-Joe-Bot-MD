@@ -1,6 +1,7 @@
+import db from '../database.js'
 const handler = async (m, { conn, isOwner, groupMetadata }) => {
     // Accedemos a la base de datos del chat actual
-    let chat = global.db.data.chats[m.chat]
+    let chat = db.data.chats[m.chat]
     
     // Si no hay usuarios registrados en este chat dentro de la DB, salimos
     if (!chat || !chat.users) {

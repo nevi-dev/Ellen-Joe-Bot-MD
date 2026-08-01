@@ -1,3 +1,4 @@
+import db from '../database.js'
 export async function before(m) {
   // 1. Validaciones básicas
   if (!m.text || !global.prefix.test(m.text) || !m.isGroup) {
@@ -5,7 +6,7 @@ export async function before(m) {
   }
 
   // --- LÓGICA DE CONTROL DE BOT PRIMARIO ---
-  let chat = global.db.data.chats[m.chat];
+  let chat = db.data.chats[m.chat];
   let selfJid = this.user.jid.replace(/:.*@/, '@');
 
   // Si hay un bot primario asignado y no soy yo, me ignoro por completo
@@ -33,7 +34,7 @@ export async function before(m) {
   }
 
   if (validCommand(command, global.plugins)) {
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
 
     if (chat.isBanned) {
       const avisoDesactivado = `《✦》El bot *${botname}* está desactivado en este grupo.\n\n> ✦ Un *administrador* puede activarlo con el comando:\n> » *${usedPrefix}bot on*`;

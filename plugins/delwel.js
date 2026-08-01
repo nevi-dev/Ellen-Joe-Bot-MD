@@ -1,6 +1,7 @@
+import db from '../database.js'
 let handler = async (m, { conn, command }) => {
-  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-  let chat = global.db.data.chats[m.chat]
+  if (!db.data.chats[m.chat]) db.data.chats[m.chat] = {}
+  let chat = db.data.chats[m.chat]
   let e = '🦈'
 
   // Detectamos cuál borrar según el comando que se activó

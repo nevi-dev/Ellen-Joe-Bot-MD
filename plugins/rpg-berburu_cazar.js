@@ -1,8 +1,9 @@
+import db from '../database.js'
 const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
 let handler = async (m, { conn }) => {
-    const user = global.db.data.users[m.sender];
+    const user = db.data.users[m.sender];
     const name = conn.getName(m.sender);
 
     // Cooldown de 45 minutos (2700000 ms)

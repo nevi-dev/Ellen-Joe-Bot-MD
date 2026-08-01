@@ -1,3 +1,4 @@
+import db from '../database.js'
 const handler = async (m, { conn, text, command }) => {
     let who;
     if (m.isGroup) {
@@ -9,7 +10,7 @@ const handler = async (m, { conn, text, command }) => {
     if (!who) return m.reply(`*⚠️ Etiqueta o responde a alguien para usar ${command}.*`);
 
     // Acceso a la DB del grupo
-    const chat = global.db.data.chats[m.chat];
+    const chat = db.data.chats[m.chat];
     if (!chat.users) chat.users = {}; 
     if (!chat.users[who]) chat.users[who] = { mute2: false };
 
@@ -28,7 +29,7 @@ const handler = async (m, { conn, text, command }) => {
 handler.before = async function (m, { conn, isBotAdmin }) {
     if (!m.isGroup || !isBotAdmin) return;
     
-    const chat = global.db.data.chats[m.chat];
+    const chat = db.data.chats[m.chat];
     if (chat?.users?.[m.sender]?.mute2) {
         await conn.sendMessage(m.chat, { delete: m.key });
     }

@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { conn, usedPrefix }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   
   // Asegurar inicialización de todas las categorías
   if (!user.pkMochila) user.pkMochila = { caramelos: 0, huevos: 0, pokebolas: 0, superball: 0, ultraball: 0 }

@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { conn }) => {
-    let chat = global.db.data.chats[m.chat];
+    let chat = db.data.chats[m.chat];
 
     if (!chat || !chat.primaryBot) {
         return m.reply('《✧》 No hay ningún bot primario establecido en este grupo.');

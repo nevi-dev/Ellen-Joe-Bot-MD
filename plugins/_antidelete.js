@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { getContentType, generateForwardMessageContent, generateWAMessageFromContent } from 'baileys';
 
 global.delete = global.delete || [];
@@ -7,7 +8,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin }) {
     if (!m.isGroup) return;
     if (m.key.fromMe) return;
 
-    let chat = global.db.data.chats[m.chat];
+    let chat = db.data.chats[m.chat];
 
     if (chat.delete) {
         if (global.delete.length > 500) global.delete = [];

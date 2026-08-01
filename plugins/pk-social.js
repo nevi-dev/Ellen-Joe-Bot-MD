@@ -1,11 +1,12 @@
+import db from '../database.js'
 let tradeProposals = {} // Memoria para intercambios pendientes
 
 let handler = async (m, { conn, args, command, usedPrefix }) => {
   if (!m.quoted) return m.reply('❌ Responde al mensaje de alguien.')
   
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   let target = m.quoted.sender
-  let targetUser = global.db.data.users[target]
+  let targetUser = db.data.users[target]
 
   // --- DONAR: Dar sin pedir nada ---
   if (command === 'pkdonar') {

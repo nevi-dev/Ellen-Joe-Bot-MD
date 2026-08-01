@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch';
 
 // --- CONFIGURACIÓN DE LA API ---
@@ -6,7 +7,7 @@ const API_KEY = "causa-ee5ee31dcfc79da4";
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
     // 1. Verificación de NSFW
-    const chat = global.db.data.chats[m.chat];
+    const chat = db.data.chats[m.chat];
     if (m.isGroup && !chat?.nsfw) {
         return m.reply(`*Ugh, qué molesto.* 🔞\nEste lugar es demasiado "limpio". Si quieres que trabaje, activa el modo NSFW: *${usedPrefix}nsfw on*`);
     }

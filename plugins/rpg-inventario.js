@@ -1,14 +1,14 @@
-import db from '../lib/database.js';
+import db from '../database.js'
 import moment from 'moment-timezone';
 
 let handler = async (m, { conn, usedPrefix }) => {
     let who = m.mentionedJid[0] ? m.mentionedJid[0] : m.sender;
 
-    if (!(who in global.db.data.users)) {
+    if (!(who in db.data.users)) {
         return conn.reply(m.chat, `${emoji} El usuario no se encuentra en mi base de Datos.`, m);
     }
     
-    let user = global.db.data.users[who];
+    let user = db.data.users[who];
     let name = conn.getName(who);
 
     let premium = user.premium ? '✅' : '❌';

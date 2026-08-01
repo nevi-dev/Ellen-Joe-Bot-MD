@@ -1,4 +1,4 @@
-import db from '../lib/database.js';
+import db from '../database.js'
 import MessageType from 'baileys';
 
 let handler = async (m, { conn, text }) => {
@@ -20,7 +20,7 @@ let handler = async (m, { conn, text }) => {
     let dmt;
 
     if (txt.toLowerCase() === 'all') {
-        dmt = global.db.data.users[who].exp;
+        dmt = db.data.users[who].exp;
     } else {
         if (!txt) return m.reply(`${emoji2} Por favor, ingresa la cantidad de experiencia (XP) que deseas quitar.`);
         if (isNaN(txt)) return m.reply(`${emoji} Solo números son permitidos.`);
@@ -28,7 +28,7 @@ let handler = async (m, { conn, text }) => {
         dmt = parseInt(txt);
     }
 
-    let users = global.db.data.users;
+    let users = db.data.users;
 
     if (users[who].exp < dmt) {
         return m.reply(`${emoji2} El usuario no tiene suficiente XP para quitar. Tiene ${users[who].exp} XP.`);

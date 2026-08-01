@@ -1,3 +1,4 @@
+import db from '../database.js'
 /* 
 - programarcierre By Dioneibi-rip
 - Programa el cierre de un grupo de WhatsApp a una hora específica
@@ -5,7 +6,7 @@
 */
 
 const handler = async (m, { conn, args, usedPrefix, command, isAdmin, isOwner }) => {
-  const customEmoji = global.db.data.chats[m.chat]?.customEmoji || '⏰';
+  const customEmoji = db.data.chats[m.chat]?.customEmoji || '⏰';
   m.react(customEmoji);
 
   if (!(isAdmin || isOwner)) {

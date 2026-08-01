@@ -1,9 +1,10 @@
+import db from '../database.js'
 import fs from 'fs';
 import path from 'path';
 
 export default async function handler(m, { conn }) {
     try {
-        const usuario = global.db.data.users[m.sender];
+        const usuario = db.data.users[m.sender];
         const costo = 1000;
 
         // Verificar si el usuario está registrado

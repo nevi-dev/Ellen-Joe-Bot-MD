@@ -1,9 +1,10 @@
+import db from '../database.js'
 import { createHash } from 'crypto';
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, command, usedPrefix, text }) => {
     const emoji = '✨', emoji2 = '❌';
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
 
     // Validación de usuario no registrado
     if (!user) {
@@ -23,7 +24,7 @@ const handler = async (m, { conn, command, usedPrefix, text }) => {
     }
 
     // Borrar el registro
-    delete global.db.data.users[m.sender];
+    delete db.data.users[m.sender];
 
     // Respuesta exitosa
     return conn.reply(m.chat, 

@@ -1,3 +1,4 @@
+import db from '../database.js'
 const handler = async (m, { conn, text, groupMetadata }) => {
     let who;
     if (m.isGroup) {
@@ -10,7 +11,7 @@ const handler = async (m, { conn, text, groupMetadata }) => {
     if (!who) return m.reply(`*⚠️ ¿A quién se supone que le llame la atención? Etiqueta a alguien o responde a su mensaje.*`);
 
     // Accedemos a la base de datos del CHAT específico
-    const chat = global.db.data.chats[m.chat];
+    const chat = db.data.chats[m.chat];
     if (!chat.users) chat.users = {}; 
     if (!chat.users[who]) chat.users[who] = { warn: 0 };
     

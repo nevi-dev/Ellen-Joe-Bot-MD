@@ -1,7 +1,8 @@
+import db from '../database.js'
 import { moveWalletToBank } from '../lib/economy.js'
 
 let handler = async (m, { args }) => {
-  const user = global.db.data.users[m.sender]
+  const user = db.data.users[m.sender]
   if (!args[0]) return m.reply(`${emoji} Ingresa la cantidad de *${moneda}* que deseas Depositar.`)
   const count = String(args[0]).toLowerCase() === 'all' ? Number(user.coin || 0) : parseInt(args[0])
   if (!Number.isFinite(count) || count < 1) return m.reply(`${emoji2} Debes depositar una cantidad válida.\n> Ejemplo 1 » *#d 25000*\n> Ejemplo 2 » *#d all*`)

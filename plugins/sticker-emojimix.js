@@ -1,3 +1,4 @@
+import db from '../database.js'
 import MessageType from 'baileys'
 import fetch from 'node-fetch'
 import { sticker } from '../lib/sticker.js'
@@ -22,7 +23,7 @@ let handler = async (m, { conn, text, args, usedPrefix, command }) => {
 
     for (let res of anu.results) {
         let userId = m.sender
-        let packstickers = global.db.data.users[userId] || {}
+        let packstickers = db.data.users[userId] || {}
         let texto1 = packstickers.text1 || global.packsticker
         let texto2 = packstickers.text2 || global.packsticker2
 

@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 let ligaCombates = {}
@@ -116,8 +117,8 @@ async function buildPokemonObj(idOrName, level = 1) {
 // --- HANDLER PRINCIPAL ---
 let handler = async (m, { conn, args, usedPrefix, command }) => {
   // 1. Asegurar que el usuario existe en la DB
-  if (!global.db.data.users[m.sender]) global.db.data.users[m.sender] = {}
-  let user = global.db.data.users[m.sender]
+  if (!db.data.users[m.sender]) db.data.users[m.sender] = {}
+  let user = db.data.users[m.sender]
 
   // 2. RESET AUTOMÁTICO SI FALTAN DATOS CRÍTICOS (Aquí está la magia)
   if (!user.medallas || !Array.isArray(user.medallas) || !user.pokemones) {

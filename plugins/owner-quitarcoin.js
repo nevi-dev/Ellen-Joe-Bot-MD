@@ -1,4 +1,4 @@
-import db from '../lib/database.js';
+import db from '../database.js'
 import MessageType from 'baileys';
 import { recordWalletExpense } from '../lib/economy.js';
 
@@ -23,7 +23,7 @@ let handler = async (m, { conn, text }) => {
     let dmt;
 
     if (txt.toLowerCase() === 'all') {
-        dmt = global.db.data.users[who].coin;
+        dmt = db.data.users[who].coin;
     } else {
         if (!txt) return m.reply(`${emoji} Por favor, ingresa la cantidad que deseas quitar.`);
         if (isNaN(txt)) return m.reply(`${emoji2} sólo números.`);
@@ -31,7 +31,7 @@ let handler = async (m, { conn, text }) => {
         dmt = parseInt(txt);
     }
 
-    let users = global.db.data.users;
+    let users = db.data.users;
 
     if (users[who].coin < dmt) {
         return m.reply(`${emoji2} El usuario no tiene suficientes coin para quitar. Tiene ${users[who].coin} ${moneda}.`);

@@ -1,9 +1,10 @@
+import db from '../database.js'
 const handler = async (m, {conn, args, groupMetadata, participants, usedPrefix, command, isBotAdmin, isSuperAdmin}) => {
   if (!args[0]) return conn.reply(m.chat, `${emoji} Ingrese Algun Prefijo De Un Pais para ejecutar el comando.`, m);
   if (isNaN(args[0])) return conn.reply(m.chat, `${emoji} Ingrese Algun Prefijo De Un Pais\nEjemplo: ${usedPrefix + command} 212`, m);
   const lol = args[0].replace(/[+]/g, '');
   const ps = participants.map((u) => u.id).filter((v) => v !== conn.user.jid && v.startsWith(lol || lol));
-  const bot = global.db.data.settings[conn.user.jid] || {};
+  const bot = db.data.settings[conn.user.jid] || {};
   if (ps == '') return m.reply(`${emoji2} Aqui No Hay Ningun Numero Con El Prefijo +${lol}`);
   const numeros = ps.map((v)=> '⭔ @' + v.replace(/@.+/, ''));
   const delay = (time) => new Promise((res)=>setTimeout(res, time));

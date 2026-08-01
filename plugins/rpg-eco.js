@@ -1,10 +1,11 @@
+import db from '../database.js'
 let handler = async (m, { conn }) => {
-    let eco = global.db.data.economy || { 
-        inflation: 1.0, 
-        lastInflation: 1.0, 
-        state: 'ESTABLE', 
-        totalCoins: 0, 
-        rewardModifier: 1.0 
+    let eco = db.data.economy || {
+        inflation: 1.0,
+        lastInflation: 1.0,
+        state: 'ESTABLE',
+        totalCoins: 0,
+        rewardModifier: 1.0
     }
 
     // 1. Cálculo de Variación (%)
@@ -31,24 +32,24 @@ let handler = async (m, { conn }) => {
     else if (eco.state === 'DEFLACIÓN') em = '📉'
 
     let txt = `📊 **ECONOMIA DEL BOT**\n\n`
-    
+
     txt += `🏦 **ESTADO:** ${em} ${eco.state}\n`
     txt += `💰 **CIRCULACIÓN:** ${eco.totalCoins.toLocaleString()} coins\n`
     txt += `📈 **INFLACIÓN:** x${current.toFixed(2)}\n`
     txt += `✨ **MOD. RECOMPENSA:** x${eco.rewardModifier.toFixed(1)}\n`
-    
+
     txt += `\n${'─'.repeat(20)}\n\n`
-    
+
     txt += `💱 **VALOR DEL DENIQUE:**\n`
     txt += `   Precedente: $${precioAyer}\n`
     txt += `   Actual: $${precioHoy}\n`
     txt += `   Variación: ${arrow} ${variacion.toFixed(2)}% (${trend})\n\n`
-    
+
     txt += `_El mercado se actualiza en tiempo real basado en el gasto de los usuarios._`
 
     // Actualizamos el 'lastInflation' para la siguiente consulta
     // Así la variación siempre es respecto al último estado conocido
-    global.db.data.economy.lastInflation = current
+    db.data.economy.lastInflation = current
 
     await conn.reply(m.chat, txt, m)
 }

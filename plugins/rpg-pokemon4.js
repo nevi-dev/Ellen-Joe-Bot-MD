@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 let matchmaking = []
@@ -15,7 +16,7 @@ async function fetchAPI(endpoint) {
 }
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
 
   if (!user.pkDuelo) user.pkDuelo = { copas: 500, ganadas: 0, derrotas: 0, usoFrecuente: {} }
 
@@ -43,7 +44,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   }
 
   if (sub === 'top') {
-    let users = Object.entries(global.db.data.users)
+    let users = Object.entries(db.data.users)
       .filter(([id, data]) => data.pkDuelo)
       .sort((a, b) => b[1].pkDuelo.copas - a[1].pkDuelo.copas)
       .slice(0, 10)
@@ -82,7 +83,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     d.turno = elRival.id
 
     if (elRival.currentHp <= 0) {
-      let c = d.tipo === 'amistoso' ? 0 : calcularCopas(global.db.data.users[yo.id]?.pkDuelo?.copas || 500, global.db.data.users[elRival.id]?.pkDuelo?.copas || 500)
+      let c = d.tipo === 'amistoso' ? 0 : calcularCopas(db.data.users[yo.id]?.pkDuelo?.copas || 500, db.data.users[elRival.id]?.pkDuelo?.copas || 500)
       if (d.tipo !== 'amistoso') actualizarGanador(yo.id, elRival.id, c, yo.nombre)
 
       let winMsg = `${log}\n\n🏆 **¡@${String(yo.id).split('@')[0]} GANA EL DUELO!**\n${d.tipo !== 'amistoso' ? `📈 Copas: +${c}` : 'Fin del duelo amistoso.'}`
@@ -108,7 +109,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     let rivalIdx = matchmaking.findIndex(p => Math.abs(p.copas - user.pkDuelo.copas) <= 600 && p.id !== m.sender)
     if (rivalIdx !== -1) {
       let rival = matchmaking.splice(rivalIdx, 1)[0]
-      let p1 = user.pokemones[pIdx], p2 = global.db.data.users[rival.id].pokemones[rival.pIdx]
+      let p1 = user.pokemones[pIdx], p2 = db.data.users[rival.id].pokemones[rival.pIdx]
       let duelObj = {
         p1: { id: m.sender, ...p1, currentHp: p1.hp, maxHp: p1.hp },
         p2: { id: rival.id, ...p2, currentHp: p2.hp, maxHp: p2.hp },
@@ -138,7 +139,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     if (!reto) return m.reply('❌ No tienes retos.')
     let pIdx = parseInt(args[1]) - 1
     if (!user.pokemones[pIdx]) return m.reply('❌ Elige tu Pokémon.')
-    let p1 = global.db.data.users[reto.retador].pokemones[reto.pRetadorIdx]
+    let p1 = db.data.users[reto.retador].pokemones[reto.pRetadorIdx]
     let p2 = user.pokemones[pIdx]
     let duelObj = {
       p1: { id: reto.retador, ...p1, currentHp: p1.hp, maxHp: p1.hp },
@@ -153,7 +154,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
 function calcularCopas(cw, cl) { return Math.max(5, Math.floor(25 + ((cl - cw) / 10))) }
 function actualizarGanador(wi, li, c, p) {
-  let w = global.db.data.users[wi], l = global.db.data.users[li]
+  let w = db.data.users[wi], l = db.data.users[li]
   w.pkDuelo.copas += c; w.pkDuelo.ganadas++; w.pkDuelo.usoFrecuente[p] = (w.pkDuelo.usoFrecuente[p] || 0) + 1
   l.pkDuelo.copas = Math.max(0, l.pkDuelo.copas - Math.floor(c/1.5)); l.pkDuelo.derrotas++
 }

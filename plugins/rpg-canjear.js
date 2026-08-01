@@ -1,3 +1,4 @@
+import db from '../database.js'
 let handler = async (m, { conn, text }) => {
     let code = text.trim().toUpperCase();
 
@@ -5,8 +6,8 @@ let handler = async (m, { conn, text }) => {
         return conn.reply(m.chat, `${emoji} Por favor, ingrese un código para canjear.`, m);
     }
 
-    let codesDB = global.db.data.codes || {};
-    let user = global.db.data.users[m.sender];
+    let codesDB = db.data.codes || {};
+    let user = db.data.users[m.sender];
 
     if (!codesDB[code]) {
         return conn.reply(m.chat, `${emoji2} Código no válido.`, m);

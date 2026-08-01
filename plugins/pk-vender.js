@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   
   if (!user.pkPiedras) user.pkPiedras = { fuego: 0, agua: 0, trueno: 0, hoja: 0, lunar: 0, solar: 0 }
   if (args.length === 0) return m.reply(`💡 **¿Qué deseas vender?**\n\n• *${usedPrefix}${command} [ID]* -> Vende un Pokémon.\n• *${usedPrefix}${command} fuego 2* -> Vende 2 piedras fuego (💰500 c/u).`)

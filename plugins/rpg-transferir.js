@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch';
 import { recordBankTransfer } from '../lib/economy.js'
 
@@ -6,7 +7,7 @@ const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
 async function handler(m, { conn, args, usedPrefix, command }) {
-    const user = global.db.data.users[m.sender];
+    const user = db.data.users[m.sender];
     const name = conn.getName(m.sender);
     const bankType = 'bank'; 
     const txState = 'pendingLocalTx'; 
@@ -63,7 +64,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
         return m.replyExternal(`*— ¿En serio?* No puedes enviarte dinero a ti mismo. Qué pérdida de tiempo.`, { contextInfo });
     }
 
-    if (!(who in global.db.data.users)) {
+    if (!(who in db.data.users)) {
         return m.replyExternal(`*— ¿Eh?* Ese usuario no está en mis registros. Qué problemático.`, { contextInfo });
     }
 
@@ -92,7 +93,7 @@ async function handler(m, { conn, args, usedPrefix, command }) {
     // --- 4. EJECUCIÓN FINAL ---
     if (isConfirmation) {
         user[txState] = null;
-        const recipientData = global.db.data.users[who];
+        const recipientData = db.data.users[who];
 
         recordBankTransfer(m.sender, who, amount, 'Transferencia legacy por mención');
 

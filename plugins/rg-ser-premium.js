@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { createHash } from 'crypto';
 import fetch from 'node-fetch';
 import moment from 'moment-timezone';
@@ -7,7 +8,7 @@ let handler = async (m, { conn, text }) => {
   const emoji = '✨', emoji2 = '❌';
   const moneda = '💸'; // Placeholder para la moneda
 
-  let user = global.db.data.users[m.sender];
+  let user = db.data.users[m.sender];
   
   // 1. No hay texto (Ellen Joe: Despectiva)
   if (!text) return conn.reply(m.chat, `『🎄』${emoji2} ¿Crees que esto es un mercado de pulgas? Dame el valor y el tiempo exacto. Ejemplo: *#comprarpremium 1 día*. ¡No pierdas mi tiempo, el tiempo es dinero!`, m);

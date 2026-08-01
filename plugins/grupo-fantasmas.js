@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { areJidsSameUser } from 'baileys'
 
 const emoji = '👻';
@@ -17,9 +18,9 @@ var handler = async (m, { conn, text, participants, args, command }) => {
     var sider = []
     for (let i = 0; i < sum; i++) {
         let users = m.isGroup ? participants.find(u => u.id == member[i]) : {}
-        if ((typeof global.db.data.users[member[i]] == 'undefined' || global.db.data.users[member[i]].chat == 0) && !users.isAdmin && !users.isSuperAdmin) {
-            if (typeof global.db.data.users[member[i]] !== 'undefined') {
-                if (global.db.data.users[member[i]].whitelist == false) {
+        if ((typeof db.data.users[member[i]] == 'undefined' || db.data.users[member[i]].chat == 0) && !users.isAdmin && !users.isSuperAdmin) {
+            if (typeof db.data.users[member[i]] !== 'undefined') {
+                if (db.data.users[member[i]].whitelist == false) {
                     total++
                     sider.push(member[i])
                 }
@@ -42,7 +43,7 @@ var handler = async (m, { conn, text, participants, args, command }) => {
             if (total == 0) return conn.reply(m.chat, `${emoji} Este grupo es activo, no tiene fantasmas.`, m)
             await m.reply(`${emoji} *Eliminación de inactivos*\n\n${emoji2} *Lista de fantasmas*\n${sider.map(v => '@' + v.replace(/@.+/, '')).join('\n')}\n\n${msm} _*El bot eliminará a los usuarios de la lista en 10 segundos...*_`, m, { mentions: sider })
             await delay(1 * 10000)
-            let chat = global.db.data.chats[m.chat]
+            let chat = db.data.chats[m.chat]
             chat.welcome = false
             try {
                 let users = m.mentionedJid.filter(u => !areJidsSameUser(u, conn.user.id))

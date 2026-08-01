@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m) => {
-  const adapter = global.db?.adapter
+  const adapter = db?.adapter
   if (!adapter?.vacuum) throw 'SQLite no está disponible para ejecutar VACUUM.'
   await m.reply('「✦」 Ejecutando mantenimiento manual de SQLite. Esto puede tardar unos segundos...')
   const ok = adapter.vacuum()

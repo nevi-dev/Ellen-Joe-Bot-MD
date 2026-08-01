@@ -1,3 +1,4 @@
+import db from '../database.js'
 const {
     WAProto: proto,
     generateWAMessage,
@@ -8,9 +9,9 @@ export async function all(m, chatUpdate) {
     if (m.isBaileys) return
     if (!m.message) return
     if (!m.msg.fileSha256) return
-    if (!(Buffer.from(m.msg.fileSha256).toString('base64') in global.db.data.sticker)) return
+    if (!(Buffer.from(m.msg.fileSha256).toString('base64') in db.data.sticker)) return
 
-    let hash = global.db.data.sticker[Buffer.from(m.msg.fileSha256).toString('base64')]
+    let hash = db.data.sticker[Buffer.from(m.msg.fileSha256).toString('base64')]
     let { text, mentionedJid } = hash
     let messages = await generateWAMessage(m.chat, { text: text, mentions: mentionedJid }, {
         userJid: this.user.id,

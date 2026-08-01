@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 let salvaje = {}
@@ -49,7 +50,7 @@ async function buildPokemonObj(idOrName, level = 1) {
 }
 
 let handler = async (m, { conn, command, args }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   if (!user.pkMochila) user.pkMochila = { pokebolas: 5, superball: 0, ultraball: 0, caramelos: 0, huevos: 0 }
   if (!user.pokemones) user.pokemones = []
 

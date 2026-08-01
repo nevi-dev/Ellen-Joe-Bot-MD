@@ -1,8 +1,9 @@
+import db from '../database.js'
 let handler = async (m, { conn, text, usedPrefix, command, isOwner, isAdmin, isROwner }) => {
 if (!(isOwner || isAdmin || isROwner)) {
 conn.reply(m.chat, `${emoji2} Lo siento no puedes personalizar el autoresponder en este grupo/chat.`, m)
 }
-const chatData = global.db.data.chats[m.chat]
+const chatData = db.data.chats[m.chat]
 if (text) {
 if (chatData.sAutoresponder) return conn.reply(m.chat, `${emoji} Ya hay un prompt en uso, si quieres configurar otro escribe: *${usedPrefix + command}, hazlo sin texto.*`, m)
 
