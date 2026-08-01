@@ -226,13 +226,29 @@ version,
 }
 
 
-const MAIN_RECONNECT_BASE_DELAY_MS = 5000
-const MAIN_RECONNECT_MAX_DELAY_MS = 60000
+const MAIN_RECONNECT_BASE_DELAY_MS = 1500
+const MAIN_RECONNECT_MAX_DELAY_MS = 15000
+const MAIN_RECONNECT_FAST_CODES = new Set([500, 428, 408, 440, 515])
 let mainReconnectAttempts = 0
 let mainReconnectTimer = null
 let mainReconnectInFlight = false
 let gracefulShutdownStarted = false
-const getReconnectDelay = (attempt) => Math.min(MAIN_RECONNECT_BASE_DELAY_MS * (2 ** Math.max(attempt - 1, 0)), MAIN_RECONNECT_MAX_DELAY_MS)
+const getDisconnectStatusCode = (lastDisconnect) => {
+const rawError = lastDisconnect?.error || lastDisconnect
+const boomError = rawError instanceof Boom ? rawError : new Boom(rawError)
+return boomError?.output?.statusCode || rawError?.output?.statusCode || rawError?.statusCode || rawError?.data?.statusCode
+}
+const getDisconnectReasonLabel = (statusCode) => statusCode === 500 ? 'internalServerError/recoverable' : Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
+const getReconnectDelay = (attempt, statusCode) => {
+const baseDelay = MAIN_RECONNECT_FAST_CODES.has(statusCode) ? 750 : MAIN_RECONNECT_BASE_DELAY_MS
+const exponentialDelay = Math.min(baseDelay * (2 ** Math.max(attempt - 1, 0)), MAIN_RECONNECT_MAX_DELAY_MS)
+const jitter = Math.floor(Math.random() * 500)
+return exponentialDelay + jitter
+}
+const safeCloseSocket = (socket) => {
+try { socket?.ws?.close?.() } catch (error) { console.error('No se pudo cerrar el WebSocket anterior:', error) }
+try { socket?.ev?.removeAllListeners?.() } catch (error) { console.error('No se pudieron limpiar listeners del socket anterior:', error) }
+}
 const shutdown = async (signal = 'SIGTERM', exitCode = 0) => {
 if (gracefulShutdownStarted) return
 gracefulShutdownStarted = true
@@ -307,12 +323,9 @@ console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 }
 
 if (connection === 'close') {
-const rawError = lastDisconnect?.error
-const boomError = rawError instanceof Boom ? rawError : new Boom(rawError)
-const statusCode = boomError?.output?.statusCode || rawError?.output?.statusCode || rawError?.statusCode
+const statusCode = getDisconnectStatusCode(lastDisconnect)
 const isLoggedOut = statusCode === DisconnectReason.loggedOut
-const rawReasonLabel = Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
-const reasonLabel = statusCode === 500 ? 'internalServerError/recoverable' : rawReasonLabel
+const reasonLabel = getDisconnectReasonLabel(statusCode)
 
 if (isLoggedOut) {
 console.log(chalk.bold.redBright(`
@@ -329,7 +342,7 @@ return
 }
 
 mainReconnectAttempts += 1
-const delayMs = getReconnectDelay(mainReconnectAttempts)
+const delayMs = getReconnectDelay(mainReconnectAttempts, statusCode)
 const recoverableReason = statusCode === 500 || statusCode === DisconnectReason.connectionClosed || statusCode === DisconnectReason.connectionLost || statusCode === DisconnectReason.timedOut || statusCode === DisconnectReason.restartRequired
 
 console.log(chalk.bold.yellowBright(`
@@ -355,7 +368,12 @@ mainReconnectTimer.unref?.()
 }
 }
 
-process.on('uncaughtException', console.error)
+process.on('uncaughtException', (error) => {
+console.error('⚠️ Excepción no capturada; el proceso seguirá vivo para permitir reconexión:', error)
+})
+process.on('unhandledRejection', (reason) => {
+console.error('⚠️ Promesa rechazada no manejada; el proceso seguirá vivo para permitir reconexión:', reason)
+})
 
 let isInit = true;
 let handler = await import('./handler.js')
@@ -368,10 +386,7 @@ console.error(e);
 }
 if (restatConn) {
 const oldChats = global.conn.chats
-try {
-global.conn.ws.close()
-} catch { }
-conn.ev.removeAllListeners()
+safeCloseSocket(global.conn)
 global.conn = makeWASocket(connectionOptions, {chats: oldChats})
 isInit = true
 }
@@ -381,7 +396,14 @@ conn.ev.off('connection.update', conn.connectionUpdate)
 conn.ev.off('creds.update', conn.credsUpdate)
 }
 
-conn.handler = handler.handler.bind(global.conn)
+const boundMainHandler = handler.handler.bind(global.conn)
+conn.handler = async (chatUpdate) => {
+try {
+return await boundMainHandler(chatUpdate)
+} catch (error) {
+console.error('⚠️ Error interno manejando mensaje principal; el proceso seguirá vivo:', error)
+}
+}
 
 global.dispatchCommandFromButton = async (fakeMessage) => {
   try {

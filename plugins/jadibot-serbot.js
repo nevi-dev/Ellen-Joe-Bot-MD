@@ -93,9 +93,24 @@ const latest = await fetchLatestBaileysVersion()
 global.baileysVersionCache = { ...latest, expiresAt: now + 60 * 60 * 1000 }
 return global.baileysVersionCache
 }
-const SUBBOT_MAX_RECONNECT_RETRIES = 5
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-const getReconnectDelay = (attempt) => Math.min(5000 * (2 ** Math.max(attempt - 1, 0)), 20000)
+const SUBBOT_RECONNECT_BASE_DELAY_MS = 1500
+const SUBBOT_RECONNECT_MAX_DELAY_MS = 15000
+const SUBBOT_RECONNECT_FAST_CODES = new Set([500, 428, 408, 440, 515])
+const getDisconnectStatusCode = (lastDisconnect) => {
+const rawError = lastDisconnect?.error || lastDisconnect
+const boomError = rawError instanceof Boom ? rawError : new Boom(rawError)
+return boomError?.output?.statusCode || rawError?.output?.statusCode || rawError?.statusCode || rawError?.data?.statusCode
+}
+const getDisconnectReasonLabel = (statusCode) => statusCode === 500 ? 'internalServerError/recoverable' : Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
+const getReconnectDelay = (attempt, statusCode) => {
+const baseDelay = SUBBOT_RECONNECT_FAST_CODES.has(statusCode) ? 750 : SUBBOT_RECONNECT_BASE_DELAY_MS
+const exponentialDelay = Math.min(baseDelay * (2 ** Math.max(attempt - 1, 0)), SUBBOT_RECONNECT_MAX_DELAY_MS)
+return exponentialDelay + Math.floor(Math.random() * 500)
+}
+const safeCloseSocket = (socket) => {
+try { socket?.ws?.close?.() } catch (error) { console.error('No se pudo cerrar el WebSocket del sub-bot:', error) }
+try { socket?.ev?.removeAllListeners?.() } catch (error) { console.error('No se pudieron limpiar listeners del sub-bot:', error) }
+}
 const deleteSessionFolder = async (folderPath) => {
 try {
 await fs.promises.rm(folderPath, { recursive: true, force: true })
@@ -214,6 +229,8 @@ conversation: 'Ellen Joe Bot MD',
 
 let sock = makeWASocket(connectionOptions)
 let reconnectAttempts = 0
+let reconnectTimer = null
+let reconnectInFlight = false
 sock.isInit = false
 let isInit = true
 
@@ -252,20 +269,18 @@ setTimeout(() => { conn.sendMessage(m.sender, { delete: codeBot.key })}, 30000)
 }
 const endSesion = async (loaded) => {
 if (!loaded) {
-try {
-sock.ws.close()
-} catch {
-}
-sock.ev.removeAllListeners()
+safeCloseSocket(sock)
 let i = global.conns.indexOf(sock)
 if (i < 0) return
 delete global.conns[i]
 global.conns.splice(i, 1)
 }}
 
-const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode
+const statusCode = getDisconnectStatusCode(lastDisconnect)
 if (connection === 'close') {
-if (statusCode === 401 || statusCode === 403) {
+const reasonLabel = getDisconnectReasonLabel(statusCode)
+const isLoggedOut = statusCode === DisconnectReason.loggedOut || statusCode === 401 || statusCode === 403
+if (isLoggedOut) {
 console.log(chalk.bold.magentaBright(`
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡
 ┆ Sesión (+${path.basename(pathEllenJadiBot)}) cerrada, expirada o baneada (${statusCode}). Borrando datos y deteniendo reconexión.
@@ -280,26 +295,40 @@ await deleteSessionFolder(pathEllenJadiBot)
 return
 }
 
-if (reconnectAttempts >= SUBBOT_MAX_RECONNECT_RETRIES) {
-console.log(chalk.bold.redBright(`
-⚠️ RECONEXIÓN CANCELADA: ${SUBBOT_MAX_RECONNECT_RETRIES} intentos fallidos consecutivos para +${path.basename(pathEllenJadiBot)}. Último código: ${statusCode || 'No Encontrado'}`))
-await endSesion(false)
+if (reconnectTimer || reconnectInFlight) {
+console.log(chalk.bold.yellowBright(`⚠️ Sub-bot +${path.basename(pathEllenJadiBot)} ya tiene reconexión programada/en curso. Código: ${statusCode || 'No Encontrado'} (${reasonLabel}).`))
 return
 }
 
 reconnectAttempts += 1
-const delayMs = getReconnectDelay(reconnectAttempts)
+const delayMs = getReconnectDelay(reconnectAttempts, statusCode)
 console.log(chalk.bold.magentaBright(`
 ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡
-┆ Conexión (+${path.basename(pathEllenJadiBot)}) cerrada (${statusCode || 'No Encontrado'}). Reintento ${reconnectAttempts}/${SUBBOT_MAX_RECONNECT_RETRIES} en ${delayMs / 1000}s...
+┆ Conexión (+${path.basename(pathEllenJadiBot)}) cerrada (${statusCode || 'No Encontrado'} / ${reasonLabel}).
+┆ Reintento automático ${reconnectAttempts} en ${Math.round(delayMs / 1000)}s sin apagar el sub-bot...
 ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-await wait(delayMs)
-await creloadHandler(true).catch(console.error)
+reconnectTimer = setTimeout(async () => {
+reconnectTimer = null
+reconnectInFlight = true
+try {
+await creloadHandler(true)
+} catch (error) {
+console.error(`Error al reconectar sub-bot +${path.basename(pathEllenJadiBot)}:`, error)
+} finally {
+reconnectInFlight = false
+}
+}, delayMs)
+reconnectTimer.unref?.()
 return
 }
 if (global.db.data == null) loadDatabase()
 if (connection == `open`) {
 reconnectAttempts = 0
+reconnectInFlight = false
+if (reconnectTimer) {
+clearTimeout(reconnectTimer)
+reconnectTimer = null
+}
 if (!global.db.data?.users) loadDatabase()
 let userName, userJid
 userName = sock.authState.creds.me.name || 'Anónimo'
@@ -329,8 +358,7 @@ console.error('⚠️ Nuevo error: ', e)
 }
 if (restatConn) {
 const oldChats = sock.chats
-try { sock.ws.close() } catch { }
-sock.ev.removeAllListeners()
+safeCloseSocket(sock)
 sock = makeWASocket(connectionOptions, { chats: oldChats })
 isInit = true
 }
@@ -342,12 +370,16 @@ sock.ev.off('creds.update', sock.credsUpdate)
 
 const boundHandler = handler.handler.bind(sock)
 sock.handler = async (chatUpdate) => {
+try {
 const message = chatUpdate?.messages?.[chatUpdate.messages.length - 1]
 const text = message?.message?.conversation || message?.message?.extendedTextMessage?.text || message?.message?.imageMessage?.caption || message?.message?.videoMessage?.caption || ''
 if (text && global.prefix?.test?.(text)) {
 await sock.sendPresenceUpdate?.('composing', message.key.remoteJid).catch(() => {})
 }
-return boundHandler(chatUpdate)
+return await boundHandler(chatUpdate)
+} catch (error) {
+console.error(`⚠️ Error interno manejando mensaje del sub-bot +${path.basename(pathEllenJadiBot)}:`, error)
+}
 }
 sock.connectionUpdate = connectionUpdate.bind(sock)
 sock.credsUpdate = saveCreds.bind(sock, true)
