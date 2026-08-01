@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { promises as fs } from 'fs'
 
 const charactersFilePath = './src/database/characters.json'
@@ -56,7 +57,7 @@ let handler = async (m, { conn, args }) => {
         }
 
         // COBRO DE MONEDAS
-        let user = global.db.data.users[userId]
+        let user = db.data.users[userId]
         if (!user || (user.coin || 0) < PROTECTION_TOKEN_COST) {
             return await m.replyExternal(`*— Tsk.* No tienes suficientes créditos. El servicio de Victoria Housekeeping cuesta **${PROTECTION_TOKEN_COST}** 💰. Vuelve cuando seas rico.`, { contextInfo })
         }

@@ -1,3 +1,4 @@
+import db from '../database.js'
 /* Codigo copiado de GataBot-MD */
 
 import { sticker } from '../lib/sticker.js';
@@ -48,7 +49,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const buffer = Buffer.from(json.data.result.image, 'base64');
 
     let userId = m.sender;
-    let packstickers = global.db.data.users[userId] || {};
+    let packstickers = db.data.users[userId] || {};
     let texto1 = packstickers.text1 || global.packsticker;
     let texto2 = packstickers.text2 || global.packsticker2;
 

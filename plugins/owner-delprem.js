@@ -1,8 +1,9 @@
+import db from '../database.js'
 const handler = async (m, {conn, text, usedPrefix, command}) => {
   let who;
   if (m.isGroup) who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : false;
   else who = m.chat;
-  const user = global.db.data.users[who];
+  const user = db.data.users[who];
   if (!who) throw `${emoji} Ingresa un @tag el que quiera quitarle el premium.`;
   if (!user) throw `${emoji4} El usuario no está en mi base de datos.`;
   if (user.premiumTime = 0) throw `${emoji2} El usuario no es usuario premium. 👑`;

@@ -1,3 +1,4 @@
+import db from '../database.js'
 let handler = async (m, { conn, text }) => {
     let who;
 
@@ -27,11 +28,11 @@ let handler = async (m, { conn, text }) => {
 
     console.log(`Usuario procesado: ${who}`); // Para depuración
 
-    if (!global.db) global.db = {};
-    if (!global.db.data) global.db.data = {};
-    if (!global.db.data.users) global.db.data.users = {};
+    if (!db) db = {};
+    if (!db.data) db.data = {};
+    if (!db.data.users) db.data.users = {};
 
-    let users = global.db.data.users;
+    let users = db.data.users;
 
     if (!users[who]) throw `${emoji2} El usuario no tiene datos para deschetar.`;
 
@@ -39,7 +40,7 @@ let handler = async (m, { conn, text }) => {
     users[who].exp = 0;
     users[who].level = 0;
 
-    await global.db.write();
+    await db.write();
 
     for (let subbot of global.conns) {
         try {

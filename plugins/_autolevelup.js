@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { canLevelUp, xpRange } from '../lib/levelling.js';
 import { levelup } from '../lib/canvas.js';
 
@@ -8,8 +9,8 @@ handler.before = async function (m, { conn, usedPrefix }) {
     let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
     let perfil = await conn.profilePictureUrl(who, 'image').catch(_ => 'https://files.catbox.moe/xr2m6u.jpg');
     let userName = m.pushName || 'Anónimo';
-    let user = global.db.data.users[m.sender];
-    let chat = global.db.data.chats[m.chat];
+    let user = db.data.users[m.sender];
+    let chat = db.data.chats[m.chat];
     
     if (!chat.autolevelup) return;
 

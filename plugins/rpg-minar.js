@@ -1,9 +1,10 @@
+import db from '../database.js'
 import { getDynamicSalary, recordWalletIncome } from '../lib/economy.js'
 
 let cooldowns = {}
 
 let handler = async (m, { conn }) => {
-let user = global.db.data.users[m.sender];
+let user = db.data.users[m.sender];
 if (!user) return;
 
 let coin = getDynamicSalary(pickRandom([20, 5, 7, 8, 88, 40, 50, 70, 90, 999, 300]));

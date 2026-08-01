@@ -1,8 +1,9 @@
+import db from '../database.js'
 let handler = async (m, { conn, text }) => {
   if (!text) return conn.reply(m.chat, '🦈 ¡Oye! Proporciona un mensaje de despedida.\n\n*Variables:*\n#group (Nombre)\n#stay (Estadía)\n@user (Mención)', m)
   
-  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-  global.db.data.chats[m.chat].sBye = text
+  if (!db.data.chats[m.chat]) db.data.chats[m.chat] = {}
+  db.data.chats[m.chat].sBye = text
   
   await conn.reply(m.chat, '✅ Despedida guardada correctamente.', m)
 }

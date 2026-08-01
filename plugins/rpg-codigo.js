@@ -1,3 +1,4 @@
+import db from '../database.js'
 let handler = async (m, { conn, text }) => {
     let amount = parseInt(text.trim());
 
@@ -7,8 +8,8 @@ let handler = async (m, { conn, text }) => {
 
     let code = Math.random().toString(36).substring(2, 10).toUpperCase();
 
-    if (!global.db.data.codes) global.db.data.codes = {};
-    global.db.data.codes[code] = { coin: amount, claimedBy: [] };
+    if (!db.data.codes) db.data.codes = {};
+    db.data.codes[code] = { coin: amount, claimedBy: [] };
 
     conn.reply(m.chat, `${emoji} Código generado: *${code}*\nEste código puede ser canjeado por ${amount} ${moneda} y puede ser utilizado por 50 personas.`, m);
 }

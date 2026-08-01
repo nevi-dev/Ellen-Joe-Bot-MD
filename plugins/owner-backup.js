@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fs from 'fs'
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
@@ -6,7 +7,7 @@ try {
 await m.react(rwait)
 let d = new Date
 let date = d.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
-await global.db.write()
+await db.write()
 let database = await fs.readFileSync(`./src/database/database.sqlite`)
 let creds = await fs.readFileSync(`./EllenSessions/creds.json`)
 await conn.reply(m.chat, `*• Fecha:* ${date}`, m)

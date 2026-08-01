@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { promises as fs } from 'fs'
 import fsSync from 'fs'
 
@@ -35,7 +36,7 @@ let handler = async (m, { conn, command }) => {
         }
 
         const totalCost = PROTECTION_TOKEN_COST * charCount
-        let user = global.db.data.users[userId]
+        let user = db.data.users[userId]
 
         if (!user || (user.coin || 0) < totalCost) {
             return await sendExternalMessage(`*— Tsk.* Qué problemático... No tienes los **${totalCost.toLocaleString()}** 💰 necesarios para proteger a **${charCount}** waifus.`)
@@ -55,8 +56,8 @@ let handler = async (m, { conn, command }) => {
         await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
 
         // 6. Sincronizar memoria
-        if (global.db.data.characters) {
-            global.db.data.characters = characters
+        if (db.data.characters) {
+            db.data.characters = characters
         }
 
         const successMsg = `🦈 **𝐒𝐄𝐑𝐕𝐈𝐂𝐈𝐎 𝐌𝐀𝐒𝐈𝐕𝐎: 𝐄𝐋𝐋𝐄𝐍 𝐉𝐎𝐄**\n\n*— Ugh, qué cansancio...* He terminado de ponerles el escudo a tus **${charCount}** waifus.\n\n💰 **Tarifa total:** ${totalCost.toLocaleString()} 💰\n📅 **Estado:** Escudos activados por 1 semana.\n\n*— Mi turno terminó. No me molestes.*`

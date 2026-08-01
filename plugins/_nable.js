@@ -1,10 +1,11 @@
+import db from '../database.js'
 import { createHash } from 'crypto';  
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
-  let chat = global.db.data.chats[m.chat];
-  let user = global.db.data.users[m.sender];
-  let bot = global.db.data.settings[conn.user.jid] || {};
+  let chat = db.data.chats[m.chat];
+  let user = db.data.users[m.sender];
+  let bot = db.data.settings[conn.user.jid] || {};
   let type = command.toLowerCase();
   let isAll = false, isUser = false;
   let isEnable = chat[type] || false;

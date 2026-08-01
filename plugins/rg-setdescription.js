@@ -1,9 +1,10 @@
+import db from '../database.js'
 import { createHash } from 'crypto';  
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, command, usedPrefix, text }) => {
 
-let user = global.db.data.users[m.sender];
+let user = db.data.users[m.sender];
 
 if (user.description) {
 return conn.reply(m.chat, `${emoji2} Ya tienes una descripción establecida, si quieres borrar la descripcion actual usa:\n> » ${usedPrefix}deldescription`, m);

@@ -1,3 +1,4 @@
+import db from '../database.js'
 import * as fs from 'fs';
 
 export async function before(m, {conn, isAdmin, isBotAdmin, usedPrefix}) {
@@ -5,8 +6,8 @@ export async function before(m, {conn, isAdmin, isBotAdmin, usedPrefix}) {
     return !0;
   }
   if (!m.isGroup) return !1;
-  const chat = global.db.data.chats[m.chat];
-  const bot = global.db.data.settings[this.user.jid] || {};
+  const chat = db.data.chats[m.chat];
+  const bot = db.data.settings[this.user.jid] || {};
   const delet = m.key.participant;
   const bang = m.key.id;
   const name = await conn.getName(m.sender);

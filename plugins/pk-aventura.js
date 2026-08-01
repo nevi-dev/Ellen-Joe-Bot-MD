@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { conn, usedPrefix }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   
   // Inicialización de inventarios por si no existen
   if (!user.pkPiedras) user.pkPiedras = { fuego: 0, agua: 0, trueno: 0, hoja: 0, lunar: 0, solar: 0 }

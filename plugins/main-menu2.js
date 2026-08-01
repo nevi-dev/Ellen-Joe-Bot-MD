@@ -1,3 +1,4 @@
+import db from '../database.js'
 //nevi-dev
 import fs from 'fs';
 import path from 'path';
@@ -10,7 +11,7 @@ const redes = 'https://github.com/nevi-dev';
 
 
 let handler = async (m, { conn, usedPrefix, text, command }) => {
-  let chat = global.db.data.chats[m.chat];
+  let chat = db.data.chats[m.chat];
 
   // 1. Lógica de Activación/Desactivación
   if (text === 'on') {

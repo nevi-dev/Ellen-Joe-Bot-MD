@@ -1,3 +1,4 @@
+import db from '../database.js'
 /* 
 - Setemoji By Angel-OFC 
 - edita el tagall con tu emoji favorito 
@@ -16,7 +17,7 @@ let handler = async (m, { conn, text, isRowner }) => {
   }
 
   try {
-    global.db.data.chats[m.chat].customEmoji = emoji;
+    db.data.chats[m.chat].customEmoji = emoji;
 
     m.reply(`${emoji2} El emoji del grupo ha sido actualizado correctamente a: ${emoji}`);
   } catch (error) {

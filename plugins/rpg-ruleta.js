@@ -1,8 +1,9 @@
+import db from '../database.js'
 import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 let cooldowns = {}
 
 let handler = async (m, { conn, text, command, usedPrefix }) => {
-  let users = global.db.data.users[m.sender]
+  let users = db.data.users[m.sender]
 
   let tiempoEspera = 10
 

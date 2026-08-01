@@ -1,6 +1,7 @@
+import db from '../database.js'
 const handler = async (m, { conn, args, text, usedPrefix, command }) => {
     let user;
-    let db = global.db.data.users;
+    let users = db.data.users;
     if (m.quoted) {
         user = m.quoted.sender;
     } else if (args.length >= 1) {
@@ -9,9 +10,9 @@ const handler = async (m, { conn, args, text, usedPrefix, command }) => {
         await conn.reply(m.chat, `${emoji} Por favor, etiqueta o coloca el número del usuario que quieres desbanear del Bot.`, m);
         return;
     }
-    if (db[user]) {
-        db[user].banned = false;
-        db[user].banRazon = '';
+    if (users[user]) {
+        users[user].banned = false;
+        users[user].banRazon = '';
         const nametag = await conn.getName(user);
         const nn = conn.getName(m.sender);
         await conn.reply(m.chat, `${done} El usuario *${nametag}* ha sido desbaneado.`, m, { mentionedJid: [user] });

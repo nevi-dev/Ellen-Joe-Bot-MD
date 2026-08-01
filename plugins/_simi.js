@@ -1,10 +1,11 @@
+import db from '../database.js'
 import translate from '@vitalets/google-translate-api';
 import axios from 'axios';
 import fetch from 'node-fetch';
 const handler = (m) => m;
 
 handler.before = async (m) => {
-  const chat = global.db.data.chats[m.chat];
+  const chat = db.data.chats[m.chat];
   if (chat.simi) {
     if (/^.*false|disnable|(turn)?off|0/i.test(m.text)) return;
     let textodem = m.text;

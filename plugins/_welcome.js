@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { WAMessageStubType } from 'baileys'
 import * as pkg from 'baileys'
 const { generateWAMessageContent } = pkg
@@ -6,7 +7,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
   try {
     if (!m.isGroup || !m.messageStubType) return true
 
-    let chat = global.db.data.chats[m.chat]
+    let chat = db.data.chats[m.chat]
     if (!chat?.welcome) return true
 
     const groupName = groupMetadata?.subject || 'Esta Cavidad'
@@ -45,7 +46,7 @@ export async function before(m, { conn, participants, groupMetadata }) {
       for (const user of users) {
         const jid = user.includes('@') ? user : `${user}@s.whatsapp.net`
 
-        let userData = global.db.data.users[jid]
+        let userData = db.data.users[jid]
         let stayTime = userData?.joindate ? clockString(new Date() - userData.joindate) : 'un tiempo desconocido'
 
         let txt = chat.sBye || global.welcom2 || `

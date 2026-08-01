@@ -1,8 +1,9 @@
+import db from '../database.js'
 import { recordWalletIncome } from '../lib/economy.js'
 const we = 5000;
 let handler = async (m, { conn }) => {
 
-    let user = global.db.data.users[m.sender] || {};
+    let user = db.data.users[m.sender] || {};
     user.weekly = user.weekly || 0;
 
     const cooldown = 604800000; // 1 semana

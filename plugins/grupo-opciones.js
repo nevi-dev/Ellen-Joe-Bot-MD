@@ -1,5 +1,6 @@
+import db from '../database.js'
 const handler = async (m, { conn, participants, groupMetadata }) => {
-  const { welcome, autolevelup, antiBot, antiBot2, autoAceptar, autoRechazar, autoresponder, modoadmin, reaction, nsfw, detect, antiLink, antiLink2, antitoxic, antiTraba, antifake } = global.db.data.chats[m.chat];
+  const { welcome, autolevelup, antiBot, antiBot2, autoAceptar, autoRechazar, autoresponder, modoadmin, reaction, nsfw, detect, antiLink, antiLink2, antitoxic, antiTraba, antifake } = db.data.chats[m.chat];
   
   const text = `✨ *CONFIGURACIÓN DEL GRUPO* 
   

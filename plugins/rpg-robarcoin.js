@@ -1,8 +1,9 @@
+import db from '../database.js'
 import { recordWalletExpense, recordWalletIncome } from '../lib/economy.js'
 const ro = 30;
 const handler = async (m, {conn, usedPrefix, command}) => {
-  const time = global.db.data.users[m.sender].lastrob2 + 7200000;
-  if (new Date - global.db.data.users[m.sender].lastrob2 < 7200000) {
+  const time = db.data.users[m.sender].lastrob2 + 7200000;
+  if (new Date - db.data.users[m.sender].lastrob2 < 7200000) {
   conn.reply(m.chat, `${emoji3} Debes esperar ${msToTime(time - new Date())} para usar #rob de nuevo.`, m);
   return;
   }
@@ -13,17 +14,17 @@ const handler = async (m, {conn, usedPrefix, command}) => {
   conn.reply(m.chat, `${emoji} Debes mencionar a alguien para intentar robarle.`, m)
   return;
     };
-  if (!(who in global.db.data.users)) { 
+  if (!(who in db.data.users)) {
   conn.reply(m.chat, `${emoji2} El usuario no se encuentra en mi base de datos.`, m)
 return;
   }
-  const users = global.db.data.users[who];
+  const users = db.data.users[who];
   const rob = Math.floor(Math.random() * ro);
   if (users.coin < rob) return conn.reply(m.chat, `${emoji2} @${who.split`@`[0]} no tiene suficientes *${moneda}* fuera del banco como para que valga la pena intentar robar.`, m, {mentions: [who]});
-  recordWalletExpense(who, global.db.data.users[who], rob, 'Robo sufrido', m.sender);
-  recordWalletIncome(m.sender, global.db.data.users[m.sender], rob, 'Robo exitoso', who);
+  recordWalletExpense(who, db.data.users[who], rob, 'Robo sufrido', m.sender);
+  recordWalletIncome(m.sender, db.data.users[m.sender], rob, 'Robo exitoso', who);
   conn.reply(m.chat, `${emoji} Le robaste ${rob} ${moneda} a @${who.split`@`[0]}`, m, {mentions: [who]});
-  global.db.data.users[m.sender].lastrob2 = new Date * 1;
+  db.data.users[m.sender].lastrob2 = new Date * 1;
 };
 handler.help = ['rob'];
 handler.tags = ['rpg'];

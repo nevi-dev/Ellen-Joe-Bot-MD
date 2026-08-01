@@ -1,4 +1,4 @@
-import db from '../lib/database.js';
+import db from '../database.js'
 import MessageType from 'baileys';
 
 let pajak = 0;
@@ -29,7 +29,7 @@ const handler = async (m, { conn, text }) => {
 
     if (exp < 1) return m.reply(`${emoji} El mínimo de experiencia (XP) para añadir es *1*.`);
 
-    const users = global.db.data.users;
+    const users = db.data.users;
     users[who].exp += xp;
 
     m.reply(`✨ XP Añadido: *${xp}* \n@${who.split('@')[0]}, recibiste ${xp} XP`, null, { mentions: [who] });

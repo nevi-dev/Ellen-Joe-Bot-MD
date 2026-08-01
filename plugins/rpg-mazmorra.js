@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch';
 
 let cooldowns = {};
@@ -12,7 +13,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     let redes = global.redes;
     let moneda = global.moneda || 'Dennies';
 
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
     let senderId = m.sender;
     let name = conn.getName(senderId);
 
@@ -85,7 +86,7 @@ ${evento.health < 0 ? '*(Recibiste daños en la Cavidad)*' : '*(Sin daños crít
         contextInfo
     }, { quoted: m });
 
-    global.db.write();
+    db.write();
 };
 
 handler.tags = ['rpg'];

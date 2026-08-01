@@ -1,9 +1,10 @@
+import db from '../database.js'
 import { createHash } from 'crypto';  
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, command, usedPrefix, text }) => {
 
-let user = global.db.data.users[m.sender];
+let user = db.data.users[m.sender];
 
 if (user.genre) {
 return conn.reply(m.chat, `${emoji2} Ya tienes un género establecido, si quieres borrar el género actual usa:\n> » ${usedPrefix}delgenre`, m);

@@ -1,9 +1,10 @@
+import db from '../database.js'
 import { recordWalletIncome } from '../lib/economy.js'
 const baseCoinReward = 20000;
 
 var handler = async (m, { conn }) => {
 
-    let user = global.db.data.users[m.sender] || {};
+    let user = db.data.users[m.sender] || {};
     user.monthly = user.monthly || 0;
 
     const cooldown = 604800000 * 4; // 4 semanas

@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch';
 
 let cooldowns = {};
@@ -7,7 +8,7 @@ const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
 let handler = async (m, { conn, usedPrefix, command }) => {
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
     let senderId = m.sender;
     let name = conn.getName(senderId);
 
@@ -77,7 +78,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         contextInfo 
     }, { quoted: m });
 
-    global.db.write();
+    db.write();
 };
 
 handler.tags = ['rpg'];

@@ -1,3 +1,4 @@
+import db from '../database.js'
 /* Código hecho por Destroy
  - https://github.com/The-King-Destroy
  - Dejen créditos aunque sea gracias.
@@ -64,8 +65,8 @@ const handler = async (m, { conn, command }) => {
             saveMarriages();
 
             // 👉 Actualizamos también la base de datos de usuarios
-            if (global.db.data.users[m.sender]) global.db.data.users[m.sender].marry = '';
-            if (global.db.data.users[partner]) global.db.data.users[partner].marry = '';
+            if (db.data.users[m.sender]) db.data.users[m.sender].marry = '';
+            if (db.data.users[partner]) db.data.users[partner].marry = '';
 
             await conn.reply(m.chat, `✐ ${conn.getName(m.sender)} y ${conn.getName(partner)} se han divorciado.`, m);
         }
@@ -94,8 +95,8 @@ handler.before = async (m) => {
         saveMarriages();
 
         // 👉 Actualizamos también la base de datos de usuarios
-        if (global.db.data.users[proposer]) global.db.data.users[proposer].marry = m.sender;
-        if (global.db.data.users[m.sender]) global.db.data.users[m.sender].marry = proposer;
+        if (db.data.users[proposer]) db.data.users[proposer].marry = m.sender;
+        if (db.data.users[m.sender]) db.data.users[m.sender].marry = proposer;
 
         conn.sendMessage(m.chat, { text: `✩.･:｡≻───── ⋆♡⋆ ─────.•:｡✩
 ¡Se han Casado! ฅ^•ﻌ•^ฅ*:･ﾟ✧\n\n*•.¸♡ Esposo ${conn.getName(proposer)}\n*•.¸♡ Esposa ${conn.getName(m.sender)}\n\n\`Disfruten de su luna de miel\`

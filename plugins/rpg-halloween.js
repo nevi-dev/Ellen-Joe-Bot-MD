@@ -1,8 +1,9 @@
+import db from '../database.js'
 const baseCoinReward = 10000;
 
 var handler = async (m, { conn }) => {
 
-    let user = global.db.data.users[m.sender] || {};
+    let user = db.data.users[m.sender] || {};
     user.halloween = user.halloween || 0;
 
     const currentDate = new Date();

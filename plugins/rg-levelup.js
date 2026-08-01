@@ -1,12 +1,12 @@
 import { canLevelUp, xpRange } from '../lib/levelling.js';
-import db from '../lib/database.js';
+import db from '../database.js'
 
 let handler = async (m, { conn }) => {
     let mentionedUser = m.mentionedJid[0];
     let citedMessage = m.quoted ? m.quoted.sender : null;
     let who = mentionedUser || citedMessage || m.sender; 
     let name = conn.getName(who) || 'Usuario';
-    let user = global.db.data.users[who];
+    let user = db.data.users[who];
 
     if (!user) {
         await conn.sendMessage(m.chat, "No se encontraron datos del usuario.", { quoted: m });
@@ -27,7 +27,7 @@ let handler = async (m, { conn }) => {
         txt += `> ➨ Nota: *Cuanto más interactúes con el Bot, mayor será tu nivel.*`;
         await conn.sendMessage(m.chat, { text: txt }, { quoted: m });
     } else {
-        let users = Object.entries(global.db.data.users).map(([key, value]) => {
+        let users = Object.entries(db.data.users).map(([key, value]) => {
             return { ...value, jid: key };
         });
 

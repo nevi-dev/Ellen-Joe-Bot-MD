@@ -1,3 +1,4 @@
+import db from '../database.js'
 const handler = async (m, { conn, text, command, usedPrefix }) => {
     let who;
     if (m.isGroup) {
@@ -12,7 +13,7 @@ const handler = async (m, { conn, text, command, usedPrefix }) => {
     }
 
     // Accedemos a la base de datos del CHAT actual, no del usuario global
-    const chat = global.db.data.chats[m.chat];
+    const chat = db.data.chats[m.chat];
     if (!chat.users) chat.users = {}; // Por si acaso no existe la lista de usuarios en el chat
     const userInChat = chat.users[who] || {};
 

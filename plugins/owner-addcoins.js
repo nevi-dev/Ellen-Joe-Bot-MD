@@ -1,4 +1,4 @@
-import db from '../lib/database.js';
+import db from '../database.js'
 import MessageType from 'baileys';
 import { recordWalletIncome } from '../lib/economy.js';
 
@@ -30,7 +30,7 @@ let handler = async (m, { conn, text }) => {
 
     if (coin < 1) return m.reply(`${emoji2} Mínimo es *1*`);
 
-    let users = global.db.data.users;
+    let users = db.data.users;
     recordWalletIncome(who, users[who], dmt, 'Ajuste owner: addcoins', m.sender);
 
     m.reply(`💸 *Añadido:*

@@ -1,3 +1,4 @@
+import db from '../database.js'
 import economy, { BOT_CURRENCY, FOREIGN_CURRENCY, applyJob, formatMoney, getAccountByUser, getEconomySnapshot, getTransactions, issueCard, listBanks, listJobs, openBankAccount, cashOutCard, loadCard, repayLoan, requestLoan, stealCard, transferByAccount } from '../lib/economy.js'
 
 const menu = (usedPrefix) => `🦈 *Ellen Joe Financial Suite*
@@ -35,7 +36,7 @@ const professionalHistory = (rows, page) => {
 }
 
 let handler = async (m, { args, command, usedPrefix }) => {
-  const user = global.db.data.users[m.sender] || (global.db.data.users[m.sender] = {})
+  const user = db.data.users[m.sender] || (db.data.users[m.sender] = {})
   try {
     if (['finanzas', 'finance'].includes(command)) return m.reply(menu(usedPrefix))
 

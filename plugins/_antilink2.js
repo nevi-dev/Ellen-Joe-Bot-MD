@@ -1,11 +1,12 @@
+import db from '../database.js'
 let linkRegex = /(chat\.whatsapp\.com\/|whatsapp\.com\/channel\/)[0-9A-Za-z]{20,24}|(https?:\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be|tiktok\.com|facebook\.com|instagram\.com|twitter\.com|t\.me|drive\.google\.com|docs\.google\.com|wa\.me|open\.spotify\.com|spotify\.link|soundcloud\.com|mediafire\.com|mega\.nz|streamable\.com|vk\.com|reddit\.com|pinterest\.com|snapchat\.com|linkedin\.com|discord\.gg|discordapp\.com\/invite)\/[a-zA-Z0-9\-\._~:\/?#\[\]@!$&'\(\)*+,;=.]+|pastebin\.com\/[a-zA-Z0-9]+|(?:[a-zA-Z0-9-]+\.)+(?:com|net|org|io|app|dev|xyz|info|biz|co|cc|tv|me|us|eu|ru|in|id|jp|fr|de|uk|br|mx|ar|cl|pe|uy|py|bo|ec|gt|cr|sv|hn|ni|pa|cu|do|pr|ve|co|ca)\b(?!\/)?)/gi;
 
 export async function before(m, { conn, isAdmin, isBotAdmin, participants }) {
   if (m.isBaileys && m.fromMe) return true;
   if (!m.isGroup) return false;
 
-  const chat = global.db.data.chats[m.chat];
-  const bot = global.db.data.settings[this.user.jid] || {};
+  const chat = db.data.chats[m.chat];
+  const bot = db.data.settings[this.user.jid] || {};
   const user = `@${m.sender.split('@')[0]}`;
   const delet = m.key.participant;
   const bang = m.key.id;

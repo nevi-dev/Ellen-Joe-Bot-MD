@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch';
 
 // Configuración del Newsletter/Canal
@@ -5,7 +6,7 @@ const newsletterJid = '120363418071540900@newsletter';
 const newsletterName = '⸙ְ̻࠭ꪆ🦈 𝐄llen 𝐉ᴏ𝐄 𖥔 Sᥱrvice';
 
 let handler = async (m, { conn }) => {
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
     let name = conn.getName(m.sender);
 
     // ContextInfo estético de Victoria Housekeeping
@@ -100,7 +101,7 @@ He recolectado esto entre tanto Eterio suelto... espero que sea suficiente para 
         contextInfo
     }, { quoted: m });
 
-    global.db.write();
+    db.write();
 };
 
 handler.help = ['aventura'];

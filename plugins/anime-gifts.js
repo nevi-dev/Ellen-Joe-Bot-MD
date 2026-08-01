@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -108,7 +109,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     if (!interaction) return
 
     if (interaction.nsfw) {
-        const chat = global.db.data.chats[m.chat];
+        const chat = db.data.chats[m.chat];
         if (m.isGroup && !chat?.nsfw) return m.reply(`🔞 Activa el modo NSFW para usar esto.`);
     }
 

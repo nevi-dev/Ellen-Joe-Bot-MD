@@ -1,3 +1,4 @@
+import db from '../database.js'
 let handler = async (m, { conn, command }) => {
 
     if (command == 'dash' || command == 'dashboard' || command == 'views') {
@@ -17,8 +18,8 @@ let handler = async (m, { conn, command }) => {
     }
 
     if (command == 'database' || command == 'usuarios' || command == 'user') {
-        let totalreg = Object.keys(global.db.data.users).length
-        let rtotalreg = Object.values(global.db.data.users).filter(user => user.registered == true).length
+        let totalreg = Object.keys(db.data.users).length
+        let rtotalreg = Object.values(db.data.users).filter(user => user.registered == true).length
 
         conn.reply(m.chat, `
 🗂️ *Tengo ${rtotalreg} Usuarios Registrados*

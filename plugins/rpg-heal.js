@@ -1,6 +1,7 @@
+import db from '../database.js'
 import { getDynamicPrice, recordWalletExpense } from '../lib/economy.js'
 let handler = async (m, { conn }) => {
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
     if (!user) {
         return conn.reply(m.chat, `${emoji} El usuario no se encuentra en la base de Datos.`, m);
     }

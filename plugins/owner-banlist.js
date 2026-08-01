@@ -1,6 +1,7 @@
+import db from '../database.js'
 const handler = async (m, {conn, isOwner}) => {
-  const chats = Object.entries(global.db.data.chats).filter((chat) => chat[1].isBanned);
-  const users = Object.entries(global.db.data.users).filter((user) => user[1].banned);
+  const chats = Object.entries(db.data.chats).filter((chat) => chat[1].isBanned);
+  const users = Object.entries(db.data.users).filter((user) => user[1].banned);
   const caption = `
 ┌〔 Usuarios  -  Baneados 〕
 ├ Total : ${users.length} ${users ? '\n' + users.map(([jid], i) => `

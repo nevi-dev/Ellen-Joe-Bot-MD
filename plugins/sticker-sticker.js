@@ -1,3 +1,4 @@
+import db from '../database.js'
 import { sticker } from '../lib/sticker.js';
 import uploadFile from '../lib/uploadFile.js';
 import uploadImage from '../lib/uploadImage.js';
@@ -20,7 +21,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
       let out;
       try {
-        const packstickers = global.db.data.users[m.sender];
+        const packstickers = db.data.users[m.sender];
         const texto1 = packstickers?.text1 || `${global.packsticker}`;
         const texto2 = packstickers?.text2 || `${global.packsticker2}`;
 

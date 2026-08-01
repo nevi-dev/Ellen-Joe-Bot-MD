@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 // --- CONFIGURACIÓN ---
@@ -20,7 +21,7 @@ let handler = m => m;
 
 handler.all = async function (m) {
     const conn = this;
-    const chat = global.db?.data?.chats?.[m.chat];
+    const chat = db?.data?.chats?.[m.chat];
 
     if (!chat?.autoresponder || m.isBaileys || m.fromMe) return;
     if (!m.text || /^[#!./\-$]/.test(m.text.trim())) return;

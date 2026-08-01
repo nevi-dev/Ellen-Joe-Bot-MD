@@ -10,7 +10,7 @@ import * as ws from 'ws'
 import fs, {readdirSync, existsSync, mkdirSync, readFileSync, rmSync, watch} from 'fs'
 import yargs from 'yargs';
 import {spawn} from 'child_process'
-import lodash from 'lodash'
+import db, { loadDatabase } from './database.js'
 import { EllenJadiBot } from './plugins/jadibot-serbot.js';
 import chalk from 'chalk'
 import syntaxerror from 'syntax-error'
@@ -24,10 +24,6 @@ import Pino from 'pino'
 import path, { join, dirname } from 'path'
 import {Boom} from '@hapi/boom'
 import {makeWASocket, protoType, serialize} from './lib/simple.js'
-import {Low} from 'lowdb'
-import BetterSQLiteAdapter from './lib/sqliteDB.js'
-import cloudDBAdapter from './lib/cloudDBAdapter.js'
-import {mongoDB, mongoDBV2} from './lib/mongoDB.js'
 import store from './lib/store.js'
 import pkg from 'google-libphonenumber'
 const { PhoneNumberUtil } = pkg
@@ -35,7 +31,6 @@ const phoneUtil = PhoneNumberUtil.getInstance()
 const {DisconnectReason, useSqliteAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser} = await import('baileys')
 import readline, { createInterface } from 'readline'
 const {CONNECTING} = ws
-const {chain} = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
 
 //const yuw = dirname(fileURLToPath(import.meta.url))
@@ -116,33 +111,7 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.prefix = new RegExp('^[#/!.]')
 // global.opts['db'] = process.env['db']
 
-global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new BetterSQLiteAdapter('./src/database/database.sqlite', { migrateFrom: './src/database/database.json' }))
-
-global.DATABASE = global.db
-global.loadDatabase = async function loadDatabase() {
-  // 1. Mejoramos la validación inicial para evitar que pase de largo si data es undefined
-  if (global.db.data && Object.keys(global.db.data).length > 0) return global.db.data
-  if (global.db.READ) return global.db.READ
-
-  global.db.READ = (async () => {
-    await global.db.read().catch(console.error)
-    global.db.data = {
-      users: {},
-      chats: {},
-      stats: {},
-      msgs: {},
-      sticker: {},
-      settings: {},
-      ...(global.db.data || {}),
-    }
-    global.db.chain = chain(global.db.data)
-    global.db.READ = null
-    return global.db.data
-  })()
-  return global.db.READ
-}
-
-// 2. Agregamos el await fundamental aquí:
+// database.js se importa temprano para exponer la instancia por módulos ES y mantener el fallback legacy durante la migración.
 await loadDatabase()
 
 if (!fs.existsSync(global.Ellensessions)) fs.mkdirSync(global.Ellensessions, { recursive: true })
@@ -226,13 +195,29 @@ version,
 }
 
 
-const MAIN_RECONNECT_BASE_DELAY_MS = 5000
-const MAIN_RECONNECT_MAX_DELAY_MS = 60000
+const MAIN_RECONNECT_BASE_DELAY_MS = 1500
+const MAIN_RECONNECT_MAX_DELAY_MS = 15000
+const MAIN_RECONNECT_FAST_CODES = new Set([500, 428, 408, 440, 515])
 let mainReconnectAttempts = 0
 let mainReconnectTimer = null
 let mainReconnectInFlight = false
 let gracefulShutdownStarted = false
-const getReconnectDelay = (attempt) => Math.min(MAIN_RECONNECT_BASE_DELAY_MS * (2 ** Math.max(attempt - 1, 0)), MAIN_RECONNECT_MAX_DELAY_MS)
+const getDisconnectStatusCode = (lastDisconnect) => {
+const rawError = lastDisconnect?.error || lastDisconnect
+const boomError = rawError instanceof Boom ? rawError : new Boom(rawError)
+return boomError?.output?.statusCode || rawError?.output?.statusCode || rawError?.statusCode || rawError?.data?.statusCode
+}
+const getDisconnectReasonLabel = (statusCode) => statusCode === 500 ? 'internalServerError/recoverable' : Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
+const getReconnectDelay = (attempt, statusCode) => {
+const baseDelay = MAIN_RECONNECT_FAST_CODES.has(statusCode) ? 750 : MAIN_RECONNECT_BASE_DELAY_MS
+const exponentialDelay = Math.min(baseDelay * (2 ** Math.max(attempt - 1, 0)), MAIN_RECONNECT_MAX_DELAY_MS)
+const jitter = Math.floor(Math.random() * 500)
+return exponentialDelay + jitter
+}
+const safeCloseSocket = (socket) => {
+try { socket?.ws?.close?.() } catch (error) { console.error('No se pudo cerrar el WebSocket anterior:', error) }
+try { socket?.ev?.removeAllListeners?.() } catch (error) { console.error('No se pudieron limpiar listeners del socket anterior:', error) }
+}
 const shutdown = async (signal = 'SIGTERM', exitCode = 0) => {
 if (gracefulShutdownStarted) return
 gracefulShutdownStarted = true
@@ -278,8 +263,8 @@ conn.well = false;
 //conn.logger.info(`✦  H E C H O\n`)
 
 if (!opts['test']) {
-if (global.db) setInterval(async () => {
-if (global.db.data) await global.db.write()
+if (db) setInterval(async () => {
+if (db.data) await db.write()
 if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', `${jadi}`], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
 }, 30 * 1000);
 }
@@ -290,7 +275,7 @@ async function connectionUpdate(update) {
 const {connection, lastDisconnect, isNewLogin} = update;
 global.stopped = connection;
 if (isNewLogin) conn.isInit = true;
-if (global.db.data == null) loadDatabase();
+if (db.data == null) loadDatabase();
 if (update.qr != 0 && update.qr != undefined || methodCodeQR) {
 if (opcion == '1' || methodCodeQR) {
 console.log(chalk.bold.yellow(`
@@ -307,12 +292,9 @@ console.log(chalk.bold.green('\n❀ Ellen-Bot Conectado Exitosamente ❀'))
 }
 
 if (connection === 'close') {
-const rawError = lastDisconnect?.error
-const boomError = rawError instanceof Boom ? rawError : new Boom(rawError)
-const statusCode = boomError?.output?.statusCode || rawError?.output?.statusCode || rawError?.statusCode
+const statusCode = getDisconnectStatusCode(lastDisconnect)
 const isLoggedOut = statusCode === DisconnectReason.loggedOut
-const rawReasonLabel = Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
-const reasonLabel = statusCode === 500 ? 'internalServerError/recoverable' : rawReasonLabel
+const reasonLabel = getDisconnectReasonLabel(statusCode)
 
 if (isLoggedOut) {
 console.log(chalk.bold.redBright(`
@@ -329,7 +311,7 @@ return
 }
 
 mainReconnectAttempts += 1
-const delayMs = getReconnectDelay(mainReconnectAttempts)
+const delayMs = getReconnectDelay(mainReconnectAttempts, statusCode)
 const recoverableReason = statusCode === 500 || statusCode === DisconnectReason.connectionClosed || statusCode === DisconnectReason.connectionLost || statusCode === DisconnectReason.timedOut || statusCode === DisconnectReason.restartRequired
 
 console.log(chalk.bold.yellowBright(`
@@ -355,7 +337,12 @@ mainReconnectTimer.unref?.()
 }
 }
 
-process.on('uncaughtException', console.error)
+process.on('uncaughtException', (error) => {
+console.error('⚠️ Excepción no capturada; el proceso seguirá vivo para permitir reconexión:', error)
+})
+process.on('unhandledRejection', (reason) => {
+console.error('⚠️ Promesa rechazada no manejada; el proceso seguirá vivo para permitir reconexión:', reason)
+})
 
 let isInit = true;
 let handler = await import('./handler.js')
@@ -368,10 +355,7 @@ console.error(e);
 }
 if (restatConn) {
 const oldChats = global.conn.chats
-try {
-global.conn.ws.close()
-} catch { }
-conn.ev.removeAllListeners()
+safeCloseSocket(global.conn)
 global.conn = makeWASocket(connectionOptions, {chats: oldChats})
 isInit = true
 }
@@ -381,7 +365,14 @@ conn.ev.off('connection.update', conn.connectionUpdate)
 conn.ev.off('creds.update', conn.credsUpdate)
 }
 
-conn.handler = handler.handler.bind(global.conn)
+const boundMainHandler = handler.handler.bind(global.conn)
+conn.handler = async (chatUpdate) => {
+try {
+return await boundMainHandler(chatUpdate)
+} catch (error) {
+console.error('⚠️ Error interno manejando mensaje principal; el proceso seguirá vivo:', error)
+}
+}
 
 global.dispatchCommandFromButton = async (fakeMessage) => {
   try {

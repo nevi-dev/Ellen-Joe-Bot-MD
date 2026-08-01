@@ -1,7 +1,8 @@
+import db from '../database.js'
 const ro = 3000;
 const handler = async (m, {conn, usedPrefix, command}) => {
-  const time = global.db.data.users[m.sender].lastrob + 7200000;
-  if (new Date - global.db.data.users[m.sender].lastrob < 7200000) {
+  const time = db.data.users[m.sender].lastrob + 7200000;
+  if (new Date - db.data.users[m.sender].lastrob < 7200000) {
   conn.reply(m.chat, `${emoji3} Debes esperar ${msToTime(time - new Date())} para usar #robxp de nuevo.`, m);
   return;
   }
@@ -12,17 +13,17 @@ const handler = async (m, {conn, usedPrefix, command}) => {
   conn.reply(m.chat, `${emoji} Debes mencionar a alguien para intentar robarle XP.`, m)
   return;
     };
-  if (!(who in global.db.data.users)) { 
+  if (!(who in db.data.users)) {
   conn.reply(m.chat, `${emoji2} El usuario no se encuentra en mi base de datos.`, m)
 return;
   }
-  const users = global.db.data.users[who];
+  const users = db.data.users[who];
   const rob = Math.floor(Math.random() * ro);
   if (users.exp < rob) return conn.reply(m.chat, `${emoji2} @${who.split`@`[0]} no tiene suficiente *${ro} XP* como para que valga la pena intentar robar.":`, m, {mentions: [who]});
-  global.db.data.users[m.sender].exp += rob;
-  global.db.data.users[who].exp -= rob;
+  db.data.users[m.sender].exp += rob;
+  db.data.users[who].exp -= rob;
   conn.reply(m.chat, `${emoji} Le robaste ${rob} XP a @${who.split`@`[0]}`, m, {mentions: [who]});
-  global.db.data.users[m.sender].lastrob = new Date * 1;
+  db.data.users[m.sender].lastrob = new Date * 1;
 };
 handler.help = ['rob'];
 handler.tags = ['economy'];

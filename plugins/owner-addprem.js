@@ -1,3 +1,4 @@
+import db from '../database.js'
 const handler = async (m, {conn, text, usedPrefix, command}) => {
   let who;
   if (m.isGroup) who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : false;
@@ -5,7 +6,7 @@ const handler = async (m, {conn, text, usedPrefix, command}) => {
   const textpremERROR = `${emoji} Ingrese el tag del usuario que quieras agregar como user premium.`;
   if (!who) return m.reply(textpremERROR, null, {mentions: conn.parseMention(textpremERROR)});
 
-  const user = global.db.data.users[who];
+  const user = db.data.users[who];
   const txt = text.replace('@' + who.split`@`[0], '').trim();
   // let name = await conn.getName(who)
   const name = await '@' + who.split`@`[0];

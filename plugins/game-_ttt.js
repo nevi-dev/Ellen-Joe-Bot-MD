@@ -1,3 +1,4 @@
+import db from '../database.js'
 import {format} from 'util';
 const debugMode = !1;
 const winScore = 4999;
@@ -70,7 +71,7 @@ export async function before(m) {
 
 ${isWin ? `@${(isSurrender ? room.game.currentTurn : room.game.winner).split('@')[0]} Ganaste 🥳, Te llevas +4999 XP` : isTie ? 'El juego termino en empate 😐' : `Turno de @${room.game.currentTurn.split('@')[0]}`}
 `.trim();
-    const users = global.db.data.users;
+    const users = db.data.users;
     if ((room.game._currentTurn ^ isSurrender ? room.x : room.o) !== m.chat) {
       room[room.game._currentTurn ^ isSurrender ? 'x' : 'o'] = m.chat;
     }

@@ -1,5 +1,6 @@
+import db from '../database.js'
 let handler = async (m, { args, usedPrefix, command }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   
   // CORRECCIÓN: Inicializar sin borrar lo existente
   if (!user.pkMochila) user.pkMochila = { pokebolas: 0, superball: 0, ultraball: 0, caramelos: 0, huevos: 0 }

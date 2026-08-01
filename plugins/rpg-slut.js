@@ -1,7 +1,8 @@
+import db from '../database.js'
 let cooldowns = {}
 
 let handler = async (m, { conn, text, command, usedPrefix }) => {
-let users = global.db.data.users
+let users = db.data.users
 let senderId = m.sender
 let senderName = conn.getName(senderId)
 
@@ -47,7 +48,7 @@ mentionedJid: [randomUserId],
 }}, { quoted: m })
 break
 }
-global.db.write()}
+db.write()}
 
 handler.tags = ['rpg']
 handler.help = ['slut']

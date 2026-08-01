@@ -1,3 +1,4 @@
+import db from '../database.js'
 var handler = async (m, { conn, text, usedPrefix, command }) => {
     let user, number, bot, bant, ownerNumber, aa, users, usr
 
@@ -33,7 +34,7 @@ var handler = async (m, { conn, text, usedPrefix, command }) => {
             }
         }
 
-        users = global.db.data.users
+        users = db.data.users
         if (!users[user]) {
             users[user] = { banned: false }
         }

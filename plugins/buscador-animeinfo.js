@@ -1,3 +1,4 @@
+import db from '../database.js'
 /*
 - Coded by I'm Fz
 - https/Github.com/FzTeis
@@ -89,7 +90,7 @@ let handler = async (m, { conn, command, args, text, usedPrefix }) => {
     }
 
     // Checking for premium status
-    let user = global.db.data.users[m.sender];
+    let user = db.data.users[m.sender];
     if (!user.premium) {
         return m.replyExternal(`⧼✦⧽ *Acceso Restringido, Proxy ${name}.*\nEl protocolo *${usedPrefix + command}* solo está disponible para usuarios con autorización de *Nivel Élite*.`, { contextInfo });
     }

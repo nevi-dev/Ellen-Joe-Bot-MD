@@ -1,5 +1,6 @@
+import db from '../database.js'
 const handler = async (m, {text}) => {
-const user = global.db.data.users[m.sender];
+const user = db.data.users[m.sender];
 user.afk = + new Date;
 user.afkReason = text;
 conn.reply(m.chat, `${emoji} *El Usuario ${conn.getName(m.sender)} Estará Inactivo*\n\n*Motivo: ${text ? ': ' + text : 'Sin Especificar!'}*

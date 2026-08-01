@@ -1,17 +1,18 @@
+import db from '../database.js'
 import { recordWalletIncome } from '../lib/economy.js'
 var handler = async (m, { conn }) => {
     let coin = Math.floor(Math.random() * (500 - 100 + 1)) + 100;
     let exp = Math.floor(Math.random() * (500 - 100 + 1)) + 100;
     let d = Math.floor(Math.random() * (500 - 100 + 1)) + 100;
 
-    let time = global.db.data.users[m.sender].lastclaim + 86400000;
-    if (new Date() - global.db.data.users[m.sender].lastclaim < 7200000) {
+    let time = db.data.users[m.sender].lastclaim + 86400000;
+    if (new Date() - db.data.users[m.sender].lastclaim < 7200000) {
         return conn.reply(m.chat, `${emoji4} *Vuelve en ${msToTime(time - new Date())}*`, m);
     }
 
-    global.db.data.users[m.sender].diamond += d;
-    recordWalletIncome(m.sender, global.db.data.users[m.sender], coin, 'Recompensa diaria', 'daily')
-    global.db.data.users[m.sender].exp += exp;
+    db.data.users[m.sender].diamond += d;
+    recordWalletIncome(m.sender, db.data.users[m.sender], coin, 'Recompensa diaria', 'daily')
+    db.data.users[m.sender].exp += exp;
     conn.reply(m.chat, `${emoji} *Recompensa Diaria*
 
 Recursos:
@@ -19,7 +20,7 @@ Recursos:
 💎 Diamantes : *+${d}*
 💸 ${moneda} : *+${coin}*`, m);
 
-    global.db.data.users[m.sender].lastclaim = Date.now();
+    db.data.users[m.sender].lastclaim = Date.now();
 }
 
 handler.help = ['daily', 'claim'];

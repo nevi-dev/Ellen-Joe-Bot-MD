@@ -1,3 +1,4 @@
+import db from '../database.js'
 import fetch from 'node-fetch'
 
 let apiCache = {}
@@ -50,7 +51,7 @@ async function buildPokemonObj(idOrName, level = 1) {
 
 // --- HANDLER PRINCIPAL ---
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-  let user = global.db.data.users[m.sender]
+  let user = db.data.users[m.sender]
   if (!user.pkPiedras) user.pkPiedras = { fuego: 0, agua: 0, trueno: 0, hoja: 0, lunar: 0, solar: 0 }
   if (!user.pkMochila) user.pkMochila = { caramelos: 0 }
 
