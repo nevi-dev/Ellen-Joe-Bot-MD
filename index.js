@@ -311,7 +311,8 @@ const rawError = lastDisconnect?.error
 const boomError = rawError instanceof Boom ? rawError : new Boom(rawError)
 const statusCode = boomError?.output?.statusCode || rawError?.output?.statusCode || rawError?.statusCode
 const isLoggedOut = statusCode === DisconnectReason.loggedOut
-const reasonLabel = Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
+const rawReasonLabel = Object.entries(DisconnectReason).find(([, value]) => value === statusCode)?.[0] || 'unknown'
+const reasonLabel = statusCode === 500 ? 'internalServerError/recoverable' : rawReasonLabel
 
 if (isLoggedOut) {
 console.log(chalk.bold.redBright(`
